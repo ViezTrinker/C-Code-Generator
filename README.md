@@ -82,6 +82,22 @@ sum=18
 
 This runs until you stop it (Ctrl+C). In the GUI, use **Open** → Build → Run and watch the Program Output pane.
 
+### Password generator
+
+[`examples/password_generator.cgen`](examples/password_generator.cgen) asks for:
+
+1. Total password length  
+2. How many digits  
+3. How many special characters (`!@#$%&*?`)  
+4. How many uppercase letters  
+
+Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffer, shuffles it, and prints the password.
+
+```powershell
+# Headless (pipe answers: total digits specials uppers)
+"16`n3`n2`n3" | .\build\c_code_generator.exe --codegen examples\password_generator.cgen
+```
+
 ## Usage
 
 - Place blocks from the left palette

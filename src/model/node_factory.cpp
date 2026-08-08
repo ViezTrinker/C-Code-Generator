@@ -34,6 +34,7 @@ namespace Cgen
          {BlockType::Sub, "Sub", "Sub", true},
          {BlockType::Mul, "Mul", "Mul", true},
          {BlockType::Div, "Div", "Div", true},
+         {BlockType::Mod, "Mod", "Mod", true},
          {BlockType::Equal, "Equal", "Equal", true},
          {BlockType::NotEqual, "NotEqual", "Not Equal", true},
          {BlockType::Less, "Less", "Less", true},
@@ -41,6 +42,13 @@ namespace Cgen
          {BlockType::Greater, "Greater", "Greater", true},
          {BlockType::GreaterEqual, "GreaterEqual", "Greater Equal", true},
          {BlockType::Printf, "Printf", "Printf", false},
+         {BlockType::WaitEnter, "WaitEnter", "Wait Enter", false},
+         {BlockType::ScanfInt, "ScanfInt", "Scanf Int", false},
+         {BlockType::ArrayDecl, "ArrayDecl", "Array Decl", false},
+         {BlockType::IndexAssign, "IndexAssign", "Index Set", false},
+         {BlockType::IndexLoad, "IndexLoad", "Index Get", true},
+         {BlockType::RandomChar, "RandomChar", "Rand Char", true},
+         {BlockType::ShuffleArray, "ShuffleArray", "Shuffle", false},
          {BlockType::Malloc, "Malloc", "Malloc", true},
          {BlockType::Free, "Free", "Free", false},
          {BlockType::TimeNow, "TimeNow", "Time", true},
@@ -224,6 +232,7 @@ namespace Cgen
          case BlockType::Sub:
          case BlockType::Mul:
          case BlockType::Div:
+         case BlockType::Mod:
          case BlockType::Equal:
          case BlockType::NotEqual:
          case BlockType::Less:
@@ -242,6 +251,46 @@ namespace Cgen
             node.ports.push_back(MakeDataIn("Arg4", PrimitiveType::Int32, false));
             node.ports.push_back(MakeDataIn("Arg5", PrimitiveType::Int32, false));
             node.properties["format"] = "value=%d\\n";
+            break;
+         case BlockType::WaitEnter:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["prompt"] = "Press Enter to exit...\\n";
+            break;
+         case BlockType::ScanfInt:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["target"] = "value";
+            node.properties["prompt"] = "Enter value: ";
+            break;
+         case BlockType::ArrayDecl:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["name"] = "buffer";
+            node.properties["elemType"] = "char";
+            node.properties["size"] = "256";
+            break;
+         case BlockType::IndexAssign:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.ports.push_back(MakeDataIn("Index", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
+            node.properties["array"] = "buffer";
+            break;
+         case BlockType::IndexLoad:
+            node.ports.push_back(MakeDataIn("Index", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
+            node.properties["array"] = "buffer";
+            break;
+         case BlockType::RandomChar:
+            node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
+            node.properties["set"] = "lower";
+            break;
+         case BlockType::ShuffleArray:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.ports.push_back(MakeDataIn("Length", PrimitiveType::Int32, false));
+            node.properties["array"] = "buffer";
             break;
          case BlockType::Malloc:
             node.ports.push_back(MakeDataIn("Size", PrimitiveType::Uint64, false));

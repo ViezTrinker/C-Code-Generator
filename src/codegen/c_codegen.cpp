@@ -159,6 +159,8 @@ namespace Cgen
                return "*";
             case BlockType::Div:
                return "/";
+            case BlockType::Mod:
+               return "%";
             case BlockType::Equal:
                return "==";
             case BlockType::NotEqual:
@@ -209,6 +211,7 @@ namespace Cgen
             case BlockType::Sub:
             case BlockType::Mul:
             case BlockType::Div:
+            case BlockType::Mod:
             case BlockType::Equal:
             case BlockType::NotEqual:
             case BlockType::Less:
@@ -227,6 +230,36 @@ namespace Cgen
             case BlockType::Random:
                expression = "rand()";
                break;
+            case BlockType::IndexLoad:
+            {
+               const std::string arrayName = GetProperty(*pNode, "array", "buffer");
+               const std::string indexExpr =
+                  EmitInputExpression(pContext, nodeId, "Index");
+               expression = "((int32_t)(" + arrayName + "[" + indexExpr + "]))";
+               break;
+            }
+            case BlockType::RandomChar:
+            {
+               const std::string setName = GetProperty(*pNode, "set", "lower");
+               if (setName == "upper")
+               {
+                  expression = "((int32_t)('A' + (rand() % 26)))";
+               }
+               else if (setName == "digit")
+               {
+                  expression = "((int32_t)('0' + (rand() % 10)))";
+               }
+               else if (setName == "special")
+               {
+                  expression =
+                     "((int32_t)(\"!@#$%&*?\"[rand() % 8]))";
+               }
+               else
+               {
+                  expression = "((int32_t)('a' + (rand() % 26)))";
+               }
+               break;
+            }
             case BlockType::Malloc:
             {
                const std::string sizeExpr = EmitInputExpression(pContext, nodeId, "Size");
@@ -302,6 +335,129 @@ namespace Cgen
                (*pContext->pOut) << ");\n";
                WriteIndent(pContext);
                (*pContext->pOut) << "fflush(stdout);\n";
+               break;
+            }
+            case BlockType::WaitEnter:
+            {
+               const std::string promptProp =
+                  GetProperty(node, "prompt", "Press Enter to exit...\\n");
+               const std::string promptText = EscapeCString(UnescapeFormat(promptProp));
+               WriteIndent(pContext);
+               (*pContext->pOut) << "printf(\"" << promptText << "\");\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "fflush(stdout);\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "int cgenWaitChar = 0;\n";
+               WriteIndent(pContext);
+               (*pContext->pOut)
+                  << "while (((cgenWaitChar = getchar()) != '\\n') && "
+                     "(cgenWaitChar != EOF))\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "if (cgenWaitChar != EOF)\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut)
+                  << "while (((cgenWaitChar = getchar()) != '\\n') && "
+                     "(cgenWaitChar != EOF))\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               break;
+            }
+            case BlockType::ScanfInt:
+            {
+               const std::string target = GetProperty(node, "target", "value");
+               const std::string promptProp =
+                  GetProperty(node, "prompt", "Enter value: ");
+               const std::string promptText = EscapeCString(UnescapeFormat(promptProp));
+               WriteIndent(pContext);
+               (*pContext->pOut) << "printf(\"" << promptText << "\");\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "fflush(stdout);\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "if (scanf(\"%d\", &" << target << ") != 1)\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << target << " = 0;\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               break;
+            }
+            case BlockType::ArrayDecl:
+            {
+               const std::string name = GetProperty(node, "name", "buffer");
+               const std::string elemType = GetProperty(node, "elemType", "char");
+               const std::string sizeText = GetProperty(node, "size", "256");
+               WriteIndent(pContext);
+               (*pContext->pOut) << elemType << " " << name << "[" << sizeText << "];\n";
+               break;
+            }
+            case BlockType::IndexAssign:
+            {
+               const std::string arrayName = GetProperty(node, "array", "buffer");
+               const std::string indexExpr =
+                  EmitInputExpression(pContext, node.id, "Index");
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, node.id, "Value");
+               WriteIndent(pContext);
+               (*pContext->pOut) << arrayName << "[" << indexExpr << "] = (char)("
+                                 << valueExpr << ");\n";
+               break;
+            }
+            case BlockType::ShuffleArray:
+            {
+               const std::string arrayName = GetProperty(node, "array", "buffer");
+               const std::string lengthExpr =
+                  EmitInputExpression(pContext, node.id, "Length");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "int32_t cgenShuffleLen = (int32_t)(" << lengthExpr
+                                 << ");\n";
+               WriteIndent(pContext);
+               (*pContext->pOut)
+                  << "for (int32_t cgenShuffleIndex = cgenShuffleLen - 1; "
+                     "cgenShuffleIndex > 0; --cgenShuffleIndex)\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut)
+                  << "int32_t cgenShuffleSwap = rand() % (cgenShuffleIndex + 1);\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "char cgenShuffleTemp = " << arrayName
+                                 << "[cgenShuffleIndex];\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << arrayName << "[cgenShuffleIndex] = " << arrayName
+                                 << "[cgenShuffleSwap];\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << arrayName << "[cgenShuffleSwap] = cgenShuffleTemp;\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
                break;
             }
             case BlockType::LocalTime:
@@ -637,7 +793,10 @@ namespace Cgen
       context.pOut = &stream;
       context.pDiagnostics = &output.diagnostics;
 
-      const bool usesRandom = DocumentContainsBlockType(document, BlockType::Random);
+      const bool usesRandom =
+         DocumentContainsBlockType(document, BlockType::Random) ||
+         DocumentContainsBlockType(document, BlockType::RandomChar) ||
+         DocumentContainsBlockType(document, BlockType::ShuffleArray);
       const bool usesLocalTime =
          DocumentContainsBlockType(document, BlockType::LocalTime);
       const bool usesSleep = DocumentContainsBlockType(document, BlockType::Sleep);

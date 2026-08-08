@@ -1,7 +1,7 @@
 CGEN 1
 {
-  "nextNodeId": 17,
-  "nextEdgeId": 16,
+  "nextNodeId": 18,
+  "nextEdgeId": 17,
   "viewport": {
     "x": 0.0,
     "y": 0.0,
@@ -148,9 +148,18 @@ CGEN 1
     {
       "id": 16,
       "type": "End",
-      "posX": 1300.0,
+      "posX": 1480.0,
       "posY": 40.0,
       "properties": {}
+    },
+    {
+      "id": 17,
+      "type": "WaitEnter",
+      "posX": 1300.0,
+      "posY": 40.0,
+      "properties": {
+        "prompt": "Press Enter to exit...\\n"
+      }
     }
   ],
   "edges": [
@@ -255,6 +264,13 @@ CGEN 1
     {
       "id": 15,
       "fromNodeId": 14,
+      "fromPort": "Next",
+      "toNodeId": 17,
+      "toPort": "In"
+    },
+    {
+      "id": 16,
+      "fromNodeId": 17,
       "fromPort": "Next",
       "toNodeId": 16,
       "toPort": "In"

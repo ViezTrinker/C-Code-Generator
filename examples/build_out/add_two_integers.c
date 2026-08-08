@@ -15,5 +15,19 @@ int main(void)
    fflush(stdout);
    printf("sum=%d\n", sum);
    fflush(stdout);
+   printf("Press Enter to exit...\n");
+   fflush(stdout);
+   {
+      int cgenWaitChar = 0;
+      while (((cgenWaitChar = getchar()) != '\n') && (cgenWaitChar != EOF))
+      {
+      }
+      if (cgenWaitChar != EOF)
+      {
+         while (((cgenWaitChar = getchar()) != '\n') && (cgenWaitChar != EOF))
+         {
+         }
+      }
+   }
    return 0;
 }

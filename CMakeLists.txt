@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(cpp_code_generator LANGUAGES CXX)
+project(c_code_generator LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -42,16 +42,16 @@ set(PROJECT_SOURCES
    src/gui/toolbar.cpp
 )
 
-add_executable(cpp_code_generator
+add_executable(c_code_generator
    ${PROJECT_SOURCES}
    ${PROJECT_HEADERS}
 )
 
-target_include_directories(cpp_code_generator PRIVATE
+target_include_directories(c_code_generator PRIVATE
    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(cpp_code_generator PRIVATE
+target_link_libraries(c_code_generator PRIVATE
    SFML::System
    SFML::Window
    SFML::Graphics
@@ -59,13 +59,13 @@ target_link_libraries(cpp_code_generator PRIVATE
 )
 
 if(WIN32)
-   target_link_libraries(cpp_code_generator PRIVATE comdlg32)
+   target_link_libraries(c_code_generator PRIVATE comdlg32)
    # TARGET_RUNTIME_DLLS is empty for fully static links; skip copy in that case.
-   add_custom_command(TARGET cpp_code_generator POST_BUILD
+   add_custom_command(TARGET c_code_generator POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E
-         $<IF:$<BOOL:$<TARGET_RUNTIME_DLLS:cpp_code_generator>>,copy_if_different,true>
-         $<TARGET_RUNTIME_DLLS:cpp_code_generator>
-         $<TARGET_FILE_DIR:cpp_code_generator>
+         $<IF:$<BOOL:$<TARGET_RUNTIME_DLLS:c_code_generator>>,copy_if_different,true>
+         $<TARGET_RUNTIME_DLLS:c_code_generator>
+         $<TARGET_FILE_DIR:c_code_generator>
       COMMAND_EXPAND_LISTS
    )
 endif()

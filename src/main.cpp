@@ -102,6 +102,50 @@ namespace
       std::cout << "Self-test passed.\n";
       return 0;
    }
+
+   int32_t RunCodegenFile(std::string_view filePath)
+   {
+      Cgen::GraphDocument document;
+      std::string diagnostics;
+      const Cgen::Result loadResult =
+         Cgen::LoadCgenFile(filePath, &document, &diagnostics);
+      if (Cgen::IsErr(loadResult))
+      {
+         std::cerr << "Failed to load .cgen:\n" << diagnostics << "\n";
+         return 1;
+      }
+
+      const Cgen::CodegenOutput generated = Cgen::GenerateCSource(document);
+      if (Cgen::IsErr(generated.result))
+      {
+         std::cerr << "Codegen failed:\n" << generated.diagnostics << "\n";
+         return 1;
+      }
+
+      Cgen::BuildRunner runner("build_out");
+      if (Cgen::IsErr(runner.WriteSource(generated.source)))
+      {
+         std::cerr << "Failed to write generated.c\n";
+         return 1;
+      }
+
+      const Cgen::BuildResult buildResult = runner.Compile();
+      std::cout << buildResult.command << "\n" << buildResult.output;
+      if (Cgen::IsErr(buildResult.result))
+      {
+         std::cerr << "Compile failed, exit=" << buildResult.exitCode << "\n";
+         return 1;
+      }
+
+      const Cgen::BuildResult runResult = runner.Run();
+      std::cout << runResult.output;
+      if (Cgen::IsErr(runResult.result))
+      {
+         std::cerr << "Run failed, exit=" << runResult.exitCode << "\n";
+         return 1;
+      }
+      return 0;
+   }
 } // namespace
 
 int main(int argc, char** pArgv)
@@ -112,6 +156,10 @@ int main(int argc, char** pArgv)
       if (arg == "--self-test")
       {
          return RunSelfTest();
+      }
+      if ((arg == "--codegen") && (argc > 2))
+      {
+         return RunCodegenFile(pArgv[2]);
       }
    }
 

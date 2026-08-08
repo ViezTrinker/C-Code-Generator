@@ -51,11 +51,24 @@ cmake --build build
 ## Run
 
 ```powershell
-.\build\cpp_code_generator.exe
-.\build\cpp_code_generator.exe --self-test
+.\build\c_code_generator.exe
+.\build\c_code_generator.exe --self-test
+.\build\c_code_generator.exe --codegen examples\add_two_integers.cgen
 ```
 
 (MSVC multi-config generators may place the exe under `build\Release\`.)
+
+## Example project
+
+Open [`examples/add_two_integers.cgen`](examples/add_two_integers.cgen) from the app (**Open**), or run it headless with `--codegen` as above.
+
+It declares `a = 7` and `b = 11`, computes `sum = a + b`, and prints:
+
+```text
+a=7
+b=11
+sum=18
+```
 
 ## Usage
 
@@ -75,4 +88,5 @@ cmake --build build
 - `third_party/nlohmann/` — vendored JSON header
 - `third_party/sfml/` — local SFML sources (created by the build script; gitignored)
 - `scripts/build.ps1` — one-shot fetch + build
+- `examples/` — sample `.cgen` projects
 - `build_out/` — generated C and executable artifacts

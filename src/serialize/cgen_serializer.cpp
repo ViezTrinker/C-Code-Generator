@@ -237,6 +237,12 @@ namespace Cgen
       }
       std::string header;
       std::getline(input, header);
+      while ((!header.empty()) &&
+             ((header.back() == '\r') || (header.back() == '\n') ||
+              (header.back() == ' ') || (header.back() == '\t')))
+      {
+         header.pop_back();
+      }
       if (header != "CGEN 1")
       {
          if (pDiagnostics != nullptr)

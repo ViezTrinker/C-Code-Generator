@@ -106,7 +106,7 @@ if ($LASTEXITCODE -ne 0)
 }
 
 Write-Host "Building ($Configuration) ..."
-if (($Generator -like "Visual Studio*") -or ((-not $Generator) -and (Test-Path (Join-Path $BuildDir "cpp_code_generator.sln"))))
+if (($Generator -like "Visual Studio*") -or ((-not $Generator) -and (Test-Path (Join-Path $BuildDir "c_code_generator.sln"))))
 {
    & cmake --build $BuildDir --config $Configuration
 }
@@ -120,10 +120,10 @@ if ($LASTEXITCODE -ne 0)
 }
 
 $ExeCandidates = @(
-   (Join-Path $BuildDir "cpp_code_generator.exe"),
-   (Join-Path $BuildDir "$Configuration\cpp_code_generator.exe"),
-   (Join-Path $BuildDir "Release\cpp_code_generator.exe"),
-   (Join-Path $BuildDir "Debug\cpp_code_generator.exe")
+   (Join-Path $BuildDir "c_code_generator.exe"),
+   (Join-Path $BuildDir "$Configuration\c_code_generator.exe"),
+   (Join-Path $BuildDir "Release\c_code_generator.exe"),
+   (Join-Path $BuildDir "Debug\c_code_generator.exe")
 )
 
 $ExePath = $ExeCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1

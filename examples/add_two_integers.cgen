@@ -1,0 +1,263 @@
+CGEN 1
+{
+  "nextNodeId": 17,
+  "nextEdgeId": 16,
+  "viewport": {
+    "x": 0.0,
+    "y": 0.0,
+    "zoom": 1.0
+  },
+  "types": [],
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Start",
+      "posX": 40.0,
+      "posY": 40.0,
+      "properties": {}
+    },
+    {
+      "id": 2,
+      "type": "VariableDecl",
+      "posX": 220.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "a",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 3,
+      "type": "Literal",
+      "posX": 40.0,
+      "posY": 180.0,
+      "properties": {
+        "value": "7",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 4,
+      "type": "VariableDecl",
+      "posX": 400.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "b",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 5,
+      "type": "Literal",
+      "posX": 220.0,
+      "posY": 180.0,
+      "properties": {
+        "value": "11",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 6,
+      "type": "VariableDecl",
+      "posX": 580.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "sum",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 7,
+      "type": "Add",
+      "posX": 400.0,
+      "posY": 180.0,
+      "properties": {}
+    },
+    {
+      "id": 8,
+      "type": "VariableRef",
+      "posX": 280.0,
+      "posY": 280.0,
+      "properties": {
+        "name": "a"
+      }
+    },
+    {
+      "id": 9,
+      "type": "VariableRef",
+      "posX": 400.0,
+      "posY": 280.0,
+      "properties": {
+        "name": "b"
+      }
+    },
+    {
+      "id": 10,
+      "type": "Printf",
+      "posX": 760.0,
+      "posY": 40.0,
+      "properties": {
+        "format": "a=%d\\n"
+      }
+    },
+    {
+      "id": 11,
+      "type": "VariableRef",
+      "posX": 640.0,
+      "posY": 180.0,
+      "properties": {
+        "name": "a"
+      }
+    },
+    {
+      "id": 12,
+      "type": "Printf",
+      "posX": 940.0,
+      "posY": 40.0,
+      "properties": {
+        "format": "b=%d\\n"
+      }
+    },
+    {
+      "id": 13,
+      "type": "VariableRef",
+      "posX": 820.0,
+      "posY": 180.0,
+      "properties": {
+        "name": "b"
+      }
+    },
+    {
+      "id": 14,
+      "type": "Printf",
+      "posX": 1120.0,
+      "posY": 40.0,
+      "properties": {
+        "format": "sum=%d\\n"
+      }
+    },
+    {
+      "id": 15,
+      "type": "VariableRef",
+      "posX": 1000.0,
+      "posY": 180.0,
+      "properties": {
+        "name": "sum"
+      }
+    },
+    {
+      "id": 16,
+      "type": "End",
+      "posX": 1300.0,
+      "posY": 40.0,
+      "properties": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": 1,
+      "fromNodeId": 1,
+      "fromPort": "Next",
+      "toNodeId": 2,
+      "toPort": "In"
+    },
+    {
+      "id": 2,
+      "fromNodeId": 3,
+      "fromPort": "Value",
+      "toNodeId": 2,
+      "toPort": "Init"
+    },
+    {
+      "id": 3,
+      "fromNodeId": 2,
+      "fromPort": "Next",
+      "toNodeId": 4,
+      "toPort": "In"
+    },
+    {
+      "id": 4,
+      "fromNodeId": 5,
+      "fromPort": "Value",
+      "toNodeId": 4,
+      "toPort": "Init"
+    },
+    {
+      "id": 5,
+      "fromNodeId": 4,
+      "fromPort": "Next",
+      "toNodeId": 6,
+      "toPort": "In"
+    },
+    {
+      "id": 6,
+      "fromNodeId": 8,
+      "fromPort": "Value",
+      "toNodeId": 7,
+      "toPort": "Left"
+    },
+    {
+      "id": 7,
+      "fromNodeId": 9,
+      "fromPort": "Value",
+      "toNodeId": 7,
+      "toPort": "Right"
+    },
+    {
+      "id": 8,
+      "fromNodeId": 7,
+      "fromPort": "Result",
+      "toNodeId": 6,
+      "toPort": "Init"
+    },
+    {
+      "id": 9,
+      "fromNodeId": 6,
+      "fromPort": "Next",
+      "toNodeId": 10,
+      "toPort": "In"
+    },
+    {
+      "id": 10,
+      "fromNodeId": 11,
+      "fromPort": "Value",
+      "toNodeId": 10,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 11,
+      "fromNodeId": 10,
+      "fromPort": "Next",
+      "toNodeId": 12,
+      "toPort": "In"
+    },
+    {
+      "id": 12,
+      "fromNodeId": 13,
+      "fromPort": "Value",
+      "toNodeId": 12,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 13,
+      "fromNodeId": 12,
+      "fromPort": "Next",
+      "toNodeId": 14,
+      "toPort": "In"
+    },
+    {
+      "id": 14,
+      "fromNodeId": 15,
+      "fromPort": "Value",
+      "toNodeId": 14,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 15,
+      "fromNodeId": 14,
+      "fromPort": "Next",
+      "toNodeId": 16,
+      "toPort": "In"
+    }
+  ]
+}

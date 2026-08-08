@@ -1,0 +1,34 @@
+/*!
+ *\file c_codegen.h
+ *\brief Generates C99 source from a flowchart document.
+ */
+#ifndef C_CODEGEN_H
+#define C_CODEGEN_H
+
+#include <string>
+
+#include "model/graph_document.h"
+#include "model/result.h"
+
+namespace Cgen
+{
+   /*!
+    *\brief Code generation outcome with optional diagnostics.
+    */
+   struct CodegenOutput
+   {
+      Result result = Result::Ok;
+      std::string source;
+      std::string diagnostics;
+   };
+
+   /*!
+    *\brief Emits a complete C translation unit for the document.
+    *
+    *\param[in] document Flowchart document.
+    *\return Generated source and status.
+    */
+   CodegenOutput GenerateCSource(const GraphDocument& document);
+} // namespace Cgen
+
+#endif // C_CODEGEN_H

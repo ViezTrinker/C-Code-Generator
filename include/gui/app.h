@@ -1,0 +1,70 @@
+/*!
+ *\file app.h
+ *\brief Main application window wiring GUI panels together.
+ */
+#ifndef APP_H
+#define APP_H
+
+#include <cstdint>
+#include <memory>
+#include <string>
+
+#include <SFML/Graphics.hpp>
+
+#include "build/build_runner.h"
+#include "gui/canvas_view.h"
+#include "gui/log_pane.h"
+#include "gui/palette.h"
+#include "gui/property_panel.h"
+#include "gui/toolbar.h"
+#include "model/graph_document.h"
+
+namespace Cgen
+{
+   /*!
+    *\brief Top-level SFML application.
+    */
+   class App
+   {
+   public:
+      /*!
+       *\brief Constructs the application.
+       */
+      App(void);
+
+      /*!
+       *\brief Runs the main loop until the window closes.
+       *
+       *\return Process exit code.
+       */
+      int32_t Run(void);
+
+   private:
+      void Layout(void);
+      void HandleToolbar(ToolbarAction action);
+      void NewDocument(void);
+      void OpenDocument(void);
+      void SaveDocument(void);
+      void GenerateCode(void);
+      void BuildCode(void);
+      void RunProgram(void);
+      void UpdateTitle(void);
+      bool LoadFont(void);
+      bool PromptOpenPath(std::string* pOutPath);
+      bool PromptSavePath(std::string* pOutPath);
+
+      sf::RenderWindow _window;
+      sf::Font _font;
+      GraphDocument _document;
+      BuildRunner _buildRunner;
+      std::unique_ptr<Toolbar> _pToolbar;
+      std::unique_ptr<Palette> _pPalette;
+      std::unique_ptr<CanvasView> _pCanvas;
+      std::unique_ptr<PropertyPanel> _pProperties;
+      std::unique_ptr<LogPane> _pProgramLog;
+      std::unique_ptr<LogPane> _pCompilerLog;
+      std::string _lastGeneratedSource;
+   };
+} // namespace Cgen
+
+#endif // APP_H

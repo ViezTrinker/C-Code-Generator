@@ -1,0 +1,13 @@
+/build/
+/build_out/
+/.vs/
+/out/
+/third_party/sfml/
+CMakeUserPresets.json
+*.user
+*.exe
+*.obj
+*.o
+*.a
+*.dll
+/_deps/

@@ -1,0 +1,78 @@
+# C Code Generator
+
+Visual flowchart editor (SFML) that generates, compiles, and runs C99 code.
+
+## Requirements
+
+- CMake 3.20+
+- A C++17 compiler (Visual Studio 2022/2026, or MinGW g++)
+- Network on the **first** configure/build (to download SFML unless already cached)
+- `gcc` on `PATH` if you use the in-app **Build/Run** buttons
+
+External libraries are handled for you:
+
+| Dependency | How it is provided |
+| --- | --- |
+| nlohmann_json | Vendored in `third_party/nlohmann/json.hpp` |
+| SFML 3 | Auto-downloaded into `third_party/sfml` by `scripts/build.ps1`, or via CMake FetchContent |
+
+No vcpkg / manual SFML install is required.
+
+## Easiest build (Windows)
+
+From the repo root in PowerShell:
+
+```powershell
+.\scripts\build.ps1
+```
+
+That script downloads SFML once, configures CMake, and builds. Optional:
+
+```powershell
+.\scripts\build.ps1 -Configuration Debug
+.\scripts\build.ps1 -Generator "Visual Studio 17 2022"
+```
+
+## Visual Studio
+
+1. **File → Open → Folder…** and select this repository
+2. Pick **x64-Debug** or **x64-Release**
+3. Build (first configure downloads SFML if needed)
+
+`CMakeSettings.json` / `CMakePresets.json` do **not** need a vcpkg toolchain file.
+
+## Manual CMake
+
+```powershell
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+## Run
+
+```powershell
+.\build\cpp_code_generator.exe
+.\build\cpp_code_generator.exe --self-test
+```
+
+(MSVC multi-config generators may place the exe under `build\Release\`.)
+
+## Usage
+
+- Place blocks from the left palette
+- Drag nodes; connect amber **control** ports and blue **data** ports
+- Right-click a port to remove its wire; Delete removes the selected node
+- Edit properties on the right (click a field, type, Enter to commit)
+- **Generate C** writes `build_out/generated.c`
+- **Build** runs `gcc`; logs appear in the Compiler pane
+- **Run** executes the program; `printf` output appears in Program Output
+- **Save/Open** uses the `.cgen` (CGEN 1 + JSON) project format
+
+## Layout
+
+- `include/`, `src/` — application code
+- `cmake/Dependencies.cmake` — SFML / JSON wiring
+- `third_party/nlohmann/` — vendored JSON header
+- `third_party/sfml/` — local SFML sources (created by the build script; gitignored)
+- `scripts/build.ps1` — one-shot fetch + build
+- `build_out/` — generated C and executable artifacts

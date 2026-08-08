@@ -58,7 +58,9 @@ cmake --build build
 
 (MSVC multi-config generators may place the exe under `build\Release\`.)
 
-## Example project
+## Example projects
+
+### Add two integers
 
 Open [`examples/add_two_integers.cgen`](examples/add_two_integers.cgen) from the app (**Open**), or run it headless with `--codegen` as above.
 
@@ -70,13 +72,23 @@ b=11
 sum=18
 ```
 
+### Live clock
+
+[`examples/live_clock.cgen`](examples/live_clock.cgen) declares year/month/day/hour/minute/second, fills them with a **Local Time** block each loop iteration, prints `YYYY-MM-DD HH:MM:SS`, then **Sleep**s 1 second in an infinite `while (1)` loop.
+
+```powershell
+.\build\c_code_generator.exe --codegen examples\live_clock.cgen
+```
+
+This runs until you stop it (Ctrl+C). In the GUI, use **Open** → Build → Run and watch the Program Output pane.
+
 ## Usage
 
 - Place blocks from the left palette
 - Drag nodes; connect amber **control** ports and blue **data** ports
 - Right-click a port to remove its wire; Delete removes the selected node
 - Edit properties on the right (click a field, type, Enter to commit)
-- **Generate C** writes `build_out/generated.c`
+- **Generate C** writes `build_out/<cgen-name>.c` (e.g. `add_two_integers.cgen` → `add_two_integers.c`; unsaved docs use `untitled.c`)
 - **Build** runs `gcc`; logs appear in the Compiler pane
 - **Run** executes the program; `printf` output appears in Program Output
 - **Save/Open** uses the `.cgen` (CGEN 1 + JSON) project format

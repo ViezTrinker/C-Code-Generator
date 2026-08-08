@@ -10,7 +10,10 @@ int main(void)
    int32_t b = 11;
    int32_t sum = (a + b);
    printf("a=%d\n", a);
+   fflush(stdout);
    printf("b=%d\n", b);
+   fflush(stdout);
    printf("sum=%d\n", sum);
+   fflush(stdout);
    return 0;
 }

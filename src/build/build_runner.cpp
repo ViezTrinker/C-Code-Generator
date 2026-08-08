@@ -71,19 +71,47 @@ namespace Cgen
          }
          return result;
       }
+
+      std::string ResolveBaseName(std::string_view cgenPathOrBase)
+      {
+         if (cgenPathOrBase.empty())
+         {
+            return "untitled";
+         }
+
+         const std::filesystem::path path(cgenPathOrBase);
+         std::string stem = path.stem().string();
+         if (stem.empty())
+         {
+            return "untitled";
+         }
+         return stem;
+      }
    } // namespace
 
    BuildRunner::BuildRunner(std::string_view outputDirectory)
       : _outputDirectory(outputDirectory)
+      , _baseName("untitled")
    {
       std::filesystem::create_directories(_outputDirectory);
+      RefreshPaths();
+   }
+
+   void BuildRunner::RefreshPaths(void)
+   {
       const std::filesystem::path root(_outputDirectory);
-      _sourcePath = (root / "generated.c").string();
+      _sourcePath = (root / (_baseName + ".c")).string();
 #ifdef _WIN32
-      _executablePath = (root / "program.exe").make_preferred().string();
+      _executablePath = (root / (_baseName + ".exe")).make_preferred().string();
 #else
-      _executablePath = (root / "program").string();
+      _executablePath = (root / _baseName).string();
 #endif
+   }
+
+   void BuildRunner::SetArtifactBaseName(std::string_view cgenPathOrBase)
+   {
+      _baseName = ResolveBaseName(cgenPathOrBase);
+      RefreshPaths();
    }
 
    Result BuildRunner::WriteSource(std::string_view source)
@@ -117,11 +145,7 @@ namespace Cgen
       const std::filesystem::path exePath =
          std::filesystem::absolute(std::filesystem::path(_executablePath)).make_preferred();
       std::ostringstream command;
-#ifdef _WIN32
       command << "\"" << exePath.string() << "\" 2>&1";
-#else
-      command << "\"" << exePath.string() << "\" 2>&1";
-#endif
       return RunCommand(command.str());
    }
 

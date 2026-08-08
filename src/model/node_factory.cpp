@@ -44,6 +44,8 @@ namespace Cgen
          {BlockType::Malloc, "Malloc", "Malloc", true},
          {BlockType::Free, "Free", "Free", false},
          {BlockType::TimeNow, "TimeNow", "Time", true},
+         {BlockType::LocalTime, "LocalTime", "Local Time", false},
+         {BlockType::Sleep, "Sleep", "Sleep", false},
          {BlockType::Random, "Random", "Random", true},
          {BlockType::FunctionDef, "FunctionDef", "Function", false},
          {BlockType::Return, "Return", "Return", false},
@@ -234,6 +236,11 @@ namespace Cgen
             node.ports.push_back(MakeControlIn("In"));
             node.ports.push_back(MakeControlOut("Next"));
             node.ports.push_back(MakeDataIn("Arg0", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg1", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg2", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg3", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg4", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg5", PrimitiveType::Int32, false));
             node.properties["format"] = "value=%d\\n";
             break;
          case BlockType::Malloc:
@@ -248,6 +255,21 @@ namespace Cgen
             break;
          case BlockType::TimeNow:
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int64, false));
+            break;
+         case BlockType::LocalTime:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["year"] = "year";
+            node.properties["month"] = "month";
+            node.properties["day"] = "day";
+            node.properties["hour"] = "hour";
+            node.properties["minute"] = "minute";
+            node.properties["second"] = "second";
+            break;
+         case BlockType::Sleep:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["seconds"] = "1";
             break;
          case BlockType::Random:
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));

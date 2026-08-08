@@ -29,6 +29,8 @@ namespace Cgen
          BlockType::Malloc,
          BlockType::Free,
          BlockType::TimeNow,
+         BlockType::LocalTime,
+         BlockType::Sleep,
          BlockType::Random,
          BlockType::FunctionDef,
          BlockType::Return,

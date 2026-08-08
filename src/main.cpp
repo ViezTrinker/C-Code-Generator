@@ -61,9 +61,10 @@ namespace
       }
 
       Cgen::BuildRunner runner("build_out");
+      runner.SetArtifactBaseName("self_test");
       if (Cgen::IsErr(runner.WriteSource(generated.source)))
       {
-         std::cerr << "Failed to write generated.c\n";
+         std::cerr << "Failed to write .c file\n";
          return 1;
       }
 
@@ -123,9 +124,10 @@ namespace
       }
 
       Cgen::BuildRunner runner("build_out");
+      runner.SetArtifactBaseName(filePath);
       if (Cgen::IsErr(runner.WriteSource(generated.source)))
       {
-         std::cerr << "Failed to write generated.c\n";
+         std::cerr << "Failed to write .c file\n";
          return 1;
       }
 

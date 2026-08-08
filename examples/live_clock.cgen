@@ -1,0 +1,304 @@
+CGEN 1
+{
+  "nextNodeId": 24,
+  "nextEdgeId": 24,
+  "viewport": {
+    "x": 0.0,
+    "y": 0.0,
+    "zoom": 0.85
+  },
+  "types": [],
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Start",
+      "posX": 40.0,
+      "posY": 40.0,
+      "properties": {}
+    },
+    {
+      "id": 2,
+      "type": "VariableDecl",
+      "posX": 220.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "year",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 3,
+      "type": "VariableDecl",
+      "posX": 400.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "month",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 4,
+      "type": "VariableDecl",
+      "posX": 580.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "day",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 5,
+      "type": "VariableDecl",
+      "posX": 760.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "hour",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 6,
+      "type": "VariableDecl",
+      "posX": 940.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "minute",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 7,
+      "type": "VariableDecl",
+      "posX": 1120.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "second",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 8,
+      "type": "While",
+      "posX": 1300.0,
+      "posY": 40.0,
+      "properties": {}
+    },
+    {
+      "id": 9,
+      "type": "Literal",
+      "posX": 1300.0,
+      "posY": 160.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 10,
+      "type": "LocalTime",
+      "posX": 1480.0,
+      "posY": 40.0,
+      "properties": {
+        "year": "year",
+        "month": "month",
+        "day": "day",
+        "hour": "hour",
+        "minute": "minute",
+        "second": "second"
+      }
+    },
+    {
+      "id": 11,
+      "type": "Printf",
+      "posX": 1660.0,
+      "posY": 40.0,
+      "properties": {
+        "format": "%04d-%02d-%02d %02d:%02d:%02d\\n"
+      }
+    },
+    {
+      "id": 12,
+      "type": "VariableRef",
+      "posX": 1480.0,
+      "posY": 200.0,
+      "properties": {
+        "name": "year"
+      }
+    },
+    {
+      "id": 13,
+      "type": "VariableRef",
+      "posX": 1480.0,
+      "posY": 260.0,
+      "properties": {
+        "name": "month"
+      }
+    },
+    {
+      "id": 14,
+      "type": "VariableRef",
+      "posX": 1480.0,
+      "posY": 320.0,
+      "properties": {
+        "name": "day"
+      }
+    },
+    {
+      "id": 15,
+      "type": "VariableRef",
+      "posX": 1660.0,
+      "posY": 200.0,
+      "properties": {
+        "name": "hour"
+      }
+    },
+    {
+      "id": 16,
+      "type": "VariableRef",
+      "posX": 1660.0,
+      "posY": 260.0,
+      "properties": {
+        "name": "minute"
+      }
+    },
+    {
+      "id": 17,
+      "type": "VariableRef",
+      "posX": 1660.0,
+      "posY": 320.0,
+      "properties": {
+        "name": "second"
+      }
+    },
+    {
+      "id": 18,
+      "type": "Sleep",
+      "posX": 1840.0,
+      "posY": 40.0,
+      "properties": {
+        "seconds": "1"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": 1,
+      "fromNodeId": 1,
+      "fromPort": "Next",
+      "toNodeId": 2,
+      "toPort": "In"
+    },
+    {
+      "id": 2,
+      "fromNodeId": 2,
+      "fromPort": "Next",
+      "toNodeId": 3,
+      "toPort": "In"
+    },
+    {
+      "id": 3,
+      "fromNodeId": 3,
+      "fromPort": "Next",
+      "toNodeId": 4,
+      "toPort": "In"
+    },
+    {
+      "id": 4,
+      "fromNodeId": 4,
+      "fromPort": "Next",
+      "toNodeId": 5,
+      "toPort": "In"
+    },
+    {
+      "id": 5,
+      "fromNodeId": 5,
+      "fromPort": "Next",
+      "toNodeId": 6,
+      "toPort": "In"
+    },
+    {
+      "id": 6,
+      "fromNodeId": 6,
+      "fromPort": "Next",
+      "toNodeId": 7,
+      "toPort": "In"
+    },
+    {
+      "id": 7,
+      "fromNodeId": 7,
+      "fromPort": "Next",
+      "toNodeId": 8,
+      "toPort": "In"
+    },
+    {
+      "id": 8,
+      "fromNodeId": 9,
+      "fromPort": "Value",
+      "toNodeId": 8,
+      "toPort": "Cond"
+    },
+    {
+      "id": 9,
+      "fromNodeId": 8,
+      "fromPort": "Body",
+      "toNodeId": 10,
+      "toPort": "In"
+    },
+    {
+      "id": 10,
+      "fromNodeId": 10,
+      "fromPort": "Next",
+      "toNodeId": 11,
+      "toPort": "In"
+    },
+    {
+      "id": 11,
+      "fromNodeId": 12,
+      "fromPort": "Value",
+      "toNodeId": 11,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 12,
+      "fromNodeId": 13,
+      "fromPort": "Value",
+      "toNodeId": 11,
+      "toPort": "Arg1"
+    },
+    {
+      "id": 13,
+      "fromNodeId": 14,
+      "fromPort": "Value",
+      "toNodeId": 11,
+      "toPort": "Arg2"
+    },
+    {
+      "id": 14,
+      "fromNodeId": 15,
+      "fromPort": "Value",
+      "toNodeId": 11,
+      "toPort": "Arg3"
+    },
+    {
+      "id": 15,
+      "fromNodeId": 16,
+      "fromPort": "Value",
+      "toNodeId": 11,
+      "toPort": "Arg4"
+    },
+    {
+      "id": 16,
+      "fromNodeId": 17,
+      "fromPort": "Value",
+      "toNodeId": 11,
+      "toPort": "Arg5"
+    },
+    {
+      "id": 17,
+      "fromNodeId": 11,
+      "fromPort": "Next",
+      "toNodeId": 18,
+      "toPort": "In"
+    }
+  ]
+}

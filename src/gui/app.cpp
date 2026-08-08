@@ -215,10 +215,11 @@ namespace Cgen
       {
          _pCompilerLog->SetText("Code generation succeeded.\n");
       }
+      _buildRunner.SetArtifactBaseName(_document.GetFilePath());
       const Result writeResult = _buildRunner.WriteSource(output.source);
       if (IsErr(writeResult))
       {
-         _pCompilerLog->Append("Failed to write generated.c\n");
+         _pCompilerLog->Append("Failed to write .c file\n");
          return;
       }
       _pCompilerLog->Append("Wrote " + _buildRunner.GetSourcePath() + "\n");
@@ -226,6 +227,7 @@ namespace Cgen
 
    void App::BuildCode(void)
    {
+      _buildRunner.SetArtifactBaseName(_document.GetFilePath());
       if (_lastGeneratedSource.empty())
       {
          GenerateCode();

@@ -38,7 +38,17 @@ namespace Cgen
       explicit BuildRunner(std::string_view outputDirectory);
 
       /*!
-       *\brief Writes C source to generated.c.
+       *\brief Sets output artifact names from a .cgen path or bare base name.
+       *
+       * Produces `<base>.c` and `<base>` / `<base>.exe` under the output directory.
+       * If \p cgenPathOrBase is empty, uses "untitled".
+       *
+       *\param[in] cgenPathOrBase Path ending in .cgen, or a bare stem.
+       */
+      void SetArtifactBaseName(std::string_view cgenPathOrBase);
+
+      /*!
+       *\brief Writes C source to the configured .c path.
        *
        *\param[in] source C source text.
        *\return Result code.
@@ -46,7 +56,7 @@ namespace Cgen
       Result WriteSource(std::string_view source);
 
       /*!
-       *\brief Compiles generated.c with gcc.
+       *\brief Compiles the configured .c file with gcc.
        *
        *\return Build result including compiler log.
        */
@@ -70,7 +80,10 @@ namespace Cgen
       const std::string& GetExecutablePath(void) const;
 
    private:
+      void RefreshPaths(void);
+
       std::string _outputDirectory;
+      std::string _baseName;
       std::string _sourcePath;
       std::string _executablePath;
    };

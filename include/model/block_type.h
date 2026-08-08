@@ -40,6 +40,8 @@ namespace Cgen
       Malloc,
       Free,
       TimeNow,
+      LocalTime,
+      Sleep,
       Random,
       FunctionDef,
       Return,

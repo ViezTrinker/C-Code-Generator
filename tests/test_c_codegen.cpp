@@ -30,6 +30,21 @@ TEST(CCodegenTest, EmitsIncludesAndMain)
    EXPECT_NE(output.source.find("int main(void)"), std::string::npos);
    EXPECT_NE(output.source.find("printf(\"hello\\n\")"), std::string::npos);
    EXPECT_NE(output.source.find("return 0;"), std::string::npos);
+   EXPECT_NE(output.source.find("\\file "), std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsFileDescriptionBrief)
+{
+   Cgen::GraphDocument document;
+   document.SetFileDescription("Adds two demo integers.");
+   document.SetFilePath("examples/demo.cgen");
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 200.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", endId, "In", nullptr)));
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result));
+   EXPECT_NE(output.source.find("\\file demo.c"), std::string::npos);
+   EXPECT_NE(output.source.find("\\brief Adds two demo integers."), std::string::npos);
 }
 
 TEST(CCodegenTest, EmitsVariableAndAssignment)
@@ -364,7 +379,7 @@ TEST(CCodegenTest, EmitsCastScanfFloatAssertComment)
    EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
    EXPECT_NE(output.source.find("#include <assert.h>"), std::string::npos);
    EXPECT_NE(output.source.find("scanf(\"%f\", &value)"), std::string::npos);
-   EXPECT_NE(output.source.find("((float)(3))"), std::string::npos);
+   EXPECT_NE(output.source.find("(float)(3)"), std::string::npos);
    EXPECT_NE(output.source.find("/* check value */"), std::string::npos);
    EXPECT_NE(output.source.find("assert(1);"), std::string::npos);
 }
@@ -555,7 +570,7 @@ TEST(CCodegenTest, EmitsMultiArgCallAndStructLiteral)
 
    const Cgen::CodegenOutput litOutput = Cgen::GenerateCSource(literalDoc);
    EXPECT_TRUE(Cgen::IsOk(litOutput.result)) << litOutput.diagnostics;
-   EXPECT_NE(litOutput.source.find("Hero hero = ((Hero){ .hp = 30, .atk = 6 });"),
+   EXPECT_NE(litOutput.source.find("Hero hero = (Hero){ .hp = 30, .atk = 6 };"),
              std::string::npos);
 }
 
@@ -600,7 +615,8 @@ TEST(CCodegenTest, EmitsMallocIntoTypedPointerDecl)
 
    const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
    EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
-   EXPECT_NE(output.source.find("uint8_t* pBuf = ((uint8_t*)malloc((size_t)(16)));"),
+   EXPECT_NE(output.source.find(
+                "uint8_t* pBuf = (uint8_t*)(malloc((size_t)(16)));"),
              std::string::npos);
    EXPECT_NE(output.source.find("free(pBuf);"), std::string::npos);
 }
@@ -640,7 +656,7 @@ TEST(CCodegenTest, EmitsAddressOfIntoCallArg)
 
    const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
    EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
-   EXPECT_NE(output.source.find("do_combat((&hero));"), std::string::npos);
+   EXPECT_NE(output.source.find("do_combat(&hero);"), std::string::npos);
 }
 
 TEST(CCodegenTest, EmitsNestedFieldPath)

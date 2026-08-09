@@ -195,10 +195,12 @@ A checked-in C snapshot lives at [`examples/build_out/dungeon_log.c`](examples/b
 - Right-click a block for **Delete Block**, or a wired port for **Delete Wire**
 - **Delete** / **Backspace** removes selected blocks (not Start); **Ctrl+Z** / **Ctrl+Y** undo/redo (up to 64 steps)
 - **Tidy** / **Ctrl+L** auto-layouts control flow left-to-right
+- **Snap** toggles grid snap (default on) and snaps the selection; **AlignL** / **AlignT** align a multi-selection
 - **Fit** / **Ctrl+0** fits the whole graph; **Fit Sel** / **Ctrl+Shift+0** fits the selection; use the bottom-right **minimap** to jump
-- Edit properties on the right (Enter commits; each commit is one undo step); choice fields (`type`, `op`, `access`, `function`) offer dropdowns; each selection shows a short **C:** preview
+- Edit properties on the right (Enter commits; each commit is one undo step); choice fields (`type`, `op`, `access`, `function`, `paramCount`) offer dropdowns; clear selection to edit Document `fileDescription` / `clangFormat`
+- **FunctionDef** params are typed (`paramCount`, `paramNName`, `paramNType`) with **Param** ports; **Call** Arg ports pick up name/types from the target function
 - **Double-click** a **FunctionDef** to collapse/expand its body
-- **Generate C** validates the graph (unused decls, unwired Switch Value, missing Switch Default, unreachable End, … — click an issue in Compiler to jump), writes `build_out/<cgen-name>.c`, and opens a scrollable source view (Esc closes it)
+- **Generate C** writes a doxygen `\\file` / `\\brief` header (from Document description), validates the graph, writes `build_out/<cgen-name>.c`, optionally runs **clang-format** when Document `clangFormat=1`, and opens a scrollable source view (Esc closes it)
 - CLI `--codegen` writes only; `--compile` / `--run` are optional
 - **Build** runs `gcc`; logs appear in the Compiler pane
 - **Run** starts the program in the background and streams stdout into Program Output; type into the input line at the bottom of that pane for `scanf` / Enter prompts; **Stop** kills a running program

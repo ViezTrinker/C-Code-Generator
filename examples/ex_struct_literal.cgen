@@ -102,7 +102,7 @@ CGEN 1
       "posX": 200.0,
       "posY": 40.0,
       "properties": {
-        "text": "StructLiteral — designated initializer into a typed Decl"
+        "text": "StructLiteral \u2014 designated initializer into a typed Decl"
       },
       "type": "Comment"
     },
@@ -287,5 +287,7 @@ CGEN 1
     "x": 0.0,
     "y": 0.0,
     "zoom": 1.0
-  }
+  },
+  "fileDescription": "Feature primer for Struct Literal designated initializers.",
+  "clangFormat": true
 }

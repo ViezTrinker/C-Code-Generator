@@ -5076,5 +5076,7 @@ CGEN 1
       "toNodeId": 245,
       "toPort": "Init"
     }
-  ]
+  ],
+  "fileDescription": "Text adventure showcasing structs, multi-arg calls, files, and heap use.",
+  "clangFormat": true
 }

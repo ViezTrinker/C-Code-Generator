@@ -185,6 +185,10 @@ namespace Cgen
             {"y", document.GetViewportY()},
             {"zoom", document.GetViewportZoom()}
          };
+         json["fileDescription"] = document.GetFileDescription();
+         json["clangFormat"] =
+            (document.GetClangFormatOnGenerate() ==
+             GraphDocument::ClangFormatOnGenerate::Yes);
          Json nodes = Json::array();
          const std::vector<Node>& nodeList = document.GetNodes();
          for (size_t index = 0; index < nodeList.size(); ++index)
@@ -312,6 +316,17 @@ namespace Cgen
          pDocument->SetViewport(viewport.value("x", 0.0f),
                                 viewport.value("y", 0.0f),
                                 viewport.value("zoom", 1.0f));
+      }
+      pDocument->SetFileDescription(json.value("fileDescription", std::string()));
+      if (json.value("clangFormat", false))
+      {
+         pDocument->SetClangFormatOnGenerate(
+            GraphDocument::ClangFormatOnGenerate::Yes);
+      }
+      else
+      {
+         pDocument->SetClangFormatOnGenerate(
+            GraphDocument::ClangFormatOnGenerate::No);
       }
       pDocument->SetFilePath(filePath);
       pDocument->SetDirty(false);

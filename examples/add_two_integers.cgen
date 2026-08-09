@@ -275,5 +275,7 @@ CGEN 1
       "toNodeId": 16,
       "toPort": "In"
     }
-  ]
+  ],
+  "fileDescription": "Adds two integers and prints the sum.",
+  "clangFormat": true
 }

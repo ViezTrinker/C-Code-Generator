@@ -300,5 +300,7 @@ CGEN 1
       "toNodeId": 18,
       "toPort": "In"
     }
-  ]
+  ],
+  "fileDescription": "Prints the local date and time once per second.",
+  "clangFormat": true
 }

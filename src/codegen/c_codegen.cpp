@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cctype>
+#include <cstdlib>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -145,7 +146,40 @@ namespace Cgen
          {
             return std::string();
          }
+
+         const Node* pFrom = GetNode(*pContext, pEdge->fromNodeId);
+         if ((pFrom != nullptr) && (pFrom->type == BlockType::FunctionDef))
+         {
+            if (pEdge->fromPort.rfind("Param", 0) == 0)
+            {
+               const std::string indexText = pEdge->fromPort.substr(5);
+               const int parsed = std::atoi(indexText.c_str());
+               if (parsed >= 0)
+               {
+                  std::string paramName;
+                  std::string paramType;
+                  if (GetFunctionParam(*pFrom,
+                                       static_cast<uint32_t>(parsed),
+                                       &paramName,
+                                       &paramType))
+                  {
+                     return paramName;
+                  }
+               }
+            }
+         }
          return EmitExpression(pContext, pEdge->fromNodeId);
+      }
+
+      std::string FormatCastExpression(std::string_view toType,
+                                       std::string_view valueExpr)
+      {
+         std::string result = "(";
+         result.append(toType);
+         result.append(")(");
+         result.append(valueExpr);
+         result.append(")");
+         return result;
       }
 
       std::string BinaryOperator(BlockType blockType)
@@ -260,7 +294,7 @@ namespace Cgen
             case BlockType::AddressOf:
             {
                const std::string targetName = GetProperty(*pNode, "name", "value");
-               expression = "(&" + targetName + ")";
+               expression = "&" + targetName;
                break;
             }
             case BlockType::Add:
@@ -301,7 +335,7 @@ namespace Cgen
                const std::string valueExpr =
                   EmitInputExpression(pContext, nodeId, "Value");
                const std::string toType = GetProperty(*pNode, "toType", "int32_t");
-               expression = "((" + toType + ")(" + valueExpr + "))";
+               expression = FormatCastExpression(toType, valueExpr);
                break;
             }
             case BlockType::FieldLoad:
@@ -327,7 +361,7 @@ namespace Cgen
             case BlockType::StrLen:
             {
                const std::string bufferName = GetProperty(*pNode, "buffer", "buffer");
-               expression = "((int32_t)strlen(" + bufferName + "))";
+               expression = FormatCastExpression("int32_t", "strlen(" + bufferName + ")");
                break;
             }
             case BlockType::StrCmp:
@@ -348,7 +382,8 @@ namespace Cgen
                const std::string arrayName = GetProperty(*pNode, "array", "buffer");
                const std::string indexExpr =
                   EmitInputExpression(pContext, nodeId, "Index");
-               expression = "((int32_t)(" + arrayName + "[" + indexExpr + "]))";
+               expression = FormatCastExpression(
+                  "int32_t", arrayName + "[" + indexExpr + "]");
                break;
             }
             case BlockType::RandomChar:
@@ -356,20 +391,23 @@ namespace Cgen
                const std::string setName = GetProperty(*pNode, "set", "lower");
                if (setName == "upper")
                {
-                  expression = "((int32_t)('A' + (rand() % 26)))";
+                  expression =
+                     FormatCastExpression("int32_t", "'A' + (rand() % 26)");
                }
                else if (setName == "digit")
                {
-                  expression = "((int32_t)('0' + (rand() % 10)))";
+                  expression =
+                     FormatCastExpression("int32_t", "'0' + (rand() % 10)");
                }
                else if (setName == "special")
                {
-                  expression =
-                     "((int32_t)(\"!@#$%&*?\"[rand() % 8]))";
+                  expression = FormatCastExpression(
+                     "int32_t", "\"!@#$%&*?\"[rand() % 8]");
                }
                else
                {
-                  expression = "((int32_t)('a' + (rand() % 26)))";
+                  expression =
+                     FormatCastExpression("int32_t", "'a' + (rand() % 26)");
                }
                break;
             }
@@ -377,7 +415,9 @@ namespace Cgen
             {
                const std::string sizeExpr = EmitInputExpression(pContext, nodeId, "Size");
                const std::string elemType = GetProperty(*pNode, "elemType", "uint8_t");
-               expression = "((" + elemType + "*)malloc((size_t)(" + sizeExpr + ")))";
+               expression = FormatCastExpression(
+                  elemType + "*",
+                  "malloc((size_t)(" + sizeExpr + "))");
                break;
             }
             case BlockType::Call:
@@ -409,7 +449,7 @@ namespace Cgen
             {
                const std::string typeName = GetProperty(*pNode, "type", "Point");
                const std::string initText = GetProperty(*pNode, "init", ".x = 0");
-               expression = "((" + typeName + "){ " + initText + " })";
+               expression = "(" + typeName + "){ " + initText + " }";
                break;
             }
             default:
@@ -1255,7 +1295,7 @@ namespace Cgen
             }
             const std::string name = GetProperty(node, "name", "helper");
             const std::string returnType = GetProperty(node, "returnType", "int32_t");
-            const std::string params = GetProperty(node, "params", "int32_t x");
+            const std::string params = FormatFunctionParamList(node);
             (*pContext->pOut) << returnType << " " << name << "(" << params << ")\n{\n";
             pContext->indentLevel = 1;
             const Edge* pBody =
@@ -1376,7 +1416,33 @@ namespace Cgen
          DocumentContainsBlockType(document, BlockType::Assert);
       const bool usesBool = DocumentUsesBoolType(document);
 
-      stream << "/* Generated by c_code_generator */\n";
+      std::string fileStem = "generated";
+      const std::string& filePath = document.GetFilePath();
+      if (!filePath.empty())
+      {
+         const size_t slash = filePath.find_last_of("/\\");
+         const size_t start =
+            (slash == std::string::npos) ? 0 : (slash + 1);
+         fileStem = filePath.substr(start);
+         const size_t dot = fileStem.find_last_of('.');
+         if (dot != std::string::npos)
+         {
+            fileStem = fileStem.substr(0, dot);
+         }
+      }
+      fileStem.append(".c");
+
+      stream << "/*!\n";
+      stream << " *\\file " << fileStem << "\n";
+      if (!document.GetFileDescription().empty())
+      {
+         stream << " *\\brief " << document.GetFileDescription() << "\n";
+      }
+      else
+      {
+         stream << " *\\brief Generated by c_code_generator.\n";
+      }
+      stream << " */\n\n";
       stream << "#include <stdint.h>\n";
       stream << "#include <stdio.h>\n";
       stream << "#include <stdlib.h>\n";
@@ -1500,7 +1566,7 @@ namespace Cgen
       {
          const std::string name = GetProperty(*pNode, "name", "func");
          const std::string returnType = GetProperty(*pNode, "returnType", "void");
-         const std::string params = GetProperty(*pNode, "params", "void");
+         const std::string params = FormatFunctionParamList(*pNode);
          return returnType + " " + name + "(" + params + ") { ... }";
       }
       if (pNode->type == BlockType::Start)

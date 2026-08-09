@@ -3,11 +3,15 @@
  *\brief Block type strings and node factory.
  */
 #include "model/block_type.h"
+#include "model/c_type.h"
 #include "model/graph_document.h"
 #include "model/node.h"
 
+#include <cctype>
+#include <cstdlib>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace Cgen
 {
@@ -225,7 +229,7 @@ namespace Cgen
           "Expression: rand() integer. Combine with Mod to limit the range.",
           true},
          {BlockType::FunctionDef, "FunctionDef", "Function",
-          "Defines a C function. Double-click to collapse/expand body. Properties: name, returnType, params. Wire Body.",
+          "Defines a C function. Double-click to collapse/expand body. Set paramCount and paramNName/paramNType (Param ports). Wire Body.",
           false},
          {BlockType::Return, "Return", "Return",
           "Returns from a function. Optional Value input for the return expression.",
@@ -696,8 +700,19 @@ namespace Cgen
             break;
          case BlockType::FunctionDef:
             node.ports.push_back(MakeControlOut("Body"));
+            for (uint32_t paramIndex = 0; paramIndex < MaxFunctionParams; ++paramIndex)
+            {
+               std::string portName = "Param";
+               portName.append(std::to_string(paramIndex));
+               Port paramPort = MakeDataOut(portName, PrimitiveType::Int32, false);
+               paramPort.visible = (paramIndex == 0);
+               node.ports.push_back(paramPort);
+            }
             node.properties["name"] = "helper";
             node.properties["returnType"] = "int32_t";
+            node.properties["paramCount"] = "1";
+            node.properties["param0Name"] = "x";
+            node.properties["param0Type"] = "int32_t";
             node.properties["params"] = "int32_t x";
             node.properties["collapsed"] = "0";
             break;
@@ -729,7 +744,9 @@ namespace Cgen
       }
 
       SyncNodePortTypes(&node);
+      SyncFunctionDefParams(&node);
       SyncPrintfArgVisibility(&node, nullptr);
+      SyncCallArgPorts(&node, nullptr);
       return node;
    }
 
@@ -798,7 +815,421 @@ namespace Cgen
          }
          return count;
       }
+
+      std::string TrimCopy(std::string_view text)
+      {
+         size_t begin = 0;
+         while ((begin < text.size()) &&
+                (std::isspace(static_cast<unsigned char>(text[begin])) != 0))
+         {
+            ++begin;
+         }
+         size_t end = text.size();
+         while ((end > begin) &&
+                (std::isspace(static_cast<unsigned char>(text[end - 1])) != 0))
+         {
+            --end;
+         }
+         return std::string(text.substr(begin, end - begin));
+      }
+
+      bool IsTypeKeywordToken(std::string_view word)
+      {
+         return (word == "void") || (word == "bool") || (word == "_Bool") ||
+                (word == "char") || (word == "int") || (word == "float") ||
+                (word == "double") || (word == "FILE") || (word == "size_t") ||
+                (word == "unsigned") || (word == "signed") || (word == "short") ||
+                (word == "long") || (word == "const") || (word == "volatile") ||
+                (word == "int8_t") || (word == "uint8_t") || (word == "int16_t") ||
+                (word == "uint16_t") || (word == "int32_t") || (word == "uint32_t") ||
+                (word == "int64_t") || (word == "uint64_t") || (word == "struct") ||
+                (word == "enum") || (word == "typedef");
+      }
+
+      bool ParseParamClause(std::string_view clause,
+                            std::string* pOutType,
+                            std::string* pOutName)
+      {
+         if ((pOutType == nullptr) || (pOutName == nullptr))
+         {
+            return false;
+         }
+         const std::string trimmed = TrimCopy(clause);
+         if (trimmed.empty() || (trimmed == "void"))
+         {
+            return false;
+         }
+
+         std::vector<std::string> tokens;
+         std::string current;
+         for (size_t index = 0; index < trimmed.size(); ++index)
+         {
+            const char character = trimmed[index];
+            if ((character == '*') ||
+                (std::isspace(static_cast<unsigned char>(character)) != 0))
+            {
+               if (!current.empty())
+               {
+                  tokens.push_back(current);
+                  current.clear();
+               }
+               if (character == '*')
+               {
+                  tokens.push_back("*");
+               }
+               continue;
+            }
+            current.push_back(character);
+         }
+         if (!current.empty())
+         {
+            tokens.push_back(current);
+         }
+         if (tokens.size() < 2)
+         {
+            return false;
+         }
+
+         std::string name = tokens.back();
+         if (IsTypeKeywordToken(name) || (name == "*"))
+         {
+            return false;
+         }
+         tokens.pop_back();
+
+         std::string typeText;
+         for (size_t index = 0; index < tokens.size(); ++index)
+         {
+            if (tokens[index] == "*")
+            {
+               typeText.push_back('*');
+               continue;
+            }
+            if (!typeText.empty() && (typeText.back() != '*'))
+            {
+               typeText.push_back(' ');
+            }
+            typeText.append(tokens[index]);
+         }
+         if (typeText.empty())
+         {
+            return false;
+         }
+         *pOutType = typeText;
+         *pOutName = name;
+         return true;
+      }
+
+      void ParseParamsPropertyIntoStructured(Node* pNode)
+      {
+         if (pNode == nullptr)
+         {
+            return;
+         }
+         const auto paramsIterator = pNode->properties.find("params");
+         const std::string paramsText =
+            (paramsIterator != pNode->properties.end()) ? paramsIterator->second
+                                                        : std::string();
+         const std::string trimmed = TrimCopy(paramsText);
+         for (uint32_t index = 0; index < MaxFunctionParams; ++index)
+         {
+            pNode->properties.erase("param" + std::to_string(index) + "Name");
+            pNode->properties.erase("param" + std::to_string(index) + "Type");
+         }
+         if (trimmed.empty() || (trimmed == "void"))
+         {
+            pNode->properties["paramCount"] = "0";
+            return;
+         }
+
+         uint32_t count = 0;
+         std::string token;
+         for (size_t index = 0; index <= trimmed.size(); ++index)
+         {
+            const char character =
+               (index < trimmed.size()) ? trimmed[index] : ',';
+            if ((character == ',') || (index == trimmed.size()))
+            {
+               std::string typeText;
+               std::string nameText;
+               if (ParseParamClause(token, &typeText, &nameText) &&
+                   (count < MaxFunctionParams))
+               {
+                  pNode->properties["param" + std::to_string(count) + "Name"] =
+                     nameText;
+                  pNode->properties["param" + std::to_string(count) + "Type"] =
+                     typeText;
+                  ++count;
+               }
+               token.clear();
+               continue;
+            }
+            token.push_back(character);
+         }
+         pNode->properties["paramCount"] = std::to_string(count);
+      }
+
+      const Node* FindFunctionDefByName(const GraphDocument* pDocument,
+                                        std::string_view functionName)
+      {
+         if ((pDocument == nullptr) || functionName.empty())
+         {
+            return nullptr;
+         }
+         const std::vector<Node>& nodes = pDocument->GetNodes();
+         for (size_t index = 0; index < nodes.size(); ++index)
+         {
+            if (nodes[index].type != BlockType::FunctionDef)
+            {
+               continue;
+            }
+            const auto nameIterator = nodes[index].properties.find("name");
+            if ((nameIterator != nodes[index].properties.end()) &&
+                (nameIterator->second == functionName))
+            {
+               return &nodes[index];
+            }
+         }
+         return nullptr;
+      }
    } // namespace
+
+   uint32_t GetFunctionParamCount(const Node& node)
+   {
+      if (node.type != BlockType::FunctionDef)
+      {
+         return 0;
+      }
+      const auto countIterator = node.properties.find("paramCount");
+      if (countIterator == node.properties.end())
+      {
+         return 0;
+      }
+      const int parsed = std::atoi(countIterator->second.c_str());
+      if (parsed <= 0)
+      {
+         return 0;
+      }
+      if (parsed > static_cast<int>(MaxFunctionParams))
+      {
+         return MaxFunctionParams;
+      }
+      return static_cast<uint32_t>(parsed);
+   }
+
+   bool GetFunctionParam(const Node& node,
+                         uint32_t paramIndex,
+                         std::string* pOutName,
+                         std::string* pOutType)
+   {
+      if ((pOutName == nullptr) || (pOutType == nullptr))
+      {
+         return false;
+      }
+      if (paramIndex >= GetFunctionParamCount(node))
+      {
+         return false;
+      }
+      const auto nameIterator =
+         node.properties.find("param" + std::to_string(paramIndex) + "Name");
+      const auto typeIterator =
+         node.properties.find("param" + std::to_string(paramIndex) + "Type");
+      if ((nameIterator == node.properties.end()) ||
+          (typeIterator == node.properties.end()))
+      {
+         return false;
+      }
+      *pOutName = nameIterator->second;
+      *pOutType = typeIterator->second;
+      return true;
+   }
+
+   std::string FormatFunctionParamList(const Node& node)
+   {
+      const uint32_t count = GetFunctionParamCount(node);
+      if (count == 0)
+      {
+         return "void";
+      }
+      std::string result;
+      for (uint32_t index = 0; index < count; ++index)
+      {
+         std::string name;
+         std::string typeText;
+         if (!GetFunctionParam(node, index, &name, &typeText))
+         {
+            continue;
+         }
+         if (!result.empty())
+         {
+            result.append(", ");
+         }
+         result.append(typeText);
+         result.push_back(' ');
+         result.append(name);
+      }
+      if (result.empty())
+      {
+         return "void";
+      }
+      return result;
+   }
+
+   void SyncFunctionDefParams(Node* pNode)
+   {
+      if ((pNode == nullptr) || (pNode->type != BlockType::FunctionDef))
+      {
+         return;
+      }
+
+      if (pNode->properties.find("paramCount") == pNode->properties.end())
+      {
+         ParseParamsPropertyIntoStructured(pNode);
+      }
+      else if ((pNode->properties.find("param0Name") == pNode->properties.end()) &&
+               (pNode->properties.find("params") != pNode->properties.end()))
+      {
+         const auto countIterator = pNode->properties.find("paramCount");
+         if ((countIterator != pNode->properties.end()) &&
+             (countIterator->second == "0"))
+         {
+            // Keep explicit zero-param functions.
+         }
+         else if (GetFunctionParamCount(*pNode) == 0)
+         {
+            ParseParamsPropertyIntoStructured(pNode);
+         }
+      }
+
+      const uint32_t count = GetFunctionParamCount(*pNode);
+      for (uint32_t paramIndex = 0; paramIndex < count; ++paramIndex)
+      {
+         const std::string nameKey = "param" + std::to_string(paramIndex) + "Name";
+         const std::string typeKey = "param" + std::to_string(paramIndex) + "Type";
+         if (pNode->properties.find(nameKey) == pNode->properties.end())
+         {
+            pNode->properties[nameKey] = "arg" + std::to_string(paramIndex);
+         }
+         if (pNode->properties.find(typeKey) == pNode->properties.end())
+         {
+            pNode->properties[typeKey] = "int32_t";
+         }
+      }
+      for (uint32_t paramIndex = 0; paramIndex < MaxFunctionParams; ++paramIndex)
+      {
+         std::string portName = "Param";
+         portName.append(std::to_string(paramIndex));
+         Port* pPort = FindPortMutable(pNode, portName);
+         if (pPort == nullptr)
+         {
+            Port created = MakeDataOut(portName, PrimitiveType::Int32, false);
+            created.visible = false;
+            pNode->ports.push_back(created);
+            pPort = FindPortMutable(pNode, portName);
+         }
+         if (pPort == nullptr)
+         {
+            continue;
+         }
+         if (paramIndex < count)
+         {
+            std::string name;
+            std::string typeText;
+            if (GetFunctionParam(*pNode, paramIndex, &name, &typeText))
+            {
+               ApplyTypeToPort(pPort, typeText);
+            }
+            pPort->visible = true;
+         }
+         else
+         {
+            pPort->visible = false;
+         }
+      }
+      pNode->properties["params"] = FormatFunctionParamList(*pNode);
+   }
+
+   void SyncCallArgPorts(Node* pNode, const GraphDocument* pDocument)
+   {
+      if ((pNode == nullptr) || (pNode->type != BlockType::Call))
+      {
+         return;
+      }
+
+      const auto functionIterator = pNode->properties.find("function");
+      const std::string functionName =
+         (functionIterator != pNode->properties.end()) ? functionIterator->second
+                                                       : std::string("helper");
+      const Node* pFunction = FindFunctionDefByName(pDocument, functionName);
+      uint32_t paramCount = MaxFunctionParams;
+      if (pFunction != nullptr)
+      {
+         paramCount = GetFunctionParamCount(*pFunction);
+         const auto returnIterator = pFunction->properties.find("returnType");
+         if (returnIterator != pFunction->properties.end())
+         {
+            pNode->properties["returnType"] = returnIterator->second;
+         }
+      }
+
+      for (uint32_t argIndex = 0; argIndex < MaxFunctionParams; ++argIndex)
+      {
+         std::string argName = "Arg";
+         argName.append(std::to_string(argIndex));
+         Port* pArg = FindPortMutable(pNode, argName);
+         if (pArg == nullptr)
+         {
+            Port created;
+            created.name = argName;
+            created.kind = PortKind::Data;
+            created.direction = PortDirection::In;
+            created.dataType.base = PrimitiveType::Void;
+            created.dataType.isPointer = false;
+            created.visible = true;
+            pNode->ports.push_back(created);
+            pArg = FindPortMutable(pNode, argName);
+         }
+         if (pArg == nullptr)
+         {
+            continue;
+         }
+
+         bool wired = false;
+         if (pDocument != nullptr)
+         {
+            wired = (pDocument->FindIncomingEdge(pNode->id, argName) != nullptr);
+         }
+
+         if ((pFunction != nullptr) && (argIndex < paramCount))
+         {
+            std::string paramName;
+            std::string paramType;
+            if (GetFunctionParam(*pFunction, argIndex, &paramName, &paramType))
+            {
+               ApplyTypeToPort(pArg, paramType);
+            }
+            pArg->visible = true;
+         }
+         else if (pFunction != nullptr)
+         {
+            pArg->dataType.base = PrimitiveType::Void;
+            pArg->dataType.isPointer = false;
+            pArg->visible = wired;
+         }
+         else
+         {
+            pArg->dataType.base = PrimitiveType::Void;
+            pArg->dataType.isPointer = false;
+            pArg->visible = (argIndex < 8) || wired;
+         }
+      }
+
+      const auto returnIterator = pNode->properties.find("returnType");
+      const std::string_view returnText =
+         (returnIterator != pNode->properties.end()) ? returnIterator->second
+                                                     : std::string_view("int32_t");
+      ApplyTypeToPort(FindPortMutable(pNode, "Result"), returnText);
+   }
 
    void SyncNodePortTypes(Node* pNode)
    {
@@ -853,34 +1284,11 @@ namespace Cgen
       }
       if (pNode->type == BlockType::Call)
       {
-         for (uint32_t argIndex = 0; argIndex < 8; ++argIndex)
-         {
-            std::string argName = "Arg";
-            argName.append(std::to_string(argIndex));
-            Port* pArg = FindPortMutable(pNode, argName);
-            if (pArg == nullptr)
-            {
-               Port created;
-               created.name = argName;
-               created.kind = PortKind::Data;
-               created.direction = PortDirection::In;
-               created.dataType.base = PrimitiveType::Void;
-               created.dataType.isPointer = false;
-               created.visible = true;
-               pNode->ports.push_back(created);
-               pArg = FindPortMutable(pNode, argName);
-            }
-            if (pArg != nullptr)
-            {
-               pArg->dataType.base = PrimitiveType::Void;
-               pArg->dataType.isPointer = false;
-            }
-         }
-         const auto returnIterator = pNode->properties.find("returnType");
-         const std::string_view returnText =
-            (returnIterator != pNode->properties.end()) ? returnIterator->second
-                                                        : std::string_view("int32_t");
-         ApplyTypeToPort(FindPortMutable(pNode, "Result"), returnText);
+         return;
+      }
+      if (pNode->type == BlockType::FunctionDef)
+      {
+         SyncFunctionDefParams(pNode);
          return;
       }
       if (pNode->type == BlockType::StructLiteral)
@@ -940,7 +1348,9 @@ namespace Cgen
       for (size_t index = 0; index < nodes.size(); ++index)
       {
          SyncNodePortTypes(&nodes[index]);
+         SyncFunctionDefParams(&nodes[index]);
          SyncPrintfArgVisibility(&nodes[index], pDocument);
+         SyncCallArgPorts(&nodes[index], pDocument);
       }
    }
 } // namespace Cgen

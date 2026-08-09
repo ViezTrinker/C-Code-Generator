@@ -79,6 +79,13 @@ namespace Cgen
        */
       const std::string& GetExecutablePath(void) const;
 
+      /*!
+       *\brief Runs clang-format on the written source when available.
+       *
+       *\return Result::Ok when formatted or clang-format is missing; IoError on failure.
+       */
+      Result TryClangFormatSource(void);
+
    private:
       void RefreshPaths(void);
 

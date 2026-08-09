@@ -252,5 +252,7 @@ CGEN 1
       "toNodeId": 16,
       "toPort": "In"
     }
-  ]
+  ],
+  "fileDescription": "Feature primer for Address Of and Hero* parameters.",
+  "clangFormat": true
 }

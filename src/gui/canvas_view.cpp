@@ -13,6 +13,7 @@
 
 #include "gui/block_placement.h"
 #include "model/c_type.h"
+#include "model/graph_align.h"
 #include "model/graph_layout.h"
 #include "model/node.h"
 #include "model/result.h"
@@ -386,6 +387,40 @@ namespace Cgen
       }
       PushCheckpoint();
       ApplyAutoLayout(_pDocument);
+   }
+
+   void CanvasView::ToggleSnapToGrid(void)
+   {
+      _snapToGridEnabled = !_snapToGridEnabled;
+   }
+
+   bool CanvasView::IsSnapToGridEnabled(void) const
+   {
+      return _snapToGridEnabled;
+   }
+
+   void CanvasView::SnapSelectionToGrid(void)
+   {
+      if ((_pDocument == nullptr) || _selectedNodeIds.empty())
+      {
+         return;
+      }
+      PushCheckpoint();
+      SnapNodesToGrid(&_pDocument->GetNodesMutable(),
+                      _selectedNodeIds,
+                      CanvasGridSize);
+      _pDocument->SetDirty(true);
+   }
+
+   void CanvasView::AlignSelectedNodes(AlignSelection align)
+   {
+      if ((_pDocument == nullptr) || (_selectedNodeIds.size() < 2))
+      {
+         return;
+      }
+      PushCheckpoint();
+      AlignNodes(&_pDocument->GetNodesMutable(), _selectedNodeIds, align);
+      _pDocument->SetDirty(true);
    }
 
    void CanvasView::PushCheckpoint(void)
@@ -813,6 +848,11 @@ namespace Cgen
             }
             pNode->posX += deltaX;
             pNode->posY += deltaY;
+            if (_snapToGridEnabled)
+            {
+               pNode->posX = SnapCoordinateToGrid(pNode->posX, CanvasGridSize);
+               pNode->posY = SnapCoordinateToGrid(pNode->posY, CanvasGridSize);
+            }
          }
          _pDocument->SetDirty(true);
       }
@@ -1342,7 +1382,6 @@ namespace Cgen
          }
          const auto nameIterator = node.properties.find("name");
          const auto returnIterator = node.properties.find("returnType");
-         const auto paramsIterator = node.properties.find("params");
          std::string header = "fn ";
          if (returnIterator != node.properties.end())
          {
@@ -1358,10 +1397,7 @@ namespace Cgen
             header.append("helper");
          }
          header.append("(");
-         if (paramsIterator != node.properties.end())
-         {
-            header.append(paramsIterator->second);
-         }
+         header.append(FormatFunctionParamList(node));
          header.append(")");
 
          sf::RectangleShape bar;
@@ -1410,6 +1446,35 @@ namespace Cgen
       background.setSize(_bounds.size);
       background.setFillColor(sf::Color(24, 26, 30));
       pTarget->draw(background);
+
+      if (_snapToGridEnabled && (_pDocument->GetViewportZoom() >= 0.45f))
+      {
+         const float zoom = _pDocument->GetViewportZoom();
+         const sf::Vector2f topLeftWorld = ScreenToWorld(_bounds.position);
+         const sf::Vector2f bottomRightWorld = ScreenToWorld(
+            sf::Vector2f(_bounds.position.x + _bounds.size.x,
+                         _bounds.position.y + _bounds.size.y));
+         const float startX =
+            SnapCoordinateToGrid(topLeftWorld.x, CanvasGridSize) - CanvasGridSize;
+         const float startY =
+            SnapCoordinateToGrid(topLeftWorld.y, CanvasGridSize) - CanvasGridSize;
+         sf::VertexArray grid(sf::PrimitiveType::Points);
+         for (float worldX = startX; worldX <= bottomRightWorld.x;
+              worldX += CanvasGridSize)
+         {
+            for (float worldY = startY; worldY <= bottomRightWorld.y;
+                 worldY += CanvasGridSize)
+            {
+               const sf::Vector2f screen = WorldToScreen(sf::Vector2f(worldX, worldY));
+               sf::Vertex point;
+               point.position = screen;
+               point.color = sf::Color(48, 52, 60);
+               grid.append(point);
+            }
+         }
+         pTarget->draw(grid);
+         (void)zoom;
+      }
 
       DrawFunctionRegions(pTarget);
 

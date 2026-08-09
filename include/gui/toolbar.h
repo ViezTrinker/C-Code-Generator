@@ -30,7 +30,10 @@ namespace Cgen
       Tidy,
       Help,
       FitAll,
-      FitSelection
+      FitSelection,
+      Snap,
+      AlignLeft,
+      AlignTop
    };
 
    /*!

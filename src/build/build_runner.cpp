@@ -158,4 +158,27 @@ namespace Cgen
    {
       return _executablePath;
    }
+
+   Result BuildRunner::TryClangFormatSource(void)
+   {
+      if (_sourcePath.empty())
+      {
+         return Result::InvalidArgument;
+      }
+      std::ostringstream command;
+      command << "clang-format -i \"" << _sourcePath << "\" 2>&1";
+      const BuildResult formatResult = RunCommand(command.str());
+      if (IsErr(formatResult.result))
+      {
+         // Missing clang-format is not fatal for Generate.
+         if ((formatResult.output.find("not recognized") != std::string::npos) ||
+             (formatResult.output.find("not found") != std::string::npos) ||
+             (formatResult.exitCode == 127))
+         {
+            return Result::Ok;
+         }
+         return formatResult.result;
+      }
+      return Result::Ok;
+   }
 } // namespace Cgen

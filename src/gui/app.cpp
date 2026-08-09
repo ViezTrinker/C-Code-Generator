@@ -7,6 +7,8 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <fstream>
+#include <iterator>
 #include <vector>
 
 #ifdef _WIN32
@@ -283,6 +285,25 @@ namespace Cgen
          return;
       }
       _pCompilerLog->Append("Wrote " + _buildRunner.GetSourcePath() + "\n");
+      if (_document.GetClangFormatOnGenerate() ==
+          GraphDocument::ClangFormatOnGenerate::Yes)
+      {
+         const Result formatResult = _buildRunner.TryClangFormatSource();
+         if (IsOk(formatResult))
+         {
+            _pCompilerLog->Append("clang-format applied (or skipped if unavailable).\n");
+            std::ifstream formatted(_buildRunner.GetSourcePath(), std::ios::binary);
+            if (formatted.is_open())
+            {
+               _lastGeneratedSource.assign((std::istreambuf_iterator<char>(formatted)),
+                                           std::istreambuf_iterator<char>());
+            }
+         }
+         else
+         {
+            _pCompilerLog->Append("clang-format failed; keeping unformatted source.\n");
+         }
+      }
       ShowGeneratedSource();
    }
 
@@ -342,8 +363,12 @@ namespace Cgen
          "- Each Enter-committed property change is one undo step; a node drag is one step.\n"
          "- Ctrl+Y redoes the last undone edit.\n"
          "- Tidy or Ctrl+L auto-layouts control flow left-to-right.\n"
+         "- Snap toggles grid snap (on by default) and snaps the selection.\n"
+         "- AlignL / AlignT align a multi-selection.\n"
          "- Fit / Ctrl+0 fits all blocks; Fit Sel / Ctrl+Shift+0 fits the selection.\n"
-         "- Bottom-right minimap: click or drag to jump around large graphs.\n\n"
+         "- Bottom-right minimap: click or drag to jump around large graphs.\n"
+         "- Clear selection to edit Document fileDescription and clangFormat.\n"
+         "- FunctionDef uses paramCount + paramNName/paramNType (Param ports); Call Arg ports follow that function.\n\n"
          "File & build\n"
          "- Ctrl+N New, Ctrl+O Open, Ctrl+S Save (.cgen).\n"
          "- Generate C validates the graph (click issues to jump), writes .c, shows source.\n"
@@ -560,6 +585,19 @@ namespace Cgen
             break;
          case ToolbarAction::Tidy:
             _pCanvas->TidyLayout();
+            SyncSelectionUi();
+            break;
+         case ToolbarAction::Snap:
+            _pCanvas->ToggleSnapToGrid();
+            _pCanvas->SnapSelectionToGrid();
+            SyncSelectionUi();
+            break;
+         case ToolbarAction::AlignLeft:
+            _pCanvas->AlignSelectedNodes(AlignSelection::Left);
+            SyncSelectionUi();
+            break;
+         case ToolbarAction::AlignTop:
+            _pCanvas->AlignSelectedNodes(AlignSelection::Top);
             SyncSelectionUi();
             break;
          case ToolbarAction::FitAll:

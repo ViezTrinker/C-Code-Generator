@@ -16,6 +16,7 @@
 
 #include "gui/document_history.h"
 #include "model/c_type.h"
+#include "model/graph_align.h"
 #include "model/graph_clipboard.h"
 #include "model/graph_document.h"
 
@@ -143,6 +144,28 @@ namespace Cgen
        *\brief Applies auto-layout with one undo checkpoint.
        */
       void TidyLayout(void);
+
+      /*!
+       *\brief Toggles snap-to-grid while dragging nodes.
+       */
+      void ToggleSnapToGrid(void);
+
+      /*!
+       *\brief Returns true when snap-to-grid is enabled.
+       */
+      bool IsSnapToGridEnabled(void) const;
+
+      /*!
+       *\brief Snaps the current selection onto the grid.
+       */
+      void SnapSelectionToGrid(void);
+
+      /*!
+       *\brief Aligns the current selection.
+       *
+       *\param[in] align Alignment mode.
+       */
+      void AlignSelectedNodes(AlignSelection align);
 
       /*!
        *\brief Places a block at the current mouse world position.
@@ -306,6 +329,7 @@ namespace Cgen
       std::string _wireHoverHint;
       NodeId _lastClickNodeId = 0;
       sf::Clock _lastClickClock;
+      bool _snapToGridEnabled = true;
    };
 } // namespace Cgen
 

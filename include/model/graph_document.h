@@ -26,6 +26,8 @@ namespace Cgen
       NodeId nextNodeId = 1;
       EdgeId nextEdgeId = 1;
       bool dirty = false;
+      std::string fileDescription;
+      bool clangFormatOnGenerate = false;
    };
 
    /*!
@@ -213,6 +215,39 @@ namespace Cgen
       void SetNextEdgeId(EdgeId nextEdgeId);
 
       /*!
+       *\brief Doxygen file brief written into generated C.
+       */
+      const std::string& GetFileDescription(void) const;
+
+      /*!
+       *\brief Sets the generated-file description brief.
+       *
+       *\param[in] description Brief text (may be empty).
+       */
+      void SetFileDescription(std::string_view description);
+
+      /*!
+       *\brief Whether Generate should run clang-format when available.
+       */
+      enum class ClangFormatOnGenerate: bool
+      {
+         No = false,
+         Yes = true
+      };
+
+      /*!
+       *\brief Returns clang-format-on-generate preference.
+       */
+      ClangFormatOnGenerate GetClangFormatOnGenerate(void) const;
+
+      /*!
+       *\brief Sets clang-format-on-generate preference.
+       *
+       *\param[in] value Yes to format after write when clang-format exists.
+       */
+      void SetClangFormatOnGenerate(ClangFormatOnGenerate value);
+
+      /*!
        *\brief Captures nodes, edges, and id counters (viewport excluded).
        *
        *\return Graph snapshot for undo.
@@ -236,6 +271,8 @@ namespace Cgen
       float _viewportZoom = 1.0f;
       bool _dirty = false;
       std::string _filePath;
+      std::string _fileDescription;
+      ClangFormatOnGenerate _clangFormatOnGenerate = ClangFormatOnGenerate::No;
    };
 } // namespace Cgen
 

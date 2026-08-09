@@ -28,8 +28,18 @@ namespace Cgen
 
       bool IsTypePropertyKey(std::string_view key)
       {
-         return (key == "type") || (key == "returnType") || (key == "toType") ||
-                (key == "elemType");
+         if ((key == "type") || (key == "returnType") || (key == "toType") ||
+             (key == "elemType"))
+         {
+            return true;
+         }
+         return (key.size() > 4) && (key.rfind("Type") == (key.size() - 4)) &&
+                (key.find("param") == 0);
+      }
+
+      bool ShouldHidePropertyKey(std::string_view key)
+      {
+         return (key == "collapsed") || (key == "params");
       }
 
       void AppendUniqueChoice(std::vector<std::string>* pOut, std::string_view value)
@@ -46,6 +56,20 @@ namespace Cgen
             }
          }
          pOut->push_back(std::string(value));
+      }
+
+      void AppendParamCountChoices(std::vector<std::string>* pOut)
+      {
+         for (uint32_t index = 0; index <= MaxFunctionParams; ++index)
+         {
+            AppendUniqueChoice(pOut, std::to_string(index));
+         }
+      }
+
+      void AppendYesNoChoices(std::vector<std::string>* pOut)
+      {
+         AppendUniqueChoice(pOut, "0");
+         AppendUniqueChoice(pOut, "1");
       }
 
       void AppendPrimitiveTypeChoices(std::vector<std::string>* pOut)
@@ -296,6 +320,20 @@ namespace Cgen
          AppendUniqueChoice(&pField->choices, pField->value);
          return;
       }
+      if (pField->key == "paramCount")
+      {
+         pField->editKind = FieldEditKind::Choice;
+         AppendParamCountChoices(&pField->choices);
+         AppendUniqueChoice(&pField->choices, pField->value);
+         return;
+      }
+      if (pField->key == "clangFormat")
+      {
+         pField->editKind = FieldEditKind::Choice;
+         AppendYesNoChoices(&pField->choices);
+         AppendUniqueChoice(&pField->choices, pField->value);
+         return;
+      }
       if ((pField->key == "op") && (blockType == BlockType::CompoundAssign))
       {
          pField->editKind = FieldEditKind::Choice;
@@ -454,10 +492,41 @@ namespace Cgen
       _fields.clear();
       _helpLines.clear();
       _previewLines.clear();
-      if ((_pDocument == nullptr) || (_selectedNodeId == 0))
+      if (_pDocument == nullptr)
       {
          return;
       }
+      if (_selectedNodeId == 0)
+      {
+         RebuildHelpLines(
+            "Document settings. fileDescription becomes the generated "
+            "\\\\brief. clangFormat=1 runs clang-format after Generate when available.");
+         float cursorY = FieldsStartY();
+         Field descriptionField;
+         descriptionField.key = "fileDescription";
+         descriptionField.value = _pDocument->GetFileDescription();
+         descriptionField.editKind = FieldEditKind::Text;
+         descriptionField.bounds =
+            sf::FloatRect(sf::Vector2f(_bounds.position.x + 8.0f, cursorY + 16.0f),
+                          sf::Vector2f(_bounds.size.x - 16.0f, 22.0f));
+         _fields.push_back(descriptionField);
+         cursorY += FieldRowHeight;
+
+         Field formatField;
+         formatField.key = "clangFormat";
+         formatField.value =
+            (_pDocument->GetClangFormatOnGenerate() ==
+             GraphDocument::ClangFormatOnGenerate::Yes)
+               ? "1"
+               : "0";
+         FillChoicesForField(&formatField, BlockType::Start);
+         formatField.bounds =
+            sf::FloatRect(sf::Vector2f(_bounds.position.x + 8.0f, cursorY + 16.0f),
+                          sf::Vector2f(_bounds.size.x - 16.0f, 22.0f));
+         _fields.push_back(formatField);
+         return;
+      }
+
       const Node* pNode = _pDocument->FindNode(_selectedNodeId);
       if (pNode == nullptr)
       {
@@ -472,7 +541,7 @@ namespace Cgen
            iterator != pNode->properties.end();
            ++iterator)
       {
-         if (iterator->first == "collapsed")
+         if (ShouldHidePropertyKey(iterator->first))
          {
             continue;
          }
@@ -490,8 +559,7 @@ namespace Cgen
 
    void PropertyPanel::CommitActiveField(void)
    {
-      if ((_activeFieldIndex < 0) || (_pDocument == nullptr) ||
-          (_selectedNodeId == 0))
+      if ((_activeFieldIndex < 0) || (_pDocument == nullptr))
       {
          return;
       }
@@ -499,12 +567,49 @@ namespace Cgen
       {
          return;
       }
+      const Field& field = _fields[static_cast<size_t>(_activeFieldIndex)];
+
+      if (_selectedNodeId == 0)
+      {
+         if (field.key == "fileDescription")
+         {
+            if (_pDocument->GetFileDescription() == field.value)
+            {
+               return;
+            }
+            if (_pHistory != nullptr)
+            {
+               _pHistory->PushCheckpoint(*_pDocument);
+            }
+            _pDocument->SetFileDescription(field.value);
+            _pDocument->SetDirty(true);
+            return;
+         }
+         if (field.key == "clangFormat")
+         {
+            const GraphDocument::ClangFormatOnGenerate nextValue =
+               (field.value == "1") ? GraphDocument::ClangFormatOnGenerate::Yes
+                                    : GraphDocument::ClangFormatOnGenerate::No;
+            if (_pDocument->GetClangFormatOnGenerate() == nextValue)
+            {
+               return;
+            }
+            if (_pHistory != nullptr)
+            {
+               _pHistory->PushCheckpoint(*_pDocument);
+            }
+            _pDocument->SetClangFormatOnGenerate(nextValue);
+            _pDocument->SetDirty(true);
+            return;
+         }
+         return;
+      }
+
       Node* pNode = _pDocument->FindNodeMutable(_selectedNodeId);
       if (pNode == nullptr)
       {
          return;
       }
-      const Field& field = _fields[static_cast<size_t>(_activeFieldIndex)];
       const auto found = pNode->properties.find(field.key);
       if ((found != pNode->properties.end()) && (found->second == field.value))
       {
@@ -516,9 +621,25 @@ namespace Cgen
       }
       pNode->properties[field.key] = field.value;
       SyncNodePortTypes(pNode);
+      SyncFunctionDefParams(pNode);
       SyncPrintfArgVisibility(pNode, _pDocument);
+      SyncCallArgPorts(pNode, _pDocument);
+      if (pNode->type == BlockType::FunctionDef)
+      {
+         SyncAllNodePorts(_pDocument);
+      }
       _pDocument->SetDirty(true);
       RebuildPreviewLines(GenerateCSnippet(*_pDocument, _selectedNodeId));
+      if ((field.key == "paramCount") || (field.key.find("param") == 0))
+      {
+         const int32_t keepIndex = _activeFieldIndex;
+         RebuildFields();
+         if ((keepIndex >= 0) &&
+             (static_cast<size_t>(keepIndex) < _fields.size()))
+         {
+            _activeFieldIndex = keepIndex;
+         }
+      }
    }
 
    bool PropertyPanel::HandleChoicePopupClick(sf::Vector2f point)
@@ -692,9 +813,9 @@ namespace Cgen
                                      _bounds.position.y + 6.0f));
       pTarget->draw(title);
 
-      if ((_pDocument == nullptr) || (_selectedNodeId == 0))
+      if (_pDocument == nullptr)
       {
-         sf::Text empty(*_pFont, "No selection", 13);
+         sf::Text empty(*_pFont, "No document", 13);
          empty.setFillColor(sf::Color(160, 160, 160));
          empty.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                         _bounds.position.y + TitleHeight));
@@ -702,19 +823,31 @@ namespace Cgen
          return;
       }
 
-      const Node* pNode = _pDocument->FindNode(_selectedNodeId);
-      if (pNode == nullptr)
+      if (_selectedNodeId == 0)
       {
-         return;
+         sf::Text typeLabel(*_pFont, "Type: Document", 13);
+         typeLabel.setFillColor(sf::Color(200, 200, 200));
+         typeLabel.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
+                                            _bounds.position.y + TitleHeight));
+         pTarget->draw(typeLabel);
       }
+      else
+      {
+         const Node* pNode = _pDocument->FindNode(_selectedNodeId);
+         if (pNode == nullptr)
+         {
+            return;
+         }
 
-      sf::Text typeLabel(*_pFont,
-                         std::string("Type: ") + std::string(BlockTypeLabel(pNode->type)),
-                         13);
-      typeLabel.setFillColor(sf::Color(200, 200, 200));
-      typeLabel.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
-                                         _bounds.position.y + TitleHeight));
-      pTarget->draw(typeLabel);
+         sf::Text typeLabel(
+            *_pFont,
+            std::string("Type: ") + std::string(BlockTypeLabel(pNode->type)),
+            13);
+         typeLabel.setFillColor(sf::Color(200, 200, 200));
+         typeLabel.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
+                                            _bounds.position.y + TitleHeight));
+         pTarget->draw(typeLabel);
+      }
 
       float helpY = _bounds.position.y + TitleHeight + TypeLabelHeight;
       for (size_t lineIndex = 0; lineIndex < _helpLines.size(); ++lineIndex)

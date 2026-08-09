@@ -24,6 +24,8 @@ namespace Cgen
       _viewportZoom = 1.0f;
       _dirty = false;
       _filePath.clear();
+      _fileDescription.clear();
+      _clangFormatOnGenerate = ClangFormatOnGenerate::No;
       AddNode(BlockType::Start, 80.0f, 80.0f);
       _dirty = false;
    }
@@ -291,6 +293,26 @@ namespace Cgen
       _nextEdgeId = nextEdgeId;
    }
 
+   const std::string& GraphDocument::GetFileDescription(void) const
+   {
+      return _fileDescription;
+   }
+
+   void GraphDocument::SetFileDescription(std::string_view description)
+   {
+      _fileDescription = std::string(description);
+   }
+
+   GraphDocument::ClangFormatOnGenerate GraphDocument::GetClangFormatOnGenerate(void) const
+   {
+      return _clangFormatOnGenerate;
+   }
+
+   void GraphDocument::SetClangFormatOnGenerate(ClangFormatOnGenerate value)
+   {
+      _clangFormatOnGenerate = value;
+   }
+
    GraphSnapshot GraphDocument::CaptureGraph(void) const
    {
       GraphSnapshot snapshot;
@@ -299,6 +321,9 @@ namespace Cgen
       snapshot.nextNodeId = _nextNodeId;
       snapshot.nextEdgeId = _nextEdgeId;
       snapshot.dirty = _dirty;
+      snapshot.fileDescription = _fileDescription;
+      snapshot.clangFormatOnGenerate =
+         (_clangFormatOnGenerate == ClangFormatOnGenerate::Yes);
       return snapshot;
    }
 
@@ -309,5 +334,9 @@ namespace Cgen
       _nextNodeId = snapshot.nextNodeId;
       _nextEdgeId = snapshot.nextEdgeId;
       _dirty = snapshot.dirty;
+      _fileDescription = snapshot.fileDescription;
+      _clangFormatOnGenerate =
+         snapshot.clangFormatOnGenerate ? ClangFormatOnGenerate::Yes
+                                        : ClangFormatOnGenerate::No;
    }
 } // namespace Cgen

@@ -220,5 +220,7 @@ CGEN 1
       "toNodeId": 13,
       "toPort": "In"
     }
-  ]
+  ],
+  "fileDescription": "Feature primer for Malloc and Free with typed pointers.",
+  "clangFormat": true
 }

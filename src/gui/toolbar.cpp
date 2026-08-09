@@ -17,6 +17,9 @@ namespace Cgen
       _buttons.push_back({ToolbarAction::Run, "Run", {}});
       _buttons.push_back({ToolbarAction::Stop, "Stop", {}});
       _buttons.push_back({ToolbarAction::Tidy, "Tidy", {}});
+      _buttons.push_back({ToolbarAction::Snap, "Snap", {}});
+      _buttons.push_back({ToolbarAction::AlignLeft, "AlignL", {}});
+      _buttons.push_back({ToolbarAction::AlignTop, "AlignT", {}});
       _buttons.push_back({ToolbarAction::FitAll, "Fit", {}});
       _buttons.push_back({ToolbarAction::FitSelection, "Fit Sel", {}});
       _buttons.push_back({ToolbarAction::Help, "?", {}});
@@ -25,7 +28,7 @@ namespace Cgen
    void Toolbar::SetBounds(const sf::FloatRect& bounds)
    {
       _bounds = bounds;
-      constexpr float ButtonWidth = 72.0f;
+      constexpr float ButtonWidth = 64.0f;
       constexpr float HelpButtonWidth = 36.0f;
       constexpr float ButtonHeight = 28.0f;
       constexpr float Gap = 4.0f;

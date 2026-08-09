@@ -14,6 +14,7 @@
 #include "model/block_type.h"
 #include "model/c_type.h"
 #include "model/edge.h"
+#include "model/node.h"
 #include "model/port.h"
 
 namespace Cgen
@@ -137,49 +138,15 @@ namespace Cgen
             }
             if (node.type == BlockType::FunctionDef)
             {
-               const std::string params = GetProperty(node, "params", "");
-               std::string token;
-               for (size_t index = 0; index <= params.size(); ++index)
+               const uint32_t paramCount = GetFunctionParamCount(node);
+               for (uint32_t paramIndex = 0; paramIndex < paramCount; ++paramIndex)
                {
-                  const char character =
-                     (index < params.size()) ? params[index] : ',';
-                  if ((character == ',') || (character == ';'))
+                  std::string paramName;
+                  std::string paramType;
+                  if (GetFunctionParam(node, paramIndex, &paramName, &paramType) &&
+                      (!paramName.empty()))
                   {
-                     // Take last identifier-like word in the param clause.
-                     std::string word;
-                     for (size_t charIndex = 0; charIndex < token.size(); ++charIndex)
-                     {
-                        const char tokenChar = token[charIndex];
-                        if ((std::isalnum(static_cast<unsigned char>(tokenChar)) != 0) ||
-                            (tokenChar == '_'))
-                        {
-                           word.push_back(tokenChar);
-                        }
-                        else if (!word.empty())
-                        {
-                           word.clear();
-                        }
-                     }
-                     if ((!word.empty()) && (word != "void") && (word != "bool") &&
-                         (word != "int32_t") && (word != "int") && (word != "char") &&
-                         (word != "float") && (word != "double") && (word != "FILE") &&
-                         (word != "size_t") && (word != "uint32_t") &&
-                         (word != "uint64_t") && (word != "int64_t") &&
-                         (word != "uint8_t") && (word != "int8_t") &&
-                         (word != "uint16_t") && (word != "int16_t") &&
-                         (word != "unsigned") && (word != "short") && (word != "long"))
-                     {
-                        pNames->insert(word);
-                     }
-                     token.clear();
-                  }
-                  else if (character != ' ')
-                  {
-                     token.push_back(character);
-                  }
-                  else if (!token.empty())
-                  {
-                     token.push_back(character);
+                     pNames->insert(paramName);
                   }
                }
             }

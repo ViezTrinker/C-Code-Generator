@@ -69,6 +69,50 @@ namespace Cgen
    void SyncNodePortTypes(Node* pNode);
 
    /*!
+    *\brief Maximum typed parameters on a FunctionDef / Call.
+    */
+   inline constexpr uint32_t MaxFunctionParams = 8;
+
+   /*!
+    *\brief Returns the structured parameter count for a FunctionDef.
+    *
+    *\param[in] node FunctionDef node.
+    *\return Count in 0..MaxFunctionParams.
+    */
+   uint32_t GetFunctionParamCount(const Node& node);
+
+   /*!
+    *\brief Reads one FunctionDef parameter name/type pair.
+    *
+    *\param[in] node FunctionDef node.
+    *\param[in] paramIndex Zero-based parameter index.
+    *\param[out] pOutName Parameter identifier.
+    *\param[out] pOutType C type spelling.
+    *\return true if the parameter exists.
+    */
+   bool GetFunctionParam(const Node& node,
+                         uint32_t paramIndex,
+                         std::string* pOutName,
+                         std::string* pOutType);
+
+   /*!
+    *\brief Builds a C parameter list from FunctionDef structured params.
+    *
+    *\param[in] node FunctionDef node.
+    *\return e.g. "int32_t x, Hero* pHero" or "void".
+    */
+   std::string FormatFunctionParamList(const Node& node);
+
+   /*!
+    *\brief Syncs FunctionDef Param ports and structured param properties.
+    *
+    * Migrates legacy free-text `params` into paramCount/paramNName/paramNType.
+    *
+    *\param[in,out] pNode FunctionDef node.
+    */
+   void SyncFunctionDefParams(Node* pNode);
+
+   /*!
     *\brief Shows or hides Printf/FilePrintf Arg ports from format and wires.
     *
     *\param[in,out] pNode Printf or FilePrintf node.
@@ -77,7 +121,15 @@ namespace Cgen
    void SyncPrintfArgVisibility(Node* pNode, const class GraphDocument* pDocument);
 
    /*!
-    *\brief Runs SyncNodePortTypes and Printf visibility for every node.
+    *\brief Types and shows Call Arg ports from the target FunctionDef.
+    *
+    *\param[in,out] pNode Call node.
+    *\param[in] pDocument Document used to resolve the FunctionDef (nullable).
+    */
+   void SyncCallArgPorts(Node* pNode, const class GraphDocument* pDocument);
+
+   /*!
+    *\brief Runs SyncNodePortTypes and arg visibility for every node.
     *
     *\param[in,out] pDocument Document to sync.
     */

@@ -132,13 +132,17 @@ Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffe
 - You enter **row** and **col** as `1`–`3`
 - Rejects occupied or out-of-range cells
 - Prints the board after every turn
+- Before each match, prints win/draw counts from `ttt_history.txt` and who leads (you vs AI)
+- After a finished match (win or draw), appends a line to `ttt_history.txt` with the result and a local timestamp (`Y-M-D H:M:S`)
 - After the game: press **`r`** to restart, or any other character to quit
 
-Requires the **Scanf Char** block (for the restart prompt).
+Uses **File Open** / **File Gets** / **File Printf** / **File Close**, **Local Time**, and **Scanf Char**.
 
 ```powershell
 .\build\c_code_generator.exe --codegen examples\tic_tac_toe.cgen
 ```
+
+History lines look like `X 2026-8-9 14:37:05` (`X` = you won, `O` = AI won, `D` = draw).
 
 ## Usage
 

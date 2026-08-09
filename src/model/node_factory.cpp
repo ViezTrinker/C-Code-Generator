@@ -174,6 +174,12 @@ namespace Cgen
          {BlockType::FileClose, "FileClose", "File Close",
           "Closes a FILE* handle. Property: handle.",
           false},
+         {BlockType::FilePrintf, "FilePrintf", "File Printf",
+          "fprintf to a FILE*. Properties: handle, format. Wire Arg0-Arg7.",
+          false},
+         {BlockType::FileGets, "FileGets", "File Gets",
+          "fgets from a FILE*. Properties: handle, target, size, status (0/1).",
+          false},
          {BlockType::Assert, "Assert", "Assert",
           "assert(Cond). Wire Cond; aborts if zero/false when NDEBUG is unset.",
           false},
@@ -581,6 +587,28 @@ namespace Cgen
             node.ports.push_back(MakeControlIn("In"));
             node.ports.push_back(MakeControlOut("Next"));
             node.properties["handle"] = "fp";
+            break;
+         case BlockType::FilePrintf:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.ports.push_back(MakeDataIn("Arg0", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg1", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg2", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg3", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg4", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg5", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg6", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg7", PrimitiveType::Int32, false));
+            node.properties["handle"] = "fp";
+            node.properties["format"] = "%d\\n";
+            break;
+         case BlockType::FileGets:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["handle"] = "fp";
+            node.properties["target"] = "buffer";
+            node.properties["size"] = "256";
+            node.properties["status"] = "ok";
             break;
          case BlockType::Assert:
             node.ports.push_back(MakeControlIn("In"));

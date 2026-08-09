@@ -67,6 +67,8 @@ namespace Cgen
       FileRead,
       FileWrite,
       FileClose,
+      FilePrintf,
+      FileGets,
       Assert,
       Comment,
       StructDecl,

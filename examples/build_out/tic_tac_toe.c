@@ -105,6 +105,136 @@ int32_t check_winner(char* board)
    return 0;
 }
 
+void show_match_stats(void)
+{
+   FILE* fp;
+   char line[64];
+   int32_t ok = 0;
+   int32_t userWins = 0;
+   int32_t aiWins = 0;
+   int32_t draws = 0;
+   int32_t ch = 0;
+   printf("--- Match stats (from ttt_history.txt) ---\n");
+   fflush(stdout);
+   fp = fopen("ttt_history.txt", "r");
+   if ((fp == 0))
+   {
+      printf("No previous matches recorded yet.\n");
+      fflush(stdout);
+      return;
+   }
+   else
+   {
+      ok = 1;
+      while ((ok == 1))
+      {
+         if (fgets(line, 64, fp) == NULL)
+         {
+            line[0] = '\0';
+            ok = 0;
+         }
+         else
+         {
+            ok = 1;
+         }
+         if ((ok == 1))
+         {
+            ch = ((int32_t)(line[0]));
+            if ((ch == 'X'))
+            {
+               ++userWins;
+            }
+            else
+            {
+               if ((ch == 'O'))
+               {
+                  ++aiWins;
+               }
+               else
+               {
+                  if ((ch == 'D'))
+                  {
+                     ++draws;
+                  }
+               }
+            }
+         }
+      }
+      fclose(fp);
+      printf("You: %d wins | AI: %d wins | Draws: %d\n", userWins, aiWins, draws);
+      fflush(stdout);
+      if ((userWins > aiWins))
+      {
+         printf("Overall leader: you.\n");
+         fflush(stdout);
+         return;
+      }
+      else
+      {
+         if ((aiWins > userWins))
+         {
+            printf("Overall leader: AI.\n");
+            fflush(stdout);
+            return;
+         }
+         else
+         {
+            printf("Overall record is tied.\n");
+            fflush(stdout);
+            return;
+         }
+      }
+   }
+   return;
+}
+
+void log_match_result(int32_t winner)
+{
+   int32_t year = 0;
+   int32_t month = 0;
+   int32_t day = 0;
+   int32_t hour = 0;
+   int32_t minute = 0;
+   int32_t second = 0;
+   FILE* fp;
+   int32_t code = 'D';
+   {
+      time_t cgenTimeNow = time(NULL);
+      struct tm* pCgenTm = localtime(&cgenTimeNow);
+      if (pCgenTm != NULL)
+      {
+         year = (int32_t)(pCgenTm->tm_year + 1900);
+         month = (int32_t)(pCgenTm->tm_mon + 1);
+         day = (int32_t)pCgenTm->tm_mday;
+         hour = (int32_t)pCgenTm->tm_hour;
+         minute = (int32_t)pCgenTm->tm_min;
+         second = (int32_t)pCgenTm->tm_sec;
+      }
+   }
+   if ((winner == 'X'))
+   {
+      code = 'X';
+   }
+   else
+   {
+      if ((winner == 'O'))
+      {
+         code = 'O';
+      }
+   }
+   fp = fopen("ttt_history.txt", "a");
+   if ((fp != 0))
+   {
+      fprintf(fp, "%c %d-%d-%d %d:%d:%d\n", code, year, month, day, hour, minute, second);
+      fflush(fp);
+      fclose(fp);
+      printf("Result saved to ttt_history.txt.\n");
+      fflush(stdout);
+      return;
+   }
+   return;
+}
+
 int main(void)
 {
    srand((unsigned int)time(NULL));
@@ -126,6 +256,7 @@ int main(void)
    fflush(stdout);
    while ((playing == 1))
    {
+      show_match_stats();
       for (int32_t clearIndex = 0; clearIndex < 9; ++clearIndex)
       {
          board[clearIndex] = (char)(' ');
@@ -283,11 +414,12 @@ int main(void)
       }
       if ((winner != -1))
       {
+         log_match_result(winner);
          printf("Press r to restart, or any other key to quit: ");
          fflush(stdout);
          if (scanf(" %c", &again) != 1)
          {
-            again = '\0';
+            again = 0;
          }
          if ((again == 'r'))
          {

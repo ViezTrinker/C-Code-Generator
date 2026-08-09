@@ -104,6 +104,8 @@ TEST(BlockTypeTest, EveryBlockHasHelpText)
       Cgen::BlockType::FileRead,
       Cgen::BlockType::FileWrite,
       Cgen::BlockType::FileClose,
+      Cgen::BlockType::FilePrintf,
+      Cgen::BlockType::FileGets,
       Cgen::BlockType::Assert,
       Cgen::BlockType::Comment,
       Cgen::BlockType::StructDecl,

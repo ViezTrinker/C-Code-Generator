@@ -12,3 +12,4 @@ cmake_test_discovery_*.json
 *.a
 *.dll
 /_deps/
+ttt_history.txt

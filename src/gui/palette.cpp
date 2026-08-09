@@ -85,7 +85,9 @@ namespace Cgen
          BlockType::FileOpen,
          BlockType::FileRead,
          BlockType::FileWrite,
-         BlockType::FileClose
+         BlockType::FileClose,
+         BlockType::FilePrintf,
+         BlockType::FileGets
       };
 
       constexpr BlockType MemoryTypes[] = {

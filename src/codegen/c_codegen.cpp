@@ -803,6 +803,61 @@ namespace Cgen
                (*pContext->pOut) << "fclose(" << handleName << ");\n";
                break;
             }
+            case BlockType::FilePrintf:
+            {
+               const std::string handleName = GetProperty(node, "handle", "fp");
+               const std::string formatRaw = GetProperty(node, "format", "%d\\n");
+               const std::string formatText = EscapeCString(UnescapeFormat(formatRaw));
+               WriteIndent(pContext);
+               (*pContext->pOut) << "fprintf(" << handleName << ", \"" << formatText
+                                 << "\"";
+               for (int32_t argIndex = 0; argIndex < 8; ++argIndex)
+               {
+                  std::ostringstream portName;
+                  portName << "Arg" << argIndex;
+                  const std::string argExpr =
+                     EmitInputExpression(pContext, node.id, portName.str());
+                  if (!argExpr.empty())
+                  {
+                     (*pContext->pOut) << ", " << argExpr;
+                  }
+               }
+               (*pContext->pOut) << ");\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "fflush(" << handleName << ");\n";
+               break;
+            }
+            case BlockType::FileGets:
+            {
+               const std::string handleName = GetProperty(node, "handle", "fp");
+               const std::string target = GetProperty(node, "target", "buffer");
+               const std::string sizeText = GetProperty(node, "size", "256");
+               const std::string statusName = GetProperty(node, "status", "ok");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "if (fgets(" << target << ", " << sizeText << ", "
+                                 << handleName << ") == NULL)\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << target << "[0] = '\\0';\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << statusName << " = 0;\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "else\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << statusName << " = 1;\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               break;
+            }
             case BlockType::Assert:
             {
                const std::string condExpr =

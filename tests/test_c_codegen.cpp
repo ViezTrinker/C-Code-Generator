@@ -364,8 +364,27 @@ TEST(CCodegenTest, EmitsFileIoAndStructFields)
       document.AddNode(Cgen::BlockType::FileWrite, 600.0f, 40.0f);
    const Cgen::NodeId readId =
       document.AddNode(Cgen::BlockType::FileRead, 760.0f, 40.0f);
+   const Cgen::NodeId printfId =
+      document.AddNode(Cgen::BlockType::FilePrintf, 820.0f, 40.0f);
+   document.FindNodeMutable(printfId)->properties["format"] = "%d\\n";
+   const Cgen::NodeId printfArg =
+      document.AddNode(Cgen::BlockType::Literal, 820.0f, 120.0f);
+   document.FindNodeMutable(printfArg)->properties["value"] = "42";
+   const Cgen::NodeId bufDecl =
+      document.AddNode(Cgen::BlockType::ArrayDecl, 880.0f, 200.0f);
+   document.FindNodeMutable(bufDecl)->properties["name"] = "line";
+   document.FindNodeMutable(bufDecl)->properties["elemType"] = "char";
+   document.FindNodeMutable(bufDecl)->properties["size"] = "64";
+   const Cgen::NodeId okDecl =
+      document.AddNode(Cgen::BlockType::VariableDecl, 1040.0f, 200.0f);
+   document.FindNodeMutable(okDecl)->properties["name"] = "ok";
+   const Cgen::NodeId getsId =
+      document.AddNode(Cgen::BlockType::FileGets, 1200.0f, 40.0f);
+   document.FindNodeMutable(getsId)->properties["target"] = "line";
+   document.FindNodeMutable(getsId)->properties["size"] = "64";
+   document.FindNodeMutable(getsId)->properties["status"] = "ok";
    const Cgen::NodeId closeId =
-      document.AddNode(Cgen::BlockType::FileClose, 920.0f, 40.0f);
+      document.AddNode(Cgen::BlockType::FileClose, 1360.0f, 40.0f);
 
    const Cgen::NodeId fieldVal =
       document.AddNode(Cgen::BlockType::Literal, 120.0f, 140.0f);
@@ -381,10 +400,16 @@ TEST(CCodegenTest, EmitsFileIoAndStructFields)
 
    ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", pointDecl, "In", nullptr)));
    ASSERT_TRUE(Cgen::IsOk(document.Connect(pointDecl, "Next", fpDecl, "In", nullptr)));
-   ASSERT_TRUE(Cgen::IsOk(document.Connect(fpDecl, "Next", openId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(fpDecl, "Next", bufDecl, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(bufDecl, "Next", okDecl, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(okDecl, "Next", openId, "In", nullptr)));
    ASSERT_TRUE(Cgen::IsOk(document.Connect(openId, "Next", writeId, "In", nullptr)));
    ASSERT_TRUE(Cgen::IsOk(document.Connect(writeId, "Next", readId, "In", nullptr)));
-   ASSERT_TRUE(Cgen::IsOk(document.Connect(readId, "Next", closeId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(readId, "Next", printfId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(printfArg, "Value", printfId, "Arg0", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(printfId, "Next", getsId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(getsId, "Next", closeId, "In", nullptr)));
    ASSERT_TRUE(Cgen::IsOk(document.Connect(closeId, "Next", fieldStore, "In", nullptr)));
    ASSERT_TRUE(
       Cgen::IsOk(document.Connect(fieldVal, "Value", fieldStore, "Value", nullptr)));
@@ -401,6 +426,8 @@ TEST(CCodegenTest, EmitsFileIoAndStructFields)
    EXPECT_NE(output.source.find("fopen(\"data.bin\", \"rb\")"), std::string::npos);
    EXPECT_NE(output.source.find("fwrite("), std::string::npos);
    EXPECT_NE(output.source.find("fread("), std::string::npos);
+   EXPECT_NE(output.source.find("fprintf(fp, \"%d\\n\", 42);"), std::string::npos);
+   EXPECT_NE(output.source.find("fgets(line, 64, fp)"), std::string::npos);
    EXPECT_NE(output.source.find("fclose(fp);"), std::string::npos);
    EXPECT_NE(output.source.find("point.x = 9;"), std::string::npos);
    EXPECT_NE(output.source.find("point.x"), std::string::npos);

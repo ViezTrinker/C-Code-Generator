@@ -91,9 +91,11 @@ TEST(CgenSerializerTest, LoadsBundledExample)
 {
    Cgen::GraphDocument document;
    std::string diagnostics;
+   const std::filesystem::path examplePath =
+      std::filesystem::path(CGEN_SOURCE_DIR) / "examples" / "add_two_integers.cgen";
    const Cgen::Result result =
-      Cgen::LoadCgenFile("examples/add_two_integers.cgen", &document, &diagnostics);
-   ASSERT_TRUE(Cgen::IsOk(result)) << diagnostics;
+      Cgen::LoadCgenFile(examplePath.string(), &document, &diagnostics);
+   ASSERT_TRUE(Cgen::IsOk(result)) << diagnostics << " path=" << examplePath.string();
    EXPECT_GE(document.GetNodes().size(), 3u);
    EXPECT_FALSE(document.GetEdges().empty());
 }

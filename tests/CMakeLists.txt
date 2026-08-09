@@ -29,6 +29,12 @@ target_link_libraries(cgen_unit_tests PRIVATE
    GTest::gtest_main
 )
 
+# Forward slashes avoid Windows escape issues inside the string macro.
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CGEN_SOURCE_DIR_NORMALIZED)
+target_compile_definitions(cgen_unit_tests PRIVATE
+   CGEN_SOURCE_DIR="${CGEN_SOURCE_DIR_NORMALIZED}"
+)
+
 include(GoogleTest)
 gtest_discover_tests(cgen_unit_tests
    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"

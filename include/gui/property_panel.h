@@ -108,6 +108,15 @@ namespace Cgen
       bool HandleKey(sf::Keyboard::Key keyCode);
 
       /*!
+       *\brief Scrolls an open choice popup when the wheel is over it.
+       *
+       *\param[in] delta Wheel delta.
+       *\param[in] point Mouse position.
+       *\return true if handled.
+       */
+      bool HandleWheel(float delta, sf::Vector2f point);
+
+      /*!
        *\brief Draws the panel.
        *
        *\param[in,out] pTarget Render target.
@@ -152,6 +161,7 @@ namespace Cgen
       int32_t _activeFieldIndex = -1;
       bool _choicePopupOpen = false;
       int32_t _choicePopupFieldIndex = -1;
+      int32_t _choiceScrollOffset = 0;
       sf::FloatRect _choicePopupBounds {};
       std::vector<ChoiceItem> _choiceItems;
    };

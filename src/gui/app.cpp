@@ -329,7 +329,7 @@ namespace Cgen
          "- While dragging a wire: green = compatible types, red = incompatible (drop refused).\n"
          "- Amber ports = control flow, blue ports = data.\n"
          "- Click a block, then edit its properties on the right (Enter commits).\n"
-         "- Click choice fields (type, op, access, function) for dropdowns; you can still type.\n"
+         "- Click choice fields (type, op, access, function) for dropdowns; scroll the list with the mouse wheel; you can still type.\n"
          "- Double-click a FunctionDef to collapse/expand its body on the canvas.\n"
          "- Properties show a short C: preview of the selected block.\n\n"
          "Delete / clipboard\n"
@@ -768,6 +768,9 @@ namespace Cgen
                {
                }
                else if (_pPalette->HandleWheel(pWheel->delta, point))
+               {
+               }
+               else if (_pProperties->HandleWheel(pWheel->delta, point))
                {
                }
                else if ((!_sourceViewVisible) && (!_helpViewVisible))

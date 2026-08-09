@@ -59,6 +59,34 @@ TEST(CCodegenTest, EmitsVariableAndAssignment)
    EXPECT_NE(output.source.find("int32_t value = 42;"), std::string::npos);
 }
 
+TEST(CCodegenTest, EmitsStdBoolIncludeForBoolDecl)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId declId =
+      document.AddNode(Cgen::BlockType::VariableDecl, 160.0f, 40.0f);
+   Cgen::Node* pDecl = document.FindNodeMutable(declId);
+   ASSERT_NE(pDecl, nullptr);
+   pDecl->properties["name"] = "ready";
+   pDecl->properties["type"] = "bool";
+
+   const Cgen::NodeId literalId =
+      document.AddNode(Cgen::BlockType::Literal, 160.0f, 140.0f);
+   Cgen::Node* pLiteral = document.FindNodeMutable(literalId);
+   ASSERT_NE(pLiteral, nullptr);
+   pLiteral->properties["value"] = "true";
+
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 320.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", declId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(literalId, "Value", declId, "Init", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(declId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("#include <stdbool.h>"), std::string::npos);
+   EXPECT_NE(output.source.find("bool ready = true;"), std::string::npos);
+}
+
 TEST(CCodegenTest, EmitsScanfChar)
 {
    Cgen::GraphDocument document;

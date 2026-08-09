@@ -160,11 +160,14 @@ namespace Cgen
                            word.clear();
                         }
                      }
-                     if ((!word.empty()) && (word != "void") && (word != "int32_t") &&
-                         (word != "int") && (word != "char") && (word != "float") &&
-                         (word != "double") && (word != "FILE") && (word != "size_t") &&
-                         (word != "uint32_t") && (word != "uint64_t") &&
-                         (word != "int64_t") && (word != "uint8_t") && (word != "int8_t"))
+                     if ((!word.empty()) && (word != "void") && (word != "bool") &&
+                         (word != "int32_t") && (word != "int") && (word != "char") &&
+                         (word != "float") && (word != "double") && (word != "FILE") &&
+                         (word != "size_t") && (word != "uint32_t") &&
+                         (word != "uint64_t") && (word != "int64_t") &&
+                         (word != "uint8_t") && (word != "int8_t") &&
+                         (word != "uint16_t") && (word != "int16_t") &&
+                         (word != "unsigned") && (word != "short") && (word != "long"))
                      {
                         pNames->insert(word);
                      }

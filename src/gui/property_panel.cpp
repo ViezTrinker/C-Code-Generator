@@ -22,7 +22,7 @@ namespace Cgen
       constexpr float PreviewBottomGap = 10.0f;
       constexpr float FieldRowHeight = 44.0f;
       constexpr float ChoiceItemHeight = 22.0f;
-      constexpr float ChoicePopupMaxHeight = 176.0f;
+      constexpr float ChoicePopupMaxHeight = 242.0f;
       constexpr unsigned int HelpCharacterSize = 12;
       constexpr unsigned int PreviewCharacterSize = 12;
 
@@ -55,14 +55,17 @@ namespace Cgen
             return;
          }
          constexpr const char* BaseTypes[] = {
-            "void",     "char",     "int8_t",   "uint8_t",  "int16_t",  "uint16_t",
-            "int32_t",  "uint32_t", "int64_t",  "uint64_t", "float",    "double",
-            "FILE",     "size_t"
+            "void",     "bool",     "char",     "int8_t",   "uint8_t",  "int16_t",
+            "uint16_t", "int32_t",  "uint32_t", "int64_t",  "uint64_t", "float",
+            "double",   "size_t",   "FILE"
          };
-         for (size_t index = 0; index < (sizeof(BaseTypes) / sizeof(BaseTypes[0]));
-              ++index)
+         constexpr size_t BaseTypeCount = sizeof(BaseTypes) / sizeof(BaseTypes[0]);
+         for (size_t index = 0; index < BaseTypeCount; ++index)
          {
             AppendUniqueChoice(pOut, BaseTypes[index]);
+         }
+         for (size_t index = 0; index < BaseTypeCount; ++index)
+         {
             std::string pointerType = BaseTypes[index];
             pointerType.push_back('*');
             AppendUniqueChoice(pOut, pointerType);
@@ -190,6 +193,7 @@ namespace Cgen
    {
       _choicePopupOpen = false;
       _choicePopupFieldIndex = -1;
+      _choiceScrollOffset = 0;
       _choiceItems.clear();
       _choicePopupBounds = sf::FloatRect {};
    }
@@ -206,16 +210,41 @@ namespace Cgen
       const float width = field.bounds.size.x;
       const float fullHeight =
          static_cast<float>(_choiceItems.size()) * ChoiceItemHeight;
-      const float height = std::min(fullHeight, ChoicePopupMaxHeight);
+      const bool needsScroll = (fullHeight > ChoicePopupMaxHeight);
+      const float footerHeight = needsScroll ? 16.0f : 0.0f;
+      const float height =
+         needsScroll ? ChoicePopupMaxHeight : fullHeight;
+      const float listHeight = height - footerHeight;
+      const auto visibleCount =
+         static_cast<int32_t>(listHeight / ChoiceItemHeight);
+      const auto itemCount = static_cast<int32_t>(_choiceItems.size());
+      const int32_t maxScroll =
+         std::max(static_cast<int32_t>(0), itemCount - visibleCount);
+      if (_choiceScrollOffset > maxScroll)
+      {
+         _choiceScrollOffset = maxScroll;
+      }
+      if (_choiceScrollOffset < 0)
+      {
+         _choiceScrollOffset = 0;
+      }
+
       _choicePopupBounds =
          sf::FloatRect(sf::Vector2f(field.bounds.position.x,
                                     field.bounds.position.y + field.bounds.size.y + 2.0f),
                        sf::Vector2f(width, height));
       for (size_t index = 0; index < _choiceItems.size(); ++index)
       {
+         const auto visualIndex =
+            static_cast<int32_t>(index) - _choiceScrollOffset;
+         if ((visualIndex < 0) || (visualIndex >= visibleCount))
+         {
+            _choiceItems[index].bounds = sf::FloatRect {};
+            continue;
+         }
          const float itemY =
             _choicePopupBounds.position.y +
-            (static_cast<float>(index) * ChoiceItemHeight);
+            (static_cast<float>(visualIndex) * ChoiceItemHeight);
          _choiceItems[index].bounds =
             sf::FloatRect(sf::Vector2f(_choicePopupBounds.position.x, itemY),
                           sf::Vector2f(width, ChoiceItemHeight));
@@ -236,6 +265,7 @@ namespace Cgen
       }
       _choicePopupOpen = true;
       _choicePopupFieldIndex = fieldIndex;
+      _choiceScrollOffset = 0;
       _choiceItems.clear();
       for (size_t index = 0; index < field.choices.size(); ++index)
       {
@@ -622,6 +652,28 @@ namespace Cgen
       return false;
    }
 
+   bool PropertyPanel::HandleWheel(float delta, sf::Vector2f point)
+   {
+      if (!_choicePopupOpen)
+      {
+         return false;
+      }
+      if (!_choicePopupBounds.contains(point))
+      {
+         return false;
+      }
+      if (delta > 0.0f)
+      {
+         --_choiceScrollOffset;
+      }
+      else if (delta < 0.0f)
+      {
+         ++_choiceScrollOffset;
+      }
+      RebuildChoicePopupBounds();
+      return true;
+   }
+
    void PropertyPanel::Draw(sf::RenderTarget* pTarget) const
    {
       if ((pTarget == nullptr) || (_pFont == nullptr))
@@ -734,20 +786,31 @@ namespace Cgen
          popupBg.setOutlineThickness(1.0f);
          pTarget->draw(popupBg);
 
-         const float visibleBottom =
-            _choicePopupBounds.position.y + _choicePopupBounds.size.y;
          for (size_t index = 0; index < _choiceItems.size(); ++index)
          {
             const ChoiceItem& item = _choiceItems[index];
-            if (item.bounds.position.y >= visibleBottom)
+            if ((item.bounds.size.x <= 0.0f) || (item.bounds.size.y <= 0.0f))
             {
-               break;
+               continue;
             }
             sf::Text itemText(*_pFont, item.label, 12);
             itemText.setFillColor(sf::Color(220, 220, 230));
             itemText.setPosition(sf::Vector2f(item.bounds.position.x + 6.0f,
                                               item.bounds.position.y + 3.0f));
             pTarget->draw(itemText);
+         }
+
+         const auto visibleCount =
+            static_cast<int32_t>((_choicePopupBounds.size.y - 16.0f) / ChoiceItemHeight);
+         const auto itemCount = static_cast<int32_t>(_choiceItems.size());
+         if ((itemCount > visibleCount) && (visibleCount > 0))
+         {
+            sf::Text scrollHint(*_pFont, "scroll for more", 10);
+            scrollHint.setFillColor(sf::Color(150, 160, 180));
+            scrollHint.setPosition(sf::Vector2f(
+               _choicePopupBounds.position.x + 6.0f,
+               _choicePopupBounds.position.y + _choicePopupBounds.size.y - 14.0f));
+            pTarget->draw(scrollHint);
          }
       }
    }

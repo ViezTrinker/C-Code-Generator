@@ -108,3 +108,18 @@ TEST(CTypeTest, VoidNonPointerActsAsUniversalNonPointer)
    intValue.base = Cgen::PrimitiveType::Int32;
    EXPECT_TRUE(Cgen::AreTypesCompatible(anyValue, intValue));
 }
+
+TEST(CTypeTest, ParsesBoolAsNamedType)
+{
+   Cgen::CType parsed {};
+   ASSERT_TRUE(Cgen::CTypeFromString("bool", &parsed));
+   EXPECT_EQ(parsed.base, Cgen::PrimitiveType::Named);
+   EXPECT_FALSE(parsed.isPointer);
+   EXPECT_EQ(parsed.namedSpelling, "bool");
+   EXPECT_EQ(Cgen::CTypeToString(parsed), "bool");
+
+   Cgen::CType pointer {};
+   ASSERT_TRUE(Cgen::CTypeFromString("bool*", &pointer));
+   EXPECT_TRUE(pointer.isPointer);
+   EXPECT_EQ(Cgen::CTypeToString(pointer), "bool*");
+}

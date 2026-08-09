@@ -12,6 +12,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "build/build_runner.h"
+#include "build/process_session.h"
 #include "gui/canvas_view.h"
 #include "gui/log_pane.h"
 #include "gui/palette.h"
@@ -48,6 +49,8 @@ namespace Cgen
       void GenerateCode(void);
       void BuildCode(void);
       void RunProgram(void);
+      void StopProgram(void);
+      void PollProgramSession(void);
       void UpdateTitle(void);
       bool LoadFont(void);
       bool PromptOpenPath(std::string* pOutPath);
@@ -57,6 +60,8 @@ namespace Cgen
       sf::Font _font;
       GraphDocument _document;
       BuildRunner _buildRunner;
+      ProcessSession _programSession;
+      bool _programSessionActive = false;
       std::unique_ptr<Toolbar> _pToolbar;
       std::unique_ptr<Palette> _pPalette;
       std::unique_ptr<CanvasView> _pCanvas;

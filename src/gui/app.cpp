@@ -258,16 +258,68 @@ namespace Cgen
    void App::RunProgram(void)
    {
       BuildCode();
-      const BuildResult runResult = _buildRunner.Run();
-      std::string log;
-      log.append("Command: ");
-      log.append(runResult.command);
-      log.append("\n");
-      log.append(runResult.output);
-      log.append("Exit code: ");
-      log.append(std::to_string(runResult.exitCode));
-      log.append("\n");
-      _pProgramLog->SetText(log);
+      StopProgram();
+      _pProgramLog->Clear();
+      _pProgramLog->SetText("Running " + _buildRunner.GetExecutablePath() + "\n"
+                            "Type input in the line below, then press Enter.\n"
+                            "Use Stop to terminate a running program.\n\n");
+      const Result startResult =
+         _programSession.Start(_buildRunner.GetExecutablePath());
+      if (IsErr(startResult))
+      {
+         _pProgramLog->Append("Failed to start process.\n");
+         _programSessionActive = false;
+         return;
+      }
+      _programSessionActive = true;
+   }
+
+   void App::StopProgram(void)
+   {
+      if (_programSessionActive || _programSession.IsRunning())
+      {
+         _programSession.Stop();
+         _programSessionActive = false;
+         _pProgramLog->Append("\n[Process stopped]\n");
+      }
+   }
+
+   void App::PollProgramSession(void)
+   {
+      if (!_programSessionActive)
+      {
+         return;
+      }
+
+      if (_pProgramLog->HasPendingInput())
+      {
+         const std::string line = _pProgramLog->TakePendingInput();
+         std::string payload = line;
+         payload.push_back('\n');
+         _pProgramLog->Append(std::string("> ") + line + "\n");
+         if (IsErr(_programSession.WriteStdin(payload)))
+         {
+            _pProgramLog->Append("[Failed to write stdin]\n");
+         }
+      }
+
+      std::string chunk;
+      if (_programSession.ConsumeOutput(&chunk))
+      {
+         _pProgramLog->Append(chunk);
+      }
+
+      if (!_programSession.IsRunning())
+      {
+         std::string trailing;
+         if (_programSession.ConsumeOutput(&trailing))
+         {
+            _pProgramLog->Append(trailing);
+         }
+         _pProgramLog->Append("\nExit code: " +
+                              std::to_string(_programSession.GetExitCode()) + "\n");
+         _programSessionActive = false;
+      }
    }
 
    void App::HandleToolbar(ToolbarAction action)
@@ -292,6 +344,9 @@ namespace Cgen
          case ToolbarAction::Run:
             RunProgram();
             break;
+         case ToolbarAction::Stop:
+            StopProgram();
+            break;
          case ToolbarAction::None:
             break;
       }
@@ -308,15 +363,19 @@ namespace Cgen
       _pPalette = std::make_unique<Palette>(_font);
       _pCanvas = std::make_unique<CanvasView>(_font);
       _pProperties = std::make_unique<PropertyPanel>(_font);
-      _pProgramLog = std::make_unique<LogPane>("Program Output", _font);
-      _pCompilerLog = std::make_unique<LogPane>("Compiler", _font);
+      _pProgramLog = std::make_unique<LogPane>("Program Output",
+                                               _font,
+                                               LogInputMode::Enabled);
+      _pCompilerLog =
+         std::make_unique<LogPane>("Compiler", _font, LogInputMode::Disabled);
 
       _pCanvas->SetDocument(&_document);
       Layout();
       UpdateTitle();
       _pCompilerLog->SetText("Ready. Place blocks from the left palette.\n"
                              "Connect amber ports for control flow, blue for data.\n"
-                             "Right-click a port to delete its wire.\n");
+                             "Right-click a port to delete its wire.\n"
+                             "Use Run to execute; type program input in Program Output.\n");
 
       while (_window.isOpen())
       {
@@ -324,6 +383,7 @@ namespace Cgen
          {
             if (event->is<sf::Event::Closed>())
             {
+               StopProgram();
                _window.close();
             }
             else if (const auto* pResized = event->getIf<sf::Event::Resized>())
@@ -351,6 +411,9 @@ namespace Cgen
                      _pCanvas->PlaceBlock(placeType, point);
                      _pProperties->SetSelection(&_document, _pCanvas->GetSelectedNodeId());
                      UpdateTitle();
+                  }
+                  else if (_pProgramLog->HandleClick(point))
+                  {
                   }
                   else if (_pProperties->HandleClick(point))
                   {
@@ -382,15 +445,30 @@ namespace Cgen
             {
                const sf::Vector2f point(static_cast<float>(pWheel->position.x),
                                         static_cast<float>(pWheel->position.y));
-               _pCanvas->HandleWheel(pWheel->delta, point);
+               if (_pProgramLog->HandleWheel(pWheel->delta, point))
+               {
+               }
+               else if (_pCompilerLog->HandleWheel(pWheel->delta, point))
+               {
+               }
+               else
+               {
+                  _pCanvas->HandleWheel(pWheel->delta, point);
+               }
             }
             else if (const auto* pText = event->getIf<sf::Event::TextEntered>())
             {
-               _pProperties->HandleTextEntered(pText->unicode);
+               if (!_pProgramLog->HandleTextEntered(pText->unicode))
+               {
+                  _pProperties->HandleTextEntered(pText->unicode);
+               }
             }
             else if (const auto* pKey = event->getIf<sf::Event::KeyPressed>())
             {
-               if (_pProperties->HandleKey(pKey->code))
+               if (_pProgramLog->HandleKey(pKey->code))
+               {
+               }
+               else if (_pProperties->HandleKey(pKey->code))
                {
                }
                else if (pKey->code == sf::Keyboard::Key::Delete)
@@ -417,6 +495,8 @@ namespace Cgen
             }
          }
 
+         PollProgramSession();
+
          _window.clear(sf::Color(20, 22, 26));
          _pToolbar->Draw(&_window);
          _pPalette->Draw(&_window);
@@ -426,6 +506,7 @@ namespace Cgen
          _pCompilerLog->Draw(&_window);
          _window.display();
       }
+      StopProgram();
       return 0;
    }
 } // namespace Cgen

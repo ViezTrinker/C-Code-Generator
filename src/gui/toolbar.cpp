@@ -15,6 +15,7 @@ namespace Cgen
       _buttons.push_back({ToolbarAction::Generate, "Generate C", {}});
       _buttons.push_back({ToolbarAction::Build, "Build", {}});
       _buttons.push_back({ToolbarAction::Run, "Run", {}});
+      _buttons.push_back({ToolbarAction::Stop, "Stop", {}});
    }
 
    void Toolbar::SetBounds(const sf::FloatRect& bounds)

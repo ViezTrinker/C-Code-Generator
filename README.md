@@ -98,6 +98,19 @@ Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffe
 "16`n3`n2`n3" | .\build\c_code_generator.exe --codegen examples\password_generator.cgen
 ```
 
+### Prime number detector
+
+[`examples/prime_number_detector.cgen`](examples/prime_number_detector.cgen) asks for an integer and reports whether it is prime.
+
+- `2` and other primes print `N is prime.`
+- Composites list proper divisors only (exclude `1` and `N`), e.g. `8` → `8 is not prime. Divisible by: 2 4`
+- Values `< 2` are treated as not prime
+
+```powershell
+"8" | .\build\c_code_generator.exe --codegen examples\prime_number_detector.cgen
+"7" | .\build\c_code_generator.exe --codegen examples\prime_number_detector.cgen
+```
+
 ## Usage
 
 - Place blocks from the left palette
@@ -106,7 +119,7 @@ Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffe
 - Edit properties on the right (click a field, type, Enter to commit)
 - **Generate C** writes `build_out/<cgen-name>.c` (e.g. `add_two_integers.cgen` → `add_two_integers.c`; unsaved docs use `untitled.c`)
 - **Build** runs `gcc`; logs appear in the Compiler pane
-- **Run** executes the program; `printf` output appears in Program Output
+- **Run** starts the program in the background and streams stdout into Program Output; type into the input line at the bottom of that pane for `scanf` / Enter prompts; **Stop** kills infinite loops
 - **Save/Open** uses the `.cgen` (CGEN 1 + JSON) project format
 
 ## Layout

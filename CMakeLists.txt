@@ -18,6 +18,7 @@ set(PROJECT_HEADERS
    include/codegen/c_codegen.h
    include/serialize/cgen_serializer.h
    include/build/build_runner.h
+   include/build/process_session.h
    include/gui/app.h
    include/gui/canvas_view.h
    include/gui/log_pane.h
@@ -34,6 +35,7 @@ set(PROJECT_SOURCES
    src/codegen/c_codegen.cpp
    src/serialize/cgen_serializer.cpp
    src/build/build_runner.cpp
+   src/build/process_session.cpp
    src/gui/app.cpp
    src/gui/canvas_view.cpp
    src/gui/log_pane.cpp

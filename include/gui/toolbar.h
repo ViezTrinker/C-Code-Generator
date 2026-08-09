@@ -25,7 +25,8 @@ namespace Cgen
       Save,
       Generate,
       Build,
-      Run
+      Run,
+      Stop
    };
 
    /*!

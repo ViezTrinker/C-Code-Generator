@@ -7,56 +7,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
-int main(void)
-{
-   int32_t n;
-   int32_t found = 0;
-   printf("Enter an integer: ");
-   fflush(stdout);
-   if (scanf("%d", &n) != 1)
-   {
-      n = 0;
-   }
-   if ((n < 2))
-   {
-      printf("%d is not prime.\n", n);
+int main(void) {
+  int32_t n;
+  int32_t found = 0;
+  printf("Enter an integer: ");
+  fflush(stdout);
+  if (scanf("%d", &n) != 1) {
+    n = 0;
+  }
+  if ((n < 2)) {
+    printf("%d is not prime.\n", n);
+    fflush(stdout);
+  } else {
+    found = 0;
+    for (int32_t divisor = 2; divisor < n; ++divisor) {
+      if (((n % divisor) == 0)) {
+        if ((found == 0)) {
+          printf("%d is not prime. Divisible by: %d", n, divisor);
+          fflush(stdout);
+          found = 1;
+        } else {
+          printf(" %d", divisor);
+          fflush(stdout);
+        }
+      }
+    }
+    if ((found == 0)) {
+      printf("%d is prime.\n", n);
       fflush(stdout);
-   }
-   else
-   {
-      found = 0;
-      for (int32_t divisor = 2; divisor < n; ++divisor)
-      {
-         if (((n % divisor) == 0))
-         {
-            if ((found == 0))
-            {
-               printf("%d is not prime. Divisible by: %d", n, divisor);
-               fflush(stdout);
-               found = 1;
-            }
-            else
-            {
-               printf(" %d", divisor);
-               fflush(stdout);
-            }
-         }
-      }
-      if ((found == 0))
-      {
-         printf("%d is prime.\n", n);
-         fflush(stdout);
-      }
-      else
-      {
-         printf("\n");
-         fflush(stdout);
-      }
-   }
-   printf("Press Enter to exit...\n");
-   fflush(stdout);
-   (void)getchar();
-   return 0;
+    } else {
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+  printf("Press Enter to exit...\n");
+  fflush(stdout);
+  (void)getchar();
+  return 0;
 }

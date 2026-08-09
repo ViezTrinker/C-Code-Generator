@@ -13,38 +13,34 @@
 #include <unistd.h>
 #endif
 
-
-
-int main(void)
-{
-   int32_t year;
-   int32_t month;
-   int32_t day;
-   int32_t hour;
-   int32_t minute;
-   int32_t second;
-   while (1)
-   {
-      {
-         time_t cgenTimeNow = time(NULL);
-         struct tm* pCgenTm = localtime(&cgenTimeNow);
-         if (pCgenTm != NULL)
-         {
-            year = (int32_t)(pCgenTm->tm_year + 1900);
-            month = (int32_t)(pCgenTm->tm_mon + 1);
-            day = (int32_t)pCgenTm->tm_mday;
-            hour = (int32_t)pCgenTm->tm_hour;
-            minute = (int32_t)pCgenTm->tm_min;
-            second = (int32_t)pCgenTm->tm_sec;
-         }
+int main(void) {
+  int32_t year;
+  int32_t month;
+  int32_t day;
+  int32_t hour;
+  int32_t minute;
+  int32_t second;
+  while (1) {
+    {
+      time_t cgenTimeNow = time(NULL);
+      struct tm *pCgenTm = localtime(&cgenTimeNow);
+      if (pCgenTm != NULL) {
+        year = (int32_t)(pCgenTm->tm_year + 1900);
+        month = (int32_t)(pCgenTm->tm_mon + 1);
+        day = (int32_t)pCgenTm->tm_mday;
+        hour = (int32_t)pCgenTm->tm_hour;
+        minute = (int32_t)pCgenTm->tm_min;
+        second = (int32_t)pCgenTm->tm_sec;
       }
-      printf("%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
-      fflush(stdout);
+    }
+    printf("%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute,
+           second);
+    fflush(stdout);
 #ifdef _WIN32
-      Sleep((DWORD)(((1) * 1000)));
+    Sleep((DWORD)(((1) * 1000)));
 #else
-      sleep((unsigned int)(1));
+    sleep((unsigned int)(1));
 #endif
-   }
-   return 0;
+  }
+  return 0;
 }

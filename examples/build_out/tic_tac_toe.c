@@ -8,434 +8,330 @@
 #include <stdlib.h>
 #include <time.h>
 
-
-
-void print_board(char* board)
-{
-   printf("\n %c | %c | %c\n", (int32_t)(board[0]), (int32_t)(board[1]), (int32_t)(board[2]));
-   fflush(stdout);
-   printf("---+---+---\n");
-   fflush(stdout);
-   printf(" %c | %c | %c\n", (int32_t)(board[3]), (int32_t)(board[4]), (int32_t)(board[5]));
-   fflush(stdout);
-   printf("---+---+---\n");
-   fflush(stdout);
-   printf(" %c | %c | %c\n\n", (int32_t)(board[6]), (int32_t)(board[7]), (int32_t)(board[8]));
-   fflush(stdout);
-   return;
+void print_board(char *board) {
+  printf("\n %c | %c | %c\n", (int32_t)(board[0]), (int32_t)(board[1]),
+         (int32_t)(board[2]));
+  fflush(stdout);
+  printf("---+---+---\n");
+  fflush(stdout);
+  printf(" %c | %c | %c\n", (int32_t)(board[3]), (int32_t)(board[4]),
+         (int32_t)(board[5]));
+  fflush(stdout);
+  printf("---+---+---\n");
+  fflush(stdout);
+  printf(" %c | %c | %c\n\n", (int32_t)(board[6]), (int32_t)(board[7]),
+         (int32_t)(board[8]));
+  fflush(stdout);
+  return;
 }
 
-int32_t check_winner(char* board)
-{
-   if (((int32_t)(board[0]) == (int32_t)(board[1])))
-   {
-      if (((int32_t)(board[1]) == (int32_t)(board[2])))
-      {
-         if (((int32_t)(board[0]) != ' '))
-         {
-            return (int32_t)(board[0]);
-         }
+int32_t check_winner(char *board) {
+  if (((int32_t)(board[0]) == (int32_t)(board[1]))) {
+    if (((int32_t)(board[1]) == (int32_t)(board[2]))) {
+      if (((int32_t)(board[0]) != ' ')) {
+        return (int32_t)(board[0]);
       }
-   }
-   if (((int32_t)(board[3]) == (int32_t)(board[4])))
-   {
-      if (((int32_t)(board[4]) == (int32_t)(board[5])))
-      {
-         if (((int32_t)(board[3]) != ' '))
-         {
-            return (int32_t)(board[3]);
-         }
+    }
+  }
+  if (((int32_t)(board[3]) == (int32_t)(board[4]))) {
+    if (((int32_t)(board[4]) == (int32_t)(board[5]))) {
+      if (((int32_t)(board[3]) != ' ')) {
+        return (int32_t)(board[3]);
       }
-   }
-   if (((int32_t)(board[6]) == (int32_t)(board[7])))
-   {
-      if (((int32_t)(board[7]) == (int32_t)(board[8])))
-      {
-         if (((int32_t)(board[6]) != ' '))
-         {
-            return (int32_t)(board[6]);
-         }
+    }
+  }
+  if (((int32_t)(board[6]) == (int32_t)(board[7]))) {
+    if (((int32_t)(board[7]) == (int32_t)(board[8]))) {
+      if (((int32_t)(board[6]) != ' ')) {
+        return (int32_t)(board[6]);
       }
-   }
-   if (((int32_t)(board[0]) == (int32_t)(board[3])))
-   {
-      if (((int32_t)(board[3]) == (int32_t)(board[6])))
-      {
-         if (((int32_t)(board[0]) != ' '))
-         {
-            return (int32_t)(board[0]);
-         }
+    }
+  }
+  if (((int32_t)(board[0]) == (int32_t)(board[3]))) {
+    if (((int32_t)(board[3]) == (int32_t)(board[6]))) {
+      if (((int32_t)(board[0]) != ' ')) {
+        return (int32_t)(board[0]);
       }
-   }
-   if (((int32_t)(board[1]) == (int32_t)(board[4])))
-   {
-      if (((int32_t)(board[4]) == (int32_t)(board[7])))
-      {
-         if (((int32_t)(board[1]) != ' '))
-         {
-            return (int32_t)(board[1]);
-         }
+    }
+  }
+  if (((int32_t)(board[1]) == (int32_t)(board[4]))) {
+    if (((int32_t)(board[4]) == (int32_t)(board[7]))) {
+      if (((int32_t)(board[1]) != ' ')) {
+        return (int32_t)(board[1]);
       }
-   }
-   if (((int32_t)(board[2]) == (int32_t)(board[5])))
-   {
-      if (((int32_t)(board[5]) == (int32_t)(board[8])))
-      {
-         if (((int32_t)(board[2]) != ' '))
-         {
-            return (int32_t)(board[2]);
-         }
+    }
+  }
+  if (((int32_t)(board[2]) == (int32_t)(board[5]))) {
+    if (((int32_t)(board[5]) == (int32_t)(board[8]))) {
+      if (((int32_t)(board[2]) != ' ')) {
+        return (int32_t)(board[2]);
       }
-   }
-   if (((int32_t)(board[0]) == (int32_t)(board[4])))
-   {
-      if (((int32_t)(board[4]) == (int32_t)(board[8])))
-      {
-         if (((int32_t)(board[0]) != ' '))
-         {
-            return (int32_t)(board[0]);
-         }
+    }
+  }
+  if (((int32_t)(board[0]) == (int32_t)(board[4]))) {
+    if (((int32_t)(board[4]) == (int32_t)(board[8]))) {
+      if (((int32_t)(board[0]) != ' ')) {
+        return (int32_t)(board[0]);
       }
-   }
-   if (((int32_t)(board[2]) == (int32_t)(board[4])))
-   {
-      if (((int32_t)(board[4]) == (int32_t)(board[6])))
-      {
-         if (((int32_t)(board[2]) != ' '))
-         {
-            return (int32_t)(board[2]);
-         }
+    }
+  }
+  if (((int32_t)(board[2]) == (int32_t)(board[4]))) {
+    if (((int32_t)(board[4]) == (int32_t)(board[6]))) {
+      if (((int32_t)(board[2]) != ' ')) {
+        return (int32_t)(board[2]);
       }
-   }
-   return 0;
+    }
+  }
+  return 0;
 }
 
-void show_match_stats(void)
-{
-   FILE* fp;
-   char line[64];
-   int32_t ok = 0;
-   int32_t userWins = 0;
-   int32_t aiWins = 0;
-   int32_t draws = 0;
-   int32_t ch = 0;
-   printf("--- Match stats (from ttt_history.txt) ---\n");
-   fflush(stdout);
-   fp = fopen("ttt_history.txt", "r");
-   if ((fp == 0))
-   {
-      printf("No previous matches recorded yet.\n");
+void show_match_stats(void) {
+  FILE *fp;
+  char line[64];
+  int32_t ok = 0;
+  int32_t userWins = 0;
+  int32_t aiWins = 0;
+  int32_t draws = 0;
+  int32_t ch = 0;
+  printf("--- Match stats (from ttt_history.txt) ---\n");
+  fflush(stdout);
+  fp = fopen("ttt_history.txt", "r");
+  if ((fp == 0)) {
+    printf("No previous matches recorded yet.\n");
+    fflush(stdout);
+    return;
+  } else {
+    ok = 1;
+    while ((ok == 1)) {
+      if (fgets(line, 64, fp) == NULL) {
+        line[0] = '\0';
+        ok = 0;
+      } else {
+        ok = 1;
+      }
+      if ((ok == 1)) {
+        ch = (int32_t)(line[0]);
+        if ((ch == 'X')) {
+          ++userWins;
+        } else {
+          if ((ch == 'O')) {
+            ++aiWins;
+          } else {
+            if ((ch == 'D')) {
+              ++draws;
+            }
+          }
+        }
+      }
+    }
+    fclose(fp);
+    printf("You: %d wins | AI: %d wins | Draws: %d\n", userWins, aiWins, draws);
+    fflush(stdout);
+    if ((userWins > aiWins)) {
+      printf("Overall leader: you.\n");
       fflush(stdout);
       return;
-   }
-   else
-   {
-      ok = 1;
-      while ((ok == 1))
-      {
-         if (fgets(line, 64, fp) == NULL)
-         {
-            line[0] = '\0';
-            ok = 0;
-         }
-         else
-         {
-            ok = 1;
-         }
-         if ((ok == 1))
-         {
-            ch = (int32_t)(line[0]);
-            if ((ch == 'X'))
-            {
-               ++userWins;
-            }
-            else
-            {
-               if ((ch == 'O'))
-               {
-                  ++aiWins;
-               }
-               else
-               {
-                  if ((ch == 'D'))
-                  {
-                     ++draws;
-                  }
-               }
-            }
-         }
+    } else {
+      if ((aiWins > userWins)) {
+        printf("Overall leader: AI.\n");
+        fflush(stdout);
+        return;
+      } else {
+        printf("Overall record is tied.\n");
+        fflush(stdout);
+        return;
       }
-      fclose(fp);
-      printf("You: %d wins | AI: %d wins | Draws: %d\n", userWins, aiWins, draws);
-      fflush(stdout);
-      if ((userWins > aiWins))
-      {
-         printf("Overall leader: you.\n");
-         fflush(stdout);
-         return;
-      }
-      else
-      {
-         if ((aiWins > userWins))
-         {
-            printf("Overall leader: AI.\n");
-            fflush(stdout);
-            return;
-         }
-         else
-         {
-            printf("Overall record is tied.\n");
-            fflush(stdout);
-            return;
-         }
-      }
-   }
-   return;
+    }
+  }
+  return;
 }
 
-void log_match_result(int32_t winner)
-{
-   int32_t year = 0;
-   int32_t month = 0;
-   int32_t day = 0;
-   int32_t hour = 0;
-   int32_t minute = 0;
-   int32_t second = 0;
-   FILE* fp;
-   int32_t code = 'D';
-   {
-      time_t cgenTimeNow = time(NULL);
-      struct tm* pCgenTm = localtime(&cgenTimeNow);
-      if (pCgenTm != NULL)
-      {
-         year = (int32_t)(pCgenTm->tm_year + 1900);
-         month = (int32_t)(pCgenTm->tm_mon + 1);
-         day = (int32_t)pCgenTm->tm_mday;
-         hour = (int32_t)pCgenTm->tm_hour;
-         minute = (int32_t)pCgenTm->tm_min;
-         second = (int32_t)pCgenTm->tm_sec;
-      }
-   }
-   if ((winner == 'X'))
-   {
-      code = 'X';
-   }
-   else
-   {
-      if ((winner == 'O'))
-      {
-         code = 'O';
-      }
-   }
-   fp = fopen("ttt_history.txt", "a");
-   if ((fp != 0))
-   {
-      fprintf(fp, "%c %d-%d-%d %d:%d:%d\n", code, year, month, day, hour, minute, second);
-      fflush(fp);
-      fclose(fp);
-      printf("Result saved to ttt_history.txt.\n");
-      fflush(stdout);
-      return;
-   }
-   return;
+void log_match_result(int32_t winner) {
+  int32_t year = 0;
+  int32_t month = 0;
+  int32_t day = 0;
+  int32_t hour = 0;
+  int32_t minute = 0;
+  int32_t second = 0;
+  FILE *fp;
+  int32_t code = 'D';
+  {
+    time_t cgenTimeNow = time(NULL);
+    struct tm *pCgenTm = localtime(&cgenTimeNow);
+    if (pCgenTm != NULL) {
+      year = (int32_t)(pCgenTm->tm_year + 1900);
+      month = (int32_t)(pCgenTm->tm_mon + 1);
+      day = (int32_t)pCgenTm->tm_mday;
+      hour = (int32_t)pCgenTm->tm_hour;
+      minute = (int32_t)pCgenTm->tm_min;
+      second = (int32_t)pCgenTm->tm_sec;
+    }
+  }
+  if ((winner == 'X')) {
+    code = 'X';
+  } else {
+    if ((winner == 'O')) {
+      code = 'O';
+    }
+  }
+  fp = fopen("ttt_history.txt", "a");
+  if ((fp != 0)) {
+    fprintf(fp, "%c %d-%d-%d %d:%d:%d\n", code, year, month, day, hour, minute,
+            second);
+    fflush(fp);
+    fclose(fp);
+    printf("Result saved to ttt_history.txt.\n");
+    fflush(stdout);
+    return;
+  }
+  return;
 }
 
-int main(void)
-{
-   srand((unsigned int)time(NULL));
-   int32_t playing = 1;
-   int32_t row = 0;
-   int32_t col = 0;
-   int32_t idx = 0;
-   int32_t turn = 0;
-   int32_t moves = 0;
-   int32_t winner = 0;
-   int32_t placed = 0;
-   int32_t cell = 0;
-   int32_t roundActive = 0;
-   char again = '\0';
-   char board[9];
-   printf("Tic Tac Toe — you are X, AI is O (random moves).\n");
-   fflush(stdout);
-   printf("Enter row and column as 1-3. After a game, press r to restart.\n");
-   fflush(stdout);
-   while ((playing == 1))
-   {
-      show_match_stats();
-      for (int32_t clearIndex = 0; clearIndex < 9; ++clearIndex)
-      {
-         board[clearIndex] = (char)(' ');
-      }
-      moves = 0;
-      winner = 0;
-      roundActive = 1;
-      turn = (rand() % 2);
-      if ((turn == 0))
-      {
-         printf("You start first (X).\n");
-         fflush(stdout);
-      }
-      else
-      {
-         printf("AI starts first (O).\n");
-         fflush(stdout);
-      }
-      while ((roundActive == 1))
-      {
-         print_board(board);
-         if ((turn == 0))
-         {
-            printf("Your move (X).\n");
-            fflush(stdout);
-            placed = 0;
-            while ((placed == 0))
-            {
-               printf("Row (1-3): ");
-               fflush(stdout);
-               if (scanf("%d", &row) != 1)
-               {
-                  row = 0;
-               }
-               printf("Col (1-3): ");
-               fflush(stdout);
-               if (scanf("%d", &col) != 1)
-               {
-                  col = 0;
-               }
-               if ((row == 0))
-               {
-                  playing = 0;
-                  roundActive = 0;
-                  winner = -1;
-                  placed = 1;
-               }
-               else
-               {
-                  idx = (((row - 1) * 3) + (col - 1));
-                  if ((row >= 1))
-                  {
-                     if ((row <= 3))
-                     {
-                        if ((col >= 1))
-                        {
-                           if ((col <= 3))
-                           {
-                              if (((int32_t)(board[idx]) == ' '))
-                              {
-                                 board[idx] = (char)('X');
-                                 placed = 1;
-                              }
-                              else
-                              {
-                                 printf("That cell is taken. Try again.\n");
-                                 fflush(stdout);
-                              }
-                           }
-                           else
-                           {
-                              printf("Invalid row/col. Use 1-3.\n");
-                              fflush(stdout);
-                           }
-                        }
-                        else
-                        {
-                           printf("Invalid row/col. Use 1-3.\n");
-                           fflush(stdout);
-                        }
-                     }
-                     else
-                     {
-                        printf("Invalid row/col. Use 1-3.\n");
-                        fflush(stdout);
-                     }
-                  }
-                  else
-                  {
-                     printf("Invalid row/col. Use 1-3.\n");
-                     fflush(stdout);
-                  }
-               }
-            }
-         }
-         else
-         {
-            printf("AI move (O)...\n");
-            fflush(stdout);
-            placed = 0;
-            while ((placed == 0))
-            {
-               cell = (rand() % 9);
-               if (((int32_t)(board[cell]) == ' '))
-               {
-                  board[cell] = (char)('O');
-                  placed = 1;
-                  printf("AI played row %d, col %d.\n", ((cell / 3) + 1), ((cell % 3) + 1));
-                  fflush(stdout);
-               }
-            }
-         }
-         if ((playing == 1))
-         {
-            moves = (moves + 1);
-            winner = check_winner(board);
-            if ((winner != 0))
-            {
-               roundActive = 0;
-            }
-            else
-            {
-               if ((moves >= 9))
-               {
-                  roundActive = 0;
-               }
-               else
-               {
-                  turn = (1 - turn);
-               }
-            }
-         }
-      }
+int main(void) {
+  srand((unsigned int)time(NULL));
+  int32_t playing = 1;
+  int32_t row = 0;
+  int32_t col = 0;
+  int32_t idx = 0;
+  int32_t turn = 0;
+  int32_t moves = 0;
+  int32_t winner = 0;
+  int32_t placed = 0;
+  int32_t cell = 0;
+  int32_t roundActive = 0;
+  char again = '\0';
+  char board[9];
+  printf("Tic Tac Toe — you are X, AI is O (random moves).\n");
+  fflush(stdout);
+  printf("Enter row and column as 1-3. After a game, press r to restart.\n");
+  fflush(stdout);
+  while ((playing == 1)) {
+    show_match_stats();
+    for (int32_t clearIndex = 0; clearIndex < 9; ++clearIndex) {
+      board[clearIndex] = (char)(' ');
+    }
+    moves = 0;
+    winner = 0;
+    roundActive = 1;
+    turn = (rand() % 2);
+    if ((turn == 0)) {
+      printf("You start first (X).\n");
+      fflush(stdout);
+    } else {
+      printf("AI starts first (O).\n");
+      fflush(stdout);
+    }
+    while ((roundActive == 1)) {
       print_board(board);
-      if ((winner == 'X'))
-      {
-         printf("You win!\n");
-         fflush(stdout);
-      }
-      else
-      {
-         if ((winner == 'O'))
-         {
-            printf("AI wins!\n");
-            fflush(stdout);
-         }
-         else
-         {
-            if ((winner == 0))
-            {
-               printf("Draw.\n");
-               fflush(stdout);
-            }
-         }
-      }
-      if ((winner != -1))
-      {
-         log_match_result(winner);
-         printf("Press r to restart, or any other key to quit: ");
-         fflush(stdout);
-         if (scanf(" %c", &again) != 1)
-         {
-            again = 0;
-         }
-         if ((again == 'r'))
-         {
-         }
-         else
-         {
+      if ((turn == 0)) {
+        printf("Your move (X).\n");
+        fflush(stdout);
+        placed = 0;
+        while ((placed == 0)) {
+          printf("Row (1-3): ");
+          fflush(stdout);
+          if (scanf("%d", &row) != 1) {
+            row = 0;
+          }
+          printf("Col (1-3): ");
+          fflush(stdout);
+          if (scanf("%d", &col) != 1) {
+            col = 0;
+          }
+          if ((row == 0)) {
             playing = 0;
-         }
+            roundActive = 0;
+            winner = -1;
+            placed = 1;
+          } else {
+            idx = (((row - 1) * 3) + (col - 1));
+            if ((row >= 1)) {
+              if ((row <= 3)) {
+                if ((col >= 1)) {
+                  if ((col <= 3)) {
+                    if (((int32_t)(board[idx]) == ' ')) {
+                      board[idx] = (char)('X');
+                      placed = 1;
+                    } else {
+                      printf("That cell is taken. Try again.\n");
+                      fflush(stdout);
+                    }
+                  } else {
+                    printf("Invalid row/col. Use 1-3.\n");
+                    fflush(stdout);
+                  }
+                } else {
+                  printf("Invalid row/col. Use 1-3.\n");
+                  fflush(stdout);
+                }
+              } else {
+                printf("Invalid row/col. Use 1-3.\n");
+                fflush(stdout);
+              }
+            } else {
+              printf("Invalid row/col. Use 1-3.\n");
+              fflush(stdout);
+            }
+          }
+        }
+      } else {
+        printf("AI move (O)...\n");
+        fflush(stdout);
+        placed = 0;
+        while ((placed == 0)) {
+          cell = (rand() % 9);
+          if (((int32_t)(board[cell]) == ' ')) {
+            board[cell] = (char)('O');
+            placed = 1;
+            printf("AI played row %d, col %d.\n", ((cell / 3) + 1),
+                   ((cell % 3) + 1));
+            fflush(stdout);
+          }
+        }
       }
-   }
-   printf("Goodbye.\n");
-   fflush(stdout);
-   return 0;
+      if ((playing == 1)) {
+        moves = (moves + 1);
+        winner = check_winner(board);
+        if ((winner != 0)) {
+          roundActive = 0;
+        } else {
+          if ((moves >= 9)) {
+            roundActive = 0;
+          } else {
+            turn = (1 - turn);
+          }
+        }
+      }
+    }
+    print_board(board);
+    if ((winner == 'X')) {
+      printf("You win!\n");
+      fflush(stdout);
+    } else {
+      if ((winner == 'O')) {
+        printf("AI wins!\n");
+        fflush(stdout);
+      } else {
+        if ((winner == 0)) {
+          printf("Draw.\n");
+          fflush(stdout);
+        }
+      }
+    }
+    if ((winner != -1)) {
+      log_match_result(winner);
+      printf("Press r to restart, or any other key to quit: ");
+      fflush(stdout);
+      if (scanf(" %c", &again) != 1) {
+        again = 0;
+      }
+      if ((again == 'r')) {
+      } else {
+        playing = 0;
+      }
+    }
+  }
+  printf("Goodbye.\n");
+  fflush(stdout);
+  return 0;
 }

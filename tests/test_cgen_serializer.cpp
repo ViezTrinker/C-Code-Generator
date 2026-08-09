@@ -10,6 +10,7 @@
 #include <string>
 
 #include "model/graph_document.h"
+#include "model/graph_validator.h"
 #include "serialize/cgen_serializer.h"
 
 namespace
@@ -98,4 +99,31 @@ TEST(CgenSerializerTest, LoadsBundledExample)
    ASSERT_TRUE(Cgen::IsOk(result)) << diagnostics << " path=" << examplePath.string();
    EXPECT_GE(document.GetNodes().size(), 3u);
    EXPECT_FALSE(document.GetEdges().empty());
+}
+
+TEST(CgenSerializerTest, LoadsFeaturePrimerExamples)
+{
+   constexpr const char* FileNames[] = {
+      "ex_struct_literal.cgen",
+      "ex_multi_arg_call.cgen",
+      "ex_address_of.cgen",
+      "ex_malloc_free.cgen"
+   };
+   for (size_t index = 0; index < (sizeof(FileNames) / sizeof(FileNames[0])); ++index)
+   {
+      Cgen::GraphDocument document;
+      std::string diagnostics;
+      const std::filesystem::path examplePath =
+         std::filesystem::path(CGEN_SOURCE_DIR) / "examples" / FileNames[index];
+      const Cgen::Result result =
+         Cgen::LoadCgenFile(examplePath.string(), &document, &diagnostics);
+      ASSERT_TRUE(Cgen::IsOk(result)) << diagnostics << " path=" << examplePath.string();
+
+      const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+      for (size_t issueIndex = 0; issueIndex < report.issues.size(); ++issueIndex)
+      {
+         EXPECT_NE(report.issues[issueIndex].severity, Cgen::ValidationSeverity::Error)
+            << FileNames[index] << ": " << report.issues[issueIndex].message;
+      }
+   }
 }

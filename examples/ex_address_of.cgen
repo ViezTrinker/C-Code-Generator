@@ -1,0 +1,256 @@
+CGEN 1
+{
+  "nextNodeId": 17,
+  "nextEdgeId": 14,
+  "viewport": {
+    "x": 0.0,
+    "y": 0.0,
+    "zoom": 1.0
+  },
+  "types": [],
+  "nodes": [
+    {
+      "id": 1,
+      "type": "StructDecl",
+      "posX": 40.0,
+      "posY": -80.0,
+      "properties": {
+        "name": "Hero",
+        "fields": "int32_t hp; int32_t atk"
+      }
+    },
+    {
+      "id": 2,
+      "type": "FunctionDef",
+      "posX": 40.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "bump_hp",
+        "returnType": "void",
+        "params": "Hero* pHero"
+      }
+    },
+    {
+      "id": 3,
+      "type": "FieldLoad",
+      "posX": 40.0,
+      "posY": 120.0,
+      "properties": {
+        "object": "pHero",
+        "field": "hp",
+        "access": "->"
+      }
+    },
+    {
+      "id": 4,
+      "type": "Add",
+      "posX": 200.0,
+      "posY": 120.0,
+      "properties": {}
+    },
+    {
+      "id": 5,
+      "type": "Literal",
+      "posX": 360.0,
+      "posY": 120.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 6,
+      "type": "FieldStore",
+      "posX": 40.0,
+      "posY": 200.0,
+      "properties": {
+        "object": "pHero",
+        "field": "hp",
+        "access": "->"
+      }
+    },
+    {
+      "id": 7,
+      "type": "Return",
+      "posX": 200.0,
+      "posY": 200.0,
+      "properties": {}
+    },
+    {
+      "id": 8,
+      "type": "Start",
+      "posX": 40.0,
+      "posY": 360.0,
+      "properties": {}
+    },
+    {
+      "id": 9,
+      "type": "Comment",
+      "posX": 200.0,
+      "posY": 360.0,
+      "properties": {
+        "text": "AddressOf \u2014 pass &hero into bump_hp(Hero*)"
+      }
+    },
+    {
+      "id": 10,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 440.0,
+      "properties": {
+        "name": "hero",
+        "type": "Hero"
+      }
+    },
+    {
+      "id": 11,
+      "type": "StructLiteral",
+      "posX": 220.0,
+      "posY": 440.0,
+      "properties": {
+        "type": "Hero",
+        "init": ".hp = 10, .atk = 4"
+      }
+    },
+    {
+      "id": 12,
+      "type": "Call",
+      "posX": 40.0,
+      "posY": 520.0,
+      "properties": {
+        "function": "bump_hp",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 13,
+      "type": "AddressOf",
+      "posX": 220.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "hero",
+        "type": "Hero*"
+      }
+    },
+    {
+      "id": 14,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 600.0,
+      "properties": {
+        "format": "hero.hp after bump = %d\\n"
+      }
+    },
+    {
+      "id": 15,
+      "type": "FieldLoad",
+      "posX": 220.0,
+      "posY": 600.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 16,
+      "type": "End",
+      "posX": 40.0,
+      "posY": 680.0,
+      "properties": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": 1,
+      "fromNodeId": 2,
+      "fromPort": "Body",
+      "toNodeId": 6,
+      "toPort": "In"
+    },
+    {
+      "id": 2,
+      "fromNodeId": 3,
+      "fromPort": "Value",
+      "toNodeId": 4,
+      "toPort": "Left"
+    },
+    {
+      "id": 3,
+      "fromNodeId": 5,
+      "fromPort": "Value",
+      "toNodeId": 4,
+      "toPort": "Right"
+    },
+    {
+      "id": 4,
+      "fromNodeId": 4,
+      "fromPort": "Result",
+      "toNodeId": 6,
+      "toPort": "Value"
+    },
+    {
+      "id": 5,
+      "fromNodeId": 6,
+      "fromPort": "Next",
+      "toNodeId": 7,
+      "toPort": "In"
+    },
+    {
+      "id": 6,
+      "fromNodeId": 8,
+      "fromPort": "Next",
+      "toNodeId": 9,
+      "toPort": "In"
+    },
+    {
+      "id": 7,
+      "fromNodeId": 9,
+      "fromPort": "Next",
+      "toNodeId": 10,
+      "toPort": "In"
+    },
+    {
+      "id": 8,
+      "fromNodeId": 11,
+      "fromPort": "Value",
+      "toNodeId": 10,
+      "toPort": "Init"
+    },
+    {
+      "id": 9,
+      "fromNodeId": 10,
+      "fromPort": "Next",
+      "toNodeId": 12,
+      "toPort": "In"
+    },
+    {
+      "id": 10,
+      "fromNodeId": 13,
+      "fromPort": "Value",
+      "toNodeId": 12,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 11,
+      "fromNodeId": 12,
+      "fromPort": "Next",
+      "toNodeId": 14,
+      "toPort": "In"
+    },
+    {
+      "id": 12,
+      "fromNodeId": 15,
+      "fromPort": "Value",
+      "toNodeId": 14,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 13,
+      "fromNodeId": 14,
+      "fromPort": "Next",
+      "toNodeId": 16,
+      "toPort": "In"
+    }
+  ]
+}

@@ -77,6 +77,24 @@ Disable tests with `-DCGEN_BUILD_TESTS=OFF` if needed.
 
 ## Example projects
 
+### Feature primers (new IR)
+
+Short graphs that teach one feature each. Regenerate with `python scripts\generate_feature_examples.py`.
+
+| File | Shows | Expected output |
+| --- | --- | --- |
+| [`examples/ex_struct_literal.cgen`](examples/ex_struct_literal.cgen) | **Struct Literal** into a typed Decl | `point = (3, 7)` |
+| [`examples/ex_multi_arg_call.cgen`](examples/ex_multi_arg_call.cgen) | **Call** with `Arg0`–`Arg2` | `add3(10, 20, 12) = 42` |
+| [`examples/ex_address_of.cgen`](examples/ex_address_of.cgen) | **Address Of** + `Hero*` | `hero.hp after bump = 11` |
+| [`examples/ex_malloc_free.cgen`](examples/ex_malloc_free.cgen) | **Malloc** / **Free** + `uint8_t*` | `pBuf[0] = 42` |
+
+```powershell
+.\build\c_code_generator.exe --codegen examples\ex_struct_literal.cgen --run
+.\build\c_code_generator.exe --codegen examples\ex_multi_arg_call.cgen --run
+.\build\c_code_generator.exe --codegen examples\ex_address_of.cgen --run
+.\build\c_code_generator.exe --codegen examples\ex_malloc_free.cgen --run
+```
+
 ### Add two integers
 
 Open [`examples/add_two_integers.cgen`](examples/add_two_integers.cgen) from the app (**Open**), or run it headless with `--codegen` as above.

@@ -1,0 +1,292 @@
+CGEN 1
+{
+  "nextNodeId": 19,
+  "nextEdgeId": 17,
+  "viewport": {
+    "x": 0.0,
+    "y": 0.0,
+    "zoom": 1.0
+  },
+  "types": [],
+  "nodes": [
+    {
+      "id": 1,
+      "type": "FunctionDef",
+      "posX": 40.0,
+      "posY": 40.0,
+      "properties": {
+        "name": "add3",
+        "returnType": "int32_t",
+        "params": "int32_t a, int32_t b, int32_t c"
+      }
+    },
+    {
+      "id": 2,
+      "type": "Add",
+      "posX": 200.0,
+      "posY": 120.0,
+      "properties": {}
+    },
+    {
+      "id": 3,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 120.0,
+      "properties": {
+        "name": "a",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 4,
+      "type": "VariableRef",
+      "posX": 520.0,
+      "posY": 120.0,
+      "properties": {
+        "name": "b",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 5,
+      "type": "Add",
+      "posX": 200.0,
+      "posY": 200.0,
+      "properties": {}
+    },
+    {
+      "id": 6,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 200.0,
+      "properties": {
+        "name": "c",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 7,
+      "type": "Return",
+      "posX": 520.0,
+      "posY": 200.0,
+      "properties": {}
+    },
+    {
+      "id": 8,
+      "type": "Start",
+      "posX": 40.0,
+      "posY": 360.0,
+      "properties": {}
+    },
+    {
+      "id": 9,
+      "type": "Comment",
+      "posX": 200.0,
+      "posY": 360.0,
+      "properties": {
+        "text": "Multi-arg Call \u2014 Arg0..Arg2 into add3"
+      }
+    },
+    {
+      "id": 10,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 440.0,
+      "properties": {
+        "name": "sum",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 11,
+      "type": "Literal",
+      "posX": 200.0,
+      "posY": 440.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 12,
+      "type": "Call",
+      "posX": 360.0,
+      "posY": 440.0,
+      "properties": {
+        "function": "add3",
+        "returnType": "int32_t",
+        "storeTo": "sum"
+      }
+    },
+    {
+      "id": 13,
+      "type": "Literal",
+      "posX": 520.0,
+      "posY": 440.0,
+      "properties": {
+        "value": "10",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 14,
+      "type": "Literal",
+      "posX": 680.0,
+      "posY": 440.0,
+      "properties": {
+        "value": "20",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 15,
+      "type": "Literal",
+      "posX": 840.0,
+      "posY": 440.0,
+      "properties": {
+        "value": "12",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 16,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 520.0,
+      "properties": {
+        "format": "add3(10, 20, 12) = %d\\n"
+      }
+    },
+    {
+      "id": 17,
+      "type": "VariableRef",
+      "posX": 200.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "sum",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 18,
+      "type": "End",
+      "posX": 40.0,
+      "posY": 600.0,
+      "properties": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": 1,
+      "fromNodeId": 1,
+      "fromPort": "Body",
+      "toNodeId": 7,
+      "toPort": "In"
+    },
+    {
+      "id": 2,
+      "fromNodeId": 3,
+      "fromPort": "Value",
+      "toNodeId": 2,
+      "toPort": "Left"
+    },
+    {
+      "id": 3,
+      "fromNodeId": 4,
+      "fromPort": "Value",
+      "toNodeId": 2,
+      "toPort": "Right"
+    },
+    {
+      "id": 4,
+      "fromNodeId": 2,
+      "fromPort": "Result",
+      "toNodeId": 5,
+      "toPort": "Left"
+    },
+    {
+      "id": 5,
+      "fromNodeId": 6,
+      "fromPort": "Value",
+      "toNodeId": 5,
+      "toPort": "Right"
+    },
+    {
+      "id": 6,
+      "fromNodeId": 5,
+      "fromPort": "Result",
+      "toNodeId": 7,
+      "toPort": "Value"
+    },
+    {
+      "id": 7,
+      "fromNodeId": 8,
+      "fromPort": "Next",
+      "toNodeId": 9,
+      "toPort": "In"
+    },
+    {
+      "id": 8,
+      "fromNodeId": 9,
+      "fromPort": "Next",
+      "toNodeId": 10,
+      "toPort": "In"
+    },
+    {
+      "id": 9,
+      "fromNodeId": 11,
+      "fromPort": "Value",
+      "toNodeId": 10,
+      "toPort": "Init"
+    },
+    {
+      "id": 10,
+      "fromNodeId": 10,
+      "fromPort": "Next",
+      "toNodeId": 12,
+      "toPort": "In"
+    },
+    {
+      "id": 11,
+      "fromNodeId": 13,
+      "fromPort": "Value",
+      "toNodeId": 12,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 12,
+      "fromNodeId": 14,
+      "fromPort": "Value",
+      "toNodeId": 12,
+      "toPort": "Arg1"
+    },
+    {
+      "id": 13,
+      "fromNodeId": 15,
+      "fromPort": "Value",
+      "toNodeId": 12,
+      "toPort": "Arg2"
+    },
+    {
+      "id": 14,
+      "fromNodeId": 12,
+      "fromPort": "Next",
+      "toNodeId": 16,
+      "toPort": "In"
+    },
+    {
+      "id": 15,
+      "fromNodeId": 17,
+      "fromPort": "Value",
+      "toNodeId": 16,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 16,
+      "fromNodeId": 16,
+      "fromPort": "Next",
+      "toNodeId": 18,
+      "toPort": "In"
+    }
+  ]
+}

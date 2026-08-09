@@ -1,0 +1,224 @@
+CGEN 1
+{
+  "nextNodeId": 14,
+  "nextEdgeId": 14,
+  "viewport": {
+    "x": 0.0,
+    "y": 0.0,
+    "zoom": 1.0
+  },
+  "types": [],
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Start",
+      "posX": 40.0,
+      "posY": 40.0,
+      "properties": {}
+    },
+    {
+      "id": 2,
+      "type": "Comment",
+      "posX": 200.0,
+      "posY": 40.0,
+      "properties": {
+        "text": "Malloc/Free \u2014 uint8_t* buffer"
+      }
+    },
+    {
+      "id": 3,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 120.0,
+      "properties": {
+        "name": "pBuf",
+        "type": "uint8_t*"
+      }
+    },
+    {
+      "id": 4,
+      "type": "Malloc",
+      "posX": 220.0,
+      "posY": 120.0,
+      "properties": {
+        "elemType": "uint8_t"
+      }
+    },
+    {
+      "id": 5,
+      "type": "Literal",
+      "posX": 380.0,
+      "posY": 120.0,
+      "properties": {
+        "value": "8",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 6,
+      "type": "IndexAssign",
+      "posX": 40.0,
+      "posY": 200.0,
+      "properties": {
+        "array": "pBuf",
+        "elemType": "uint8_t"
+      }
+    },
+    {
+      "id": 7,
+      "type": "Literal",
+      "posX": 200.0,
+      "posY": 200.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 8,
+      "type": "Literal",
+      "posX": 360.0,
+      "posY": 200.0,
+      "properties": {
+        "value": "42",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 9,
+      "type": "IndexLoad",
+      "posX": 40.0,
+      "posY": 280.0,
+      "properties": {
+        "array": "pBuf",
+        "elemType": "uint8_t"
+      }
+    },
+    {
+      "id": 10,
+      "type": "Printf",
+      "posX": 200.0,
+      "posY": 280.0,
+      "properties": {
+        "format": "pBuf[0] = %d\\n"
+      }
+    },
+    {
+      "id": 11,
+      "type": "Free",
+      "posX": 40.0,
+      "posY": 360.0,
+      "properties": {}
+    },
+    {
+      "id": 12,
+      "type": "VariableRef",
+      "posX": 200.0,
+      "posY": 360.0,
+      "properties": {
+        "name": "pBuf",
+        "type": "uint8_t*"
+      }
+    },
+    {
+      "id": 13,
+      "type": "End",
+      "posX": 40.0,
+      "posY": 440.0,
+      "properties": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": 1,
+      "fromNodeId": 1,
+      "fromPort": "Next",
+      "toNodeId": 2,
+      "toPort": "In"
+    },
+    {
+      "id": 2,
+      "fromNodeId": 2,
+      "fromPort": "Next",
+      "toNodeId": 3,
+      "toPort": "In"
+    },
+    {
+      "id": 3,
+      "fromNodeId": 5,
+      "fromPort": "Value",
+      "toNodeId": 4,
+      "toPort": "Size"
+    },
+    {
+      "id": 4,
+      "fromNodeId": 4,
+      "fromPort": "Ptr",
+      "toNodeId": 3,
+      "toPort": "Init"
+    },
+    {
+      "id": 5,
+      "fromNodeId": 3,
+      "fromPort": "Next",
+      "toNodeId": 6,
+      "toPort": "In"
+    },
+    {
+      "id": 6,
+      "fromNodeId": 7,
+      "fromPort": "Value",
+      "toNodeId": 6,
+      "toPort": "Index"
+    },
+    {
+      "id": 7,
+      "fromNodeId": 8,
+      "fromPort": "Value",
+      "toNodeId": 6,
+      "toPort": "Value"
+    },
+    {
+      "id": 8,
+      "fromNodeId": 6,
+      "fromPort": "Next",
+      "toNodeId": 10,
+      "toPort": "In"
+    },
+    {
+      "id": 9,
+      "fromNodeId": 7,
+      "fromPort": "Value",
+      "toNodeId": 9,
+      "toPort": "Index"
+    },
+    {
+      "id": 10,
+      "fromNodeId": 9,
+      "fromPort": "Value",
+      "toNodeId": 10,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 11,
+      "fromNodeId": 10,
+      "fromPort": "Next",
+      "toNodeId": 11,
+      "toPort": "In"
+    },
+    {
+      "id": 12,
+      "fromNodeId": 12,
+      "fromPort": "Value",
+      "toNodeId": 11,
+      "toPort": "Ptr"
+    },
+    {
+      "id": 13,
+      "fromNodeId": 11,
+      "fromPort": "Next",
+      "toNodeId": 13,
+      "toPort": "In"
+    }
+  ]
+}

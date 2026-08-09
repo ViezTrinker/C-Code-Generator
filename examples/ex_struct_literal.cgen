@@ -1,0 +1,291 @@
+CGEN 1
+{
+  "edges": [
+    {
+      "fromNodeId": 2,
+      "fromPort": "Next",
+      "id": 1,
+      "toNodeId": 3,
+      "toPort": "In"
+    },
+    {
+      "fromNodeId": 3,
+      "fromPort": "Next",
+      "id": 2,
+      "toNodeId": 4,
+      "toPort": "In"
+    },
+    {
+      "fromNodeId": 5,
+      "fromPort": "Value",
+      "id": 3,
+      "toNodeId": 4,
+      "toPort": "Init"
+    },
+    {
+      "fromNodeId": 4,
+      "fromPort": "Next",
+      "id": 4,
+      "toNodeId": 6,
+      "toPort": "In"
+    },
+    {
+      "fromNodeId": 7,
+      "fromPort": "Value",
+      "id": 5,
+      "toNodeId": 6,
+      "toPort": "Arg0"
+    },
+    {
+      "fromNodeId": 8,
+      "fromPort": "Value",
+      "id": 6,
+      "toNodeId": 6,
+      "toPort": "Arg1"
+    },
+    {
+      "fromNodeId": 6,
+      "fromPort": "Next",
+      "id": 7,
+      "toNodeId": 9,
+      "toPort": "In"
+    }
+  ],
+  "nextEdgeId": 8,
+  "nextNodeId": 10,
+  "nodes": [
+    {
+      "id": 1,
+      "ports": [],
+      "posX": 40.0,
+      "posY": -80.0,
+      "properties": {
+        "fields": "int32_t x; int32_t y",
+        "name": "Point"
+      },
+      "type": "StructDecl"
+    },
+    {
+      "id": 2,
+      "ports": [
+        {
+          "dataType": "int32_t",
+          "direction": "Out",
+          "kind": "Control",
+          "name": "Next",
+          "visible": true
+        }
+      ],
+      "posX": 40.0,
+      "posY": 40.0,
+      "properties": {},
+      "type": "Start"
+    },
+    {
+      "id": 3,
+      "ports": [
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Control",
+          "name": "In",
+          "visible": true
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "Out",
+          "kind": "Control",
+          "name": "Next",
+          "visible": true
+        }
+      ],
+      "posX": 200.0,
+      "posY": 40.0,
+      "properties": {
+        "text": "StructLiteral — designated initializer into a typed Decl"
+      },
+      "type": "Comment"
+    },
+    {
+      "id": 4,
+      "ports": [
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Control",
+          "name": "In",
+          "visible": true
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "Out",
+          "kind": "Control",
+          "name": "Next",
+          "visible": true
+        },
+        {
+          "dataType": "Point",
+          "direction": "In",
+          "kind": "Data",
+          "name": "Init",
+          "visible": true
+        }
+      ],
+      "posX": 40.0,
+      "posY": 120.0,
+      "properties": {
+        "name": "point",
+        "type": "Point"
+      },
+      "type": "VariableDecl"
+    },
+    {
+      "id": 5,
+      "ports": [
+        {
+          "dataType": "Point",
+          "direction": "Out",
+          "kind": "Data",
+          "name": "Value",
+          "visible": true
+        }
+      ],
+      "posX": 220.0,
+      "posY": 120.0,
+      "properties": {
+        "init": ".x = 3, .y = 7",
+        "type": "Point"
+      },
+      "type": "StructLiteral"
+    },
+    {
+      "id": 6,
+      "ports": [
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Control",
+          "name": "In",
+          "visible": true
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "Out",
+          "kind": "Control",
+          "name": "Next",
+          "visible": true
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Data",
+          "name": "Arg0",
+          "visible": true
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Data",
+          "name": "Arg1",
+          "visible": true
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Data",
+          "name": "Arg2",
+          "visible": false
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Data",
+          "name": "Arg3",
+          "visible": false
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Data",
+          "name": "Arg4",
+          "visible": false
+        },
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Data",
+          "name": "Arg5",
+          "visible": false
+        }
+      ],
+      "posX": 40.0,
+      "posY": 200.0,
+      "properties": {
+        "format": "point = (%d, %d)\\n"
+      },
+      "type": "Printf"
+    },
+    {
+      "id": 7,
+      "ports": [
+        {
+          "dataType": "int32_t",
+          "direction": "Out",
+          "kind": "Data",
+          "name": "Value",
+          "visible": true
+        }
+      ],
+      "posX": 220.0,
+      "posY": 200.0,
+      "properties": {
+        "access": ".",
+        "field": "x",
+        "object": "point"
+      },
+      "type": "FieldLoad"
+    },
+    {
+      "id": 8,
+      "ports": [
+        {
+          "dataType": "int32_t",
+          "direction": "Out",
+          "kind": "Data",
+          "name": "Value",
+          "visible": true
+        }
+      ],
+      "posX": 380.0,
+      "posY": 200.0,
+      "properties": {
+        "access": ".",
+        "field": "y",
+        "object": "point"
+      },
+      "type": "FieldLoad"
+    },
+    {
+      "id": 9,
+      "ports": [
+        {
+          "dataType": "int32_t",
+          "direction": "In",
+          "kind": "Control",
+          "name": "In",
+          "visible": true
+        }
+      ],
+      "posX": 40.0,
+      "posY": 280.0,
+      "properties": {},
+      "type": "End"
+    }
+  ],
+  "types": [],
+  "viewport": {
+    "x": 0.0,
+    "y": 0.0,
+    "zoom": 1.0
+  }
+}

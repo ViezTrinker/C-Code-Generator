@@ -180,10 +180,12 @@ Short graphs that teach one IR feature.
 | `include/`, `src/` | Application code |
 | `tests/` | GoogleTest (`cgen_unit_tests`) |
 | `examples/` | Sample `.cgen` projects |
-| `docs/screenshots/` | README images |
+| `docs/` | Architecture notes + screenshots |
 | `scripts/build.ps1` | One-shot fetch + build |
 | `third_party/` | Vendored JSON, GoogleTest submodule, local SFML (gitignored after download) |
 | `build_out/` | Generated C and executables |
+
+How the code is structured: **[docs/README.md](docs/README.md)**.
 
 ---
 

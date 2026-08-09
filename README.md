@@ -187,4 +187,4 @@ Short graphs that teach one IR feature.
 
 ## License & status
 
-Releases are tagged as `V_x.y.z.R`. If you use this in a classroom or fork it, a root `LICENSE` file is recommended — open an issue if you’d like one added.
+This project is licensed under the [MIT License](LICENSE). Releases are tagged as `V_x.y.z.R`.

@@ -34,6 +34,25 @@ namespace Cgen
 
       constexpr size_t PrimitiveTableCount =
          sizeof(PrimitiveTable) / sizeof(PrimitiveTable[0]);
+
+      bool IsIntegerLike(PrimitiveType primitiveType)
+      {
+         return (primitiveType == PrimitiveType::Char) ||
+                (primitiveType == PrimitiveType::Int8) ||
+                (primitiveType == PrimitiveType::Uint8) ||
+                (primitiveType == PrimitiveType::Int16) ||
+                (primitiveType == PrimitiveType::Uint16) ||
+                (primitiveType == PrimitiveType::Int32) ||
+                (primitiveType == PrimitiveType::Uint32) ||
+                (primitiveType == PrimitiveType::Int64) ||
+                (primitiveType == PrimitiveType::Uint64);
+      }
+
+      bool IsFloatLike(PrimitiveType primitiveType)
+      {
+         return (primitiveType == PrimitiveType::Float) ||
+                (primitiveType == PrimitiveType::Double);
+      }
    } // namespace
 
    std::string_view PrimitiveTypeToCSpelling(PrimitiveType primitiveType)
@@ -121,6 +140,16 @@ namespace Cgen
       }
       if ((!left.isPointer) && (!right.isPointer) &&
           ((left.base == PrimitiveType::Void) || (right.base == PrimitiveType::Void)))
+      {
+         return true;
+      }
+      if ((!left.isPointer) && (!right.isPointer) && IsIntegerLike(left.base) &&
+          IsIntegerLike(right.base))
+      {
+         return true;
+      }
+      if ((!left.isPointer) && (!right.isPointer) && IsFloatLike(left.base) &&
+          IsFloatLike(right.base))
       {
          return true;
       }

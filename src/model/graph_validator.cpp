@@ -127,6 +127,14 @@ namespace Cgen
                   pNames->insert(name);
                }
             }
+            if (node.type == BlockType::For)
+            {
+               const std::string iteratorName = GetProperty(node, "iterator", "");
+               if (!iteratorName.empty())
+               {
+                  pNames->insert(iteratorName);
+               }
+            }
             if (node.type == BlockType::FunctionDef)
             {
                const std::string params = GetProperty(node, "params", "");
@@ -271,7 +279,6 @@ namespace Cgen
                    (blockType == BlockType::CompoundAssign) ||
                    (blockType == BlockType::FieldStore) ||
                    (blockType == BlockType::IndexAssign) ||
-                   (blockType == BlockType::Return) ||
                    (blockType == BlockType::Switch);
          }
          if ((portName == "Left") || (portName == "Right"))

@@ -39,6 +39,9 @@ TEST(CTypeTest, CompatibilityRequiresSameShape)
    EXPECT_TRUE(Cgen::AreTypesCompatible(left, right));
 
    right.base = Cgen::PrimitiveType::Int64;
+   EXPECT_TRUE(Cgen::AreTypesCompatible(left, right));
+
+   right.base = Cgen::PrimitiveType::Float;
    EXPECT_FALSE(Cgen::AreTypesCompatible(left, right));
 
    right.base = Cgen::PrimitiveType::Int32;

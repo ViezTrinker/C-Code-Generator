@@ -656,7 +656,7 @@ namespace Cgen
             node.properties["array"] = "buffer";
             break;
          case BlockType::Malloc:
-            node.ports.push_back(MakeDataIn("Size", PrimitiveType::Uint64, false));
+            node.ports.push_back(MakeDataIn("Size", PrimitiveType::Int32, false));
             node.ports.push_back(MakeDataOut("Ptr", PrimitiveType::Void, true));
             node.properties["elemType"] = "uint8_t";
             break;
@@ -798,6 +798,15 @@ namespace Cgen
          return;
       }
 
+      if (pNode->type == BlockType::Literal)
+      {
+         const auto typeIterator = pNode->properties.find("type");
+         const std::string_view typeText =
+            (typeIterator != pNode->properties.end()) ? typeIterator->second
+                                                      : std::string_view("int32_t");
+         ApplyTypeToPort(FindPortMutable(pNode, "Value"), typeText);
+         return;
+      }
       if ((pNode->type == BlockType::VariableDecl) ||
           (pNode->type == BlockType::GlobalDecl))
       {

@@ -21,15 +21,14 @@ typedef struct Hero
 } Hero;
 
 
-Hero hero;
 
-void print_status(void)
+void print_status(int32_t hp, int32_t maxHp, int32_t atk, int32_t gold, int32_t room)
 {
    printf("--- Status ---\n");
    fflush(stdout);
-   printf("HP: %d / %d\n", hero.hp, hero.maxHp);
+   printf("HP: %d / %d\n", hp, maxHp);
    fflush(stdout);
-   printf("ATK: %d  Gold: %d  Room: %d\n", hero.atk, hero.gold, hero.room);
+   printf("ATK: %d  Gold: %d  Room: %d\n", atk, gold, room);
    fflush(stdout);
    return;
 }
@@ -83,16 +82,16 @@ int32_t roll_damage(int32_t atk)
    return dmg;
 }
 
-void do_combat(void)
+void do_combat(Hero* pHero)
 {
    /* Fight a random enemy until one side falls */
    int32_t enemyHp = 20;
    int32_t hit = 0;
    printf("A monster appears!\n");
    fflush(stdout);
-   while (((enemyHp > 0) && (hero.hp > 0)))
+   while (((enemyHp > 0) && (pHero->hp > 0)))
    {
-      hit = roll_damage(hero.atk);
+      hit = roll_damage(pHero->atk);
       printf("You hit for %d!\n", hit);
       fflush(stdout);
       enemyHp -= hit;
@@ -107,30 +106,30 @@ void do_combat(void)
             hit = roll_damage(8);
             printf("Monster hits for %d!\n", hit);
             fflush(stdout);
-            hero.hp = (hero.hp - hit);
-            assert((hero.hp > -100));
+            pHero->hp = (pHero->hp - hit);
+            assert((pHero->hp > -100));
          }
       }
    }
-   if ((hero.hp > 0))
+   if ((pHero->hp > 0))
    {
       printf("You won the fight!\n");
       fflush(stdout);
       log_event(1);
-      hero.gold = (hero.gold + 5);
-      hero.room = (hero.room + 1);
+      pHero->gold = (pHero->gold + 5);
+      pHero->room = (pHero->room + 1);
    }
    else
    {
       printf("You were defeated...\n");
       fflush(stdout);
       log_event(2);
-      hero.hp = 1;
+      pHero->hp = 1;
    }
    return;
 }
 
-void do_loot(void)
+void do_loot(Hero* pHero)
 {
    int32_t loot[5];
    for (int32_t li = 0; li < 5; ++li)
@@ -153,7 +152,7 @@ void do_loot(void)
    pick = ((int32_t)(loot[0]));
    printf("Loot gold: %d\n", pick);
    fflush(stdout);
-   hero.gold = (hero.gold + pick);
+   pHero->gold = (pHero->gold + pick);
    char flavor = 0;
    flavor = ((int32_t)('A' + (rand() % 26)));
    log_event(3);
@@ -197,7 +196,7 @@ void show_past_runs(void)
          }
       }
       fclose(fp);
-      uint8_t stamp[4];
+      uint8_t* stamp = ((uint8_t*)malloc((size_t)(4)));
       FILE* fp2;
       fp2 = fopen("dungeon_stamp.bin", "wb");
       stamp[0] = (uint8_t)(42);
@@ -206,6 +205,7 @@ void show_past_runs(void)
       fp2 = fopen("dungeon_stamp.bin", "rb");
       (void)fread(stamp, 1, 1, fp2);
       fclose(fp2);
+      free(stamp);
       return;
    }
    return;
@@ -215,11 +215,7 @@ int main(void)
 {
    srand((unsigned int)time(NULL));
    /* Dungeon Log — explore, fight, loot, rest */
-   hero.hp = 30;
-   hero.maxHp = 30;
-   hero.atk = 6;
-   hero.gold = 0;
-   hero.room = 0;
+   Hero hero = ((Hero){ .hp = 30, .maxHp = 30, .atk = 6, .gold = 0, .room = 0 });
    char name[32];
    char title[32];
    int32_t menu = 0;
@@ -268,11 +264,11 @@ int main(void)
             roll = (rand() % 3);
             if ((roll == 0))
             {
-               do_combat();
+               do_combat(&hero);
             }
             else if ((roll == 1))
             {
-               do_loot();
+               do_loot(&hero);
             }
             else
             {
@@ -310,7 +306,7 @@ int main(void)
          }
          case 3:
          {
-            print_status();
+            print_status(hero.hp, hero.maxHp, hero.atk, hero.gold, hero.room);
             printf("Name buffer ready.\n");
             fflush(stdout);
             int32_t cmp = strcmp(name, "Wanderer");

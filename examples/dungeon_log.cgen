@@ -1,7 +1,7 @@
 CGEN 1
 {
-  "nextNodeId": 293,
-  "nextEdgeId": 329,
+  "nextNodeId": 298,
+  "nextEdgeId": 332,
   "viewport": {
     "x": 0.0,
     "y": 0.0,
@@ -21,27 +21,17 @@ CGEN 1
     },
     {
       "id": 2,
-      "type": "GlobalDecl",
-      "posX": 40.0,
-      "posY": -120.0,
-      "properties": {
-        "name": "hero",
-        "type": "Hero"
-      }
-    },
-    {
-      "id": 3,
       "type": "FunctionDef",
       "posX": 40.0,
       "posY": 0.0,
       "properties": {
         "name": "print_status",
         "returnType": "void",
-        "params": "void"
+        "params": "int32_t hp, int32_t maxHp, int32_t atk, int32_t gold, int32_t room"
       }
     },
     {
-      "id": 4,
+      "id": 3,
       "type": "Printf",
       "posX": 40.0,
       "posY": 80.0,
@@ -50,7 +40,7 @@ CGEN 1
       }
     },
     {
-      "id": 5,
+      "id": 4,
       "type": "Printf",
       "posX": 220.0,
       "posY": 80.0,
@@ -59,29 +49,27 @@ CGEN 1
       }
     },
     {
-      "id": 6,
-      "type": "FieldLoad",
+      "id": 5,
+      "type": "VariableRef",
       "posX": 400.0,
       "posY": 80.0,
       "properties": {
-        "object": "hero",
-        "field": "hp",
-        "access": "."
+        "name": "hp",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 6,
+      "type": "VariableRef",
+      "posX": 560.0,
+      "posY": 80.0,
+      "properties": {
+        "name": "maxHp",
+        "type": "int32_t"
       }
     },
     {
       "id": 7,
-      "type": "FieldLoad",
-      "posX": 560.0,
-      "posY": 80.0,
-      "properties": {
-        "object": "hero",
-        "field": "maxHp",
-        "access": "."
-      }
-    },
-    {
-      "id": 8,
       "type": "Printf",
       "posX": 40.0,
       "posY": 160.0,
@@ -90,47 +78,44 @@ CGEN 1
       }
     },
     {
-      "id": 9,
-      "type": "FieldLoad",
+      "id": 8,
+      "type": "VariableRef",
       "posX": 220.0,
       "posY": 160.0,
       "properties": {
-        "object": "hero",
-        "field": "atk",
-        "access": "."
+        "name": "atk",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 9,
+      "type": "VariableRef",
+      "posX": 380.0,
+      "posY": 160.0,
+      "properties": {
+        "name": "gold",
+        "type": "int32_t"
       }
     },
     {
       "id": 10,
-      "type": "FieldLoad",
-      "posX": 380.0,
+      "type": "VariableRef",
+      "posX": 540.0,
       "posY": 160.0,
       "properties": {
-        "object": "hero",
-        "field": "gold",
-        "access": "."
+        "name": "room",
+        "type": "int32_t"
       }
     },
     {
       "id": 11,
-      "type": "FieldLoad",
-      "posX": 540.0,
-      "posY": 160.0,
-      "properties": {
-        "object": "hero",
-        "field": "room",
-        "access": "."
-      }
-    },
-    {
-      "id": 12,
       "type": "Return",
       "posX": 700.0,
       "posY": 160.0,
       "properties": {}
     },
     {
-      "id": 13,
+      "id": 12,
       "type": "FunctionDef",
       "posX": 40.0,
       "posY": 450.0,
@@ -141,7 +126,7 @@ CGEN 1
       }
     },
     {
-      "id": 14,
+      "id": 13,
       "type": "VariableDecl",
       "posX": 40.0,
       "posY": 520.0,
@@ -151,7 +136,7 @@ CGEN 1
       }
     },
     {
-      "id": 15,
+      "id": 14,
       "type": "VariableDecl",
       "posX": 180.0,
       "posY": 520.0,
@@ -161,7 +146,7 @@ CGEN 1
       }
     },
     {
-      "id": 16,
+      "id": 15,
       "type": "VariableDecl",
       "posX": 320.0,
       "posY": 520.0,
@@ -171,7 +156,7 @@ CGEN 1
       }
     },
     {
-      "id": 17,
+      "id": 16,
       "type": "VariableDecl",
       "posX": 460.0,
       "posY": 520.0,
@@ -181,7 +166,7 @@ CGEN 1
       }
     },
     {
-      "id": 18,
+      "id": 17,
       "type": "VariableDecl",
       "posX": 600.0,
       "posY": 520.0,
@@ -191,7 +176,7 @@ CGEN 1
       }
     },
     {
-      "id": 19,
+      "id": 18,
       "type": "VariableDecl",
       "posX": 740.0,
       "posY": 520.0,
@@ -201,7 +186,7 @@ CGEN 1
       }
     },
     {
-      "id": 20,
+      "id": 19,
       "type": "VariableDecl",
       "posX": 880.0,
       "posY": 520.0,
@@ -211,7 +196,7 @@ CGEN 1
       }
     },
     {
-      "id": 21,
+      "id": 20,
       "type": "Literal",
       "posX": 1020.0,
       "posY": 520.0,
@@ -221,7 +206,7 @@ CGEN 1
       }
     },
     {
-      "id": 22,
+      "id": 21,
       "type": "LocalTime",
       "posX": 40.0,
       "posY": 600.0,
@@ -235,7 +220,7 @@ CGEN 1
       }
     },
     {
-      "id": 23,
+      "id": 22,
       "type": "FileOpen",
       "posX": 200.0,
       "posY": 600.0,
@@ -246,30 +231,31 @@ CGEN 1
       }
     },
     {
-      "id": 24,
+      "id": 23,
       "type": "If",
       "posX": 360.0,
       "posY": 600.0,
       "properties": {}
     },
     {
-      "id": 25,
+      "id": 24,
       "type": "NotEqual",
       "posX": 520.0,
       "posY": 600.0,
       "properties": {}
     },
     {
-      "id": 26,
+      "id": 25,
       "type": "VariableRef",
       "posX": 680.0,
       "posY": 600.0,
       "properties": {
-        "name": "fp"
+        "name": "fp",
+        "type": "int32_t"
       }
     },
     {
-      "id": 27,
+      "id": 26,
       "type": "FilePrintf",
       "posX": 40.0,
       "posY": 690.0,
@@ -279,70 +265,77 @@ CGEN 1
       }
     },
     {
-      "id": 28,
+      "id": 27,
       "type": "VariableRef",
       "posX": 200.0,
       "posY": 690.0,
       "properties": {
-        "name": "code"
+        "name": "code",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 28,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 690.0,
+      "properties": {
+        "name": "year",
+        "type": "int32_t"
       }
     },
     {
       "id": 29,
       "type": "VariableRef",
-      "posX": 360.0,
+      "posX": 520.0,
       "posY": 690.0,
       "properties": {
-        "name": "year"
+        "name": "month",
+        "type": "int32_t"
       }
     },
     {
       "id": 30,
       "type": "VariableRef",
-      "posX": 520.0,
+      "posX": 680.0,
       "posY": 690.0,
       "properties": {
-        "name": "month"
+        "name": "day",
+        "type": "int32_t"
       }
     },
     {
       "id": 31,
       "type": "VariableRef",
-      "posX": 680.0,
+      "posX": 840.0,
       "posY": 690.0,
       "properties": {
-        "name": "day"
+        "name": "hour",
+        "type": "int32_t"
       }
     },
     {
       "id": 32,
       "type": "VariableRef",
-      "posX": 840.0,
+      "posX": 1000.0,
       "posY": 690.0,
       "properties": {
-        "name": "hour"
+        "name": "minute",
+        "type": "int32_t"
       }
     },
     {
       "id": 33,
       "type": "VariableRef",
-      "posX": 1000.0,
+      "posX": 1160.0,
       "posY": 690.0,
       "properties": {
-        "name": "minute"
+        "name": "second",
+        "type": "int32_t"
       }
     },
     {
       "id": 34,
-      "type": "VariableRef",
-      "posX": 1160.0,
-      "posY": 690.0,
-      "properties": {
-        "name": "second"
-      }
-    },
-    {
-      "id": 35,
       "type": "FileClose",
       "posX": 40.0,
       "posY": 770.0,
@@ -351,14 +344,14 @@ CGEN 1
       }
     },
     {
-      "id": 36,
+      "id": 35,
       "type": "Return",
       "posX": 200.0,
       "posY": 770.0,
       "properties": {}
     },
     {
-      "id": 37,
+      "id": 36,
       "type": "FunctionDef",
       "posX": 40.0,
       "posY": 900.0,
@@ -369,7 +362,7 @@ CGEN 1
       }
     },
     {
-      "id": 38,
+      "id": 37,
       "type": "VariableDecl",
       "posX": 40.0,
       "posY": 970.0,
@@ -379,7 +372,7 @@ CGEN 1
       }
     },
     {
-      "id": 39,
+      "id": 38,
       "type": "VariableDecl",
       "posX": 200.0,
       "posY": 970.0,
@@ -389,7 +382,7 @@ CGEN 1
       }
     },
     {
-      "id": 40,
+      "id": 39,
       "type": "Literal",
       "posX": 360.0,
       "posY": 970.0,
@@ -399,7 +392,7 @@ CGEN 1
       }
     },
     {
-      "id": 41,
+      "id": 40,
       "type": "Literal",
       "posX": 520.0,
       "posY": 970.0,
@@ -409,21 +402,21 @@ CGEN 1
       }
     },
     {
-      "id": 42,
+      "id": 41,
       "type": "Random",
       "posX": 40.0,
       "posY": 1050.0,
       "properties": {}
     },
     {
-      "id": 43,
+      "id": 42,
       "type": "Mod",
       "posX": 200.0,
       "posY": 1050.0,
       "properties": {}
     },
     {
-      "id": 44,
+      "id": 43,
       "type": "Literal",
       "posX": 360.0,
       "posY": 1050.0,
@@ -433,23 +426,24 @@ CGEN 1
       }
     },
     {
-      "id": 45,
+      "id": 44,
       "type": "Add",
       "posX": 520.0,
       "posY": 1050.0,
       "properties": {}
     },
     {
-      "id": 46,
+      "id": 45,
       "type": "VariableRef",
       "posX": 680.0,
       "posY": 1050.0,
       "properties": {
-        "name": "atk"
+        "name": "atk",
+        "type": "int32_t"
       }
     },
     {
-      "id": 47,
+      "id": 46,
       "type": "Assign",
       "posX": 40.0,
       "posY": 1130.0,
@@ -458,14 +452,14 @@ CGEN 1
       }
     },
     {
-      "id": 48,
+      "id": 47,
       "type": "Div",
       "posX": 200.0,
       "posY": 1130.0,
       "properties": {}
     },
     {
-      "id": 49,
+      "id": 48,
       "type": "Literal",
       "posX": 360.0,
       "posY": 1130.0,
@@ -475,16 +469,17 @@ CGEN 1
       }
     },
     {
-      "id": 50,
+      "id": 49,
       "type": "VariableRef",
       "posX": 520.0,
       "posY": 1130.0,
       "properties": {
-        "name": "dmg"
+        "name": "dmg",
+        "type": "int32_t"
       }
     },
     {
-      "id": 51,
+      "id": 50,
       "type": "CompoundAssign",
       "posX": 680.0,
       "posY": 1130.0,
@@ -494,7 +489,7 @@ CGEN 1
       }
     },
     {
-      "id": 52,
+      "id": 51,
       "type": "Cast",
       "posX": 40.0,
       "posY": 1210.0,
@@ -503,7 +498,7 @@ CGEN 1
       }
     },
     {
-      "id": 53,
+      "id": 52,
       "type": "Assign",
       "posX": 200.0,
       "posY": 1210.0,
@@ -512,7 +507,7 @@ CGEN 1
       }
     },
     {
-      "id": 54,
+      "id": 53,
       "type": "Printf",
       "posX": 40.0,
       "posY": 1250.0,
@@ -521,30 +516,31 @@ CGEN 1
       }
     },
     {
-      "id": 55,
+      "id": 54,
       "type": "VariableRef",
       "posX": 200.0,
       "posY": 1250.0,
       "properties": {
-        "name": "bonus"
+        "name": "bonus",
+        "type": "int32_t"
       }
     },
     {
-      "id": 56,
+      "id": 55,
       "type": "If",
       "posX": 360.0,
       "posY": 1210.0,
       "properties": {}
     },
     {
-      "id": 57,
+      "id": 56,
       "type": "Less",
       "posX": 520.0,
       "posY": 1210.0,
       "properties": {}
     },
     {
-      "id": 58,
+      "id": 57,
       "type": "Assign",
       "posX": 40.0,
       "posY": 1290.0,
@@ -553,41 +549,42 @@ CGEN 1
       }
     },
     {
-      "id": 59,
+      "id": 58,
       "type": "Neg",
       "posX": 200.0,
       "posY": 1290.0,
       "properties": {}
     },
     {
-      "id": 60,
+      "id": 59,
       "type": "VariableRef",
       "posX": 360.0,
       "posY": 1290.0,
       "properties": {
-        "name": "dmg"
+        "name": "dmg",
+        "type": "int32_t"
       }
     },
     {
-      "id": 61,
+      "id": 60,
       "type": "Return",
       "posX": 520.0,
       "posY": 1290.0,
       "properties": {}
     },
     {
-      "id": 62,
+      "id": 61,
       "type": "FunctionDef",
       "posX": 40.0,
       "posY": 1400.0,
       "properties": {
         "name": "do_combat",
         "returnType": "void",
-        "params": "void"
+        "params": "Hero* pHero"
       }
     },
     {
-      "id": 63,
+      "id": 62,
       "type": "Comment",
       "posX": 40.0,
       "posY": 1460.0,
@@ -596,7 +593,7 @@ CGEN 1
       }
     },
     {
-      "id": 64,
+      "id": 63,
       "type": "VariableDecl",
       "posX": 220.0,
       "posY": 1460.0,
@@ -606,7 +603,7 @@ CGEN 1
       }
     },
     {
-      "id": 65,
+      "id": 64,
       "type": "VariableDecl",
       "posX": 400.0,
       "posY": 1460.0,
@@ -616,7 +613,7 @@ CGEN 1
       }
     },
     {
-      "id": 66,
+      "id": 65,
       "type": "Literal",
       "posX": 580.0,
       "posY": 1460.0,
@@ -626,7 +623,7 @@ CGEN 1
       }
     },
     {
-      "id": 67,
+      "id": 66,
       "type": "Literal",
       "posX": 740.0,
       "posY": 1460.0,
@@ -636,7 +633,7 @@ CGEN 1
       }
     },
     {
-      "id": 68,
+      "id": 67,
       "type": "Printf",
       "posX": 40.0,
       "posY": 1540.0,
@@ -645,55 +642,56 @@ CGEN 1
       }
     },
     {
-      "id": 69,
+      "id": 68,
       "type": "While",
       "posX": 220.0,
       "posY": 1540.0,
       "properties": {}
     },
     {
-      "id": 70,
+      "id": 69,
       "type": "Greater",
       "posX": 400.0,
       "posY": 1540.0,
       "properties": {}
     },
     {
-      "id": 71,
+      "id": 70,
       "type": "VariableRef",
       "posX": 560.0,
       "posY": 1540.0,
       "properties": {
-        "name": "enemyHp"
+        "name": "enemyHp",
+        "type": "int32_t"
       }
     },
     {
-      "id": 72,
+      "id": 71,
       "type": "Greater",
       "posX": 720.0,
       "posY": 1540.0,
       "properties": {}
     },
     {
-      "id": 73,
+      "id": 72,
       "type": "FieldLoad",
       "posX": 880.0,
       "posY": 1540.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "hp",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 74,
+      "id": 73,
       "type": "And",
       "posX": 1040.0,
       "posY": 1540.0,
       "properties": {}
     },
     {
-      "id": 75,
+      "id": 74,
       "type": "Call",
       "posX": 40.0,
       "posY": 1620.0,
@@ -703,18 +701,18 @@ CGEN 1
       }
     },
     {
-      "id": 76,
+      "id": 75,
       "type": "FieldLoad",
       "posX": 200.0,
       "posY": 1620.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "atk",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 77,
+      "id": 76,
       "type": "Printf",
       "posX": 360.0,
       "posY": 1620.0,
@@ -723,16 +721,17 @@ CGEN 1
       }
     },
     {
-      "id": 78,
+      "id": 77,
       "type": "VariableRef",
       "posX": 520.0,
       "posY": 1620.0,
       "properties": {
-        "name": "hit"
+        "name": "hit",
+        "type": "int32_t"
       }
     },
     {
-      "id": 79,
+      "id": 78,
       "type": "CompoundAssign",
       "posX": 680.0,
       "posY": 1620.0,
@@ -742,51 +741,52 @@ CGEN 1
       }
     },
     {
-      "id": 80,
+      "id": 79,
       "type": "If",
       "posX": 840.0,
       "posY": 1620.0,
       "properties": {}
     },
     {
-      "id": 81,
+      "id": 80,
       "type": "Equal",
       "posX": 1000.0,
       "posY": 1620.0,
       "properties": {}
     },
     {
-      "id": 82,
+      "id": 81,
       "type": "Continue",
       "posX": 1160.0,
       "posY": 1620.0,
       "properties": {}
     },
     {
-      "id": 83,
+      "id": 82,
       "type": "If",
       "posX": 40.0,
       "posY": 1700.0,
       "properties": {}
     },
     {
-      "id": 84,
+      "id": 83,
       "type": "Greater",
       "posX": 200.0,
       "posY": 1700.0,
       "properties": {}
     },
     {
-      "id": 85,
+      "id": 84,
       "type": "VariableRef",
       "posX": 360.0,
       "posY": 1700.0,
       "properties": {
-        "name": "enemyHp"
+        "name": "enemyHp",
+        "type": "int32_t"
       }
     },
     {
-      "id": 86,
+      "id": 85,
       "type": "Call",
       "posX": 520.0,
       "posY": 1700.0,
@@ -796,7 +796,7 @@ CGEN 1
       }
     },
     {
-      "id": 87,
+      "id": 86,
       "type": "Literal",
       "posX": 680.0,
       "posY": 1700.0,
@@ -806,7 +806,7 @@ CGEN 1
       }
     },
     {
-      "id": 88,
+      "id": 87,
       "type": "Printf",
       "posX": 840.0,
       "posY": 1700.0,
@@ -815,52 +815,53 @@ CGEN 1
       }
     },
     {
-      "id": 89,
+      "id": 88,
       "type": "VariableRef",
       "posX": 1000.0,
       "posY": 1700.0,
       "properties": {
-        "name": "hit"
+        "name": "hit",
+        "type": "int32_t"
       }
     },
     {
-      "id": 90,
+      "id": 89,
       "type": "Sub",
       "posX": 40.0,
       "posY": 1780.0,
       "properties": {}
     },
     {
-      "id": 91,
+      "id": 90,
       "type": "FieldLoad",
       "posX": 200.0,
       "posY": 1780.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "hp",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 92,
+      "id": 91,
       "type": "FieldStore",
       "posX": 360.0,
       "posY": 1780.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "hp",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 93,
+      "id": 92,
       "type": "Assert",
       "posX": 520.0,
       "posY": 1780.0,
       "properties": {}
     },
     {
-      "id": 94,
+      "id": 93,
       "type": "Literal",
       "posX": 680.0,
       "posY": 1780.0,
@@ -870,50 +871,50 @@ CGEN 1
       }
     },
     {
-      "id": 95,
+      "id": 94,
       "type": "Greater",
       "posX": 840.0,
       "posY": 1780.0,
       "properties": {}
     },
     {
-      "id": 96,
+      "id": 95,
       "type": "FieldLoad",
       "posX": 1000.0,
       "posY": 1780.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "hp",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 97,
+      "id": 96,
       "type": "If",
       "posX": 40.0,
       "posY": 1860.0,
       "properties": {}
     },
     {
-      "id": 98,
+      "id": 97,
       "type": "Greater",
       "posX": 200.0,
       "posY": 1860.0,
       "properties": {}
     },
     {
-      "id": 99,
+      "id": 98,
       "type": "FieldLoad",
       "posX": 360.0,
       "posY": 1860.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "hp",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 100,
+      "id": 99,
       "type": "Printf",
       "posX": 520.0,
       "posY": 1860.0,
@@ -922,7 +923,7 @@ CGEN 1
       }
     },
     {
-      "id": 101,
+      "id": 100,
       "type": "Call",
       "posX": 680.0,
       "posY": 1860.0,
@@ -932,7 +933,7 @@ CGEN 1
       }
     },
     {
-      "id": 102,
+      "id": 101,
       "type": "Literal",
       "posX": 840.0,
       "posY": 1860.0,
@@ -942,25 +943,25 @@ CGEN 1
       }
     },
     {
-      "id": 103,
+      "id": 102,
       "type": "Add",
       "posX": 40.0,
       "posY": 1940.0,
       "properties": {}
     },
     {
-      "id": 104,
+      "id": 103,
       "type": "FieldLoad",
       "posX": 200.0,
       "posY": 1940.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "gold",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 105,
+      "id": 104,
       "type": "Literal",
       "posX": 360.0,
       "posY": 1940.0,
@@ -970,18 +971,18 @@ CGEN 1
       }
     },
     {
-      "id": 106,
+      "id": 105,
       "type": "FieldStore",
       "posX": 520.0,
       "posY": 1940.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "gold",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 107,
+      "id": 106,
       "type": "Printf",
       "posX": 680.0,
       "posY": 1940.0,
@@ -990,7 +991,7 @@ CGEN 1
       }
     },
     {
-      "id": 108,
+      "id": 107,
       "type": "Call",
       "posX": 840.0,
       "posY": 1940.0,
@@ -1000,7 +1001,7 @@ CGEN 1
       }
     },
     {
-      "id": 109,
+      "id": 108,
       "type": "Literal",
       "posX": 1000.0,
       "posY": 1940.0,
@@ -1010,18 +1011,18 @@ CGEN 1
       }
     },
     {
-      "id": 110,
+      "id": 109,
       "type": "FieldStore",
       "posX": 40.0,
       "posY": 2020.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "hp",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 111,
+      "id": 110,
       "type": "Literal",
       "posX": 200.0,
       "posY": 2020.0,
@@ -1031,54 +1032,54 @@ CGEN 1
       }
     },
     {
-      "id": 112,
+      "id": 111,
       "type": "Return",
       "posX": 360.0,
       "posY": 2020.0,
       "properties": {}
     },
     {
-      "id": 113,
+      "id": 112,
       "type": "Add",
       "posX": 520.0,
       "posY": 2020.0,
       "properties": {}
     },
     {
-      "id": 114,
+      "id": 113,
       "type": "FieldLoad",
       "posX": 680.0,
       "posY": 2020.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "room",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 115,
+      "id": 114,
       "type": "FieldStore",
       "posX": 840.0,
       "posY": 2020.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "room",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 117,
+      "id": 116,
       "type": "FunctionDef",
       "posX": 40.0,
       "posY": 2200.0,
       "properties": {
         "name": "do_loot",
         "returnType": "void",
-        "params": "void"
+        "params": "Hero* pHero"
       }
     },
     {
-      "id": 118,
+      "id": 117,
       "type": "ArrayDecl",
       "posX": 40.0,
       "posY": 2270.0,
@@ -1089,7 +1090,7 @@ CGEN 1
       }
     },
     {
-      "id": 119,
+      "id": 118,
       "type": "For",
       "posX": 220.0,
       "posY": 2270.0,
@@ -1101,7 +1102,7 @@ CGEN 1
       }
     },
     {
-      "id": 120,
+      "id": 119,
       "type": "IndexAssign",
       "posX": 400.0,
       "posY": 2270.0,
@@ -1111,23 +1112,24 @@ CGEN 1
       }
     },
     {
-      "id": 121,
+      "id": 120,
       "type": "VariableRef",
       "posX": 560.0,
       "posY": 2270.0,
       "properties": {
-        "name": "li"
+        "name": "li",
+        "type": "int32_t"
       }
     },
     {
-      "id": 122,
+      "id": 121,
       "type": "Add",
       "posX": 720.0,
       "posY": 2270.0,
       "properties": {}
     },
     {
-      "id": 123,
+      "id": 122,
       "type": "Literal",
       "posX": 880.0,
       "posY": 2270.0,
@@ -1137,14 +1139,14 @@ CGEN 1
       }
     },
     {
-      "id": 124,
+      "id": 123,
       "type": "Mul",
       "posX": 1040.0,
       "posY": 2270.0,
       "properties": {}
     },
     {
-      "id": 125,
+      "id": 124,
       "type": "Literal",
       "posX": 1200.0,
       "posY": 2270.0,
@@ -1154,7 +1156,7 @@ CGEN 1
       }
     },
     {
-      "id": 126,
+      "id": 125,
       "type": "Printf",
       "posX": 40.0,
       "posY": 2350.0,
@@ -1163,7 +1165,7 @@ CGEN 1
       }
     },
     {
-      "id": 127,
+      "id": 126,
       "type": "ShuffleArray",
       "posX": 220.0,
       "posY": 2350.0,
@@ -1172,7 +1174,7 @@ CGEN 1
       }
     },
     {
-      "id": 128,
+      "id": 127,
       "type": "Literal",
       "posX": 400.0,
       "posY": 2350.0,
@@ -1182,7 +1184,7 @@ CGEN 1
       }
     },
     {
-      "id": 129,
+      "id": 128,
       "type": "VariableDecl",
       "posX": 560.0,
       "posY": 2350.0,
@@ -1192,7 +1194,7 @@ CGEN 1
       }
     },
     {
-      "id": 130,
+      "id": 129,
       "type": "IndexLoad",
       "posX": 720.0,
       "posY": 2350.0,
@@ -1202,7 +1204,7 @@ CGEN 1
       }
     },
     {
-      "id": 131,
+      "id": 130,
       "type": "Literal",
       "posX": 880.0,
       "posY": 2350.0,
@@ -1212,7 +1214,7 @@ CGEN 1
       }
     },
     {
-      "id": 132,
+      "id": 131,
       "type": "Assign",
       "posX": 40.0,
       "posY": 2430.0,
@@ -1221,7 +1223,7 @@ CGEN 1
       }
     },
     {
-      "id": 133,
+      "id": 132,
       "type": "Printf",
       "posX": 200.0,
       "posY": 2430.0,
@@ -1230,45 +1232,46 @@ CGEN 1
       }
     },
     {
-      "id": 134,
+      "id": 133,
       "type": "VariableRef",
       "posX": 360.0,
       "posY": 2430.0,
       "properties": {
-        "name": "pick"
+        "name": "pick",
+        "type": "int32_t"
       }
     },
     {
-      "id": 135,
+      "id": 134,
       "type": "Add",
       "posX": 520.0,
       "posY": 2430.0,
       "properties": {}
     },
     {
-      "id": 136,
+      "id": 135,
       "type": "FieldLoad",
       "posX": 680.0,
       "posY": 2430.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "gold",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 137,
+      "id": 136,
       "type": "FieldStore",
       "posX": 840.0,
       "posY": 2430.0,
       "properties": {
-        "object": "hero",
+        "object": "pHero",
         "field": "gold",
-        "access": "."
+        "access": "->"
       }
     },
     {
-      "id": 138,
+      "id": 137,
       "type": "VariableDecl",
       "posX": 40.0,
       "posY": 2510.0,
@@ -1278,7 +1281,7 @@ CGEN 1
       }
     },
     {
-      "id": 139,
+      "id": 138,
       "type": "RandomChar",
       "posX": 200.0,
       "posY": 2510.0,
@@ -1287,7 +1290,7 @@ CGEN 1
       }
     },
     {
-      "id": 140,
+      "id": 139,
       "type": "Assign",
       "posX": 360.0,
       "posY": 2510.0,
@@ -1296,7 +1299,7 @@ CGEN 1
       }
     },
     {
-      "id": 141,
+      "id": 140,
       "type": "Call",
       "posX": 520.0,
       "posY": 2510.0,
@@ -1306,7 +1309,7 @@ CGEN 1
       }
     },
     {
-      "id": 142,
+      "id": 141,
       "type": "Literal",
       "posX": 680.0,
       "posY": 2510.0,
@@ -1316,7 +1319,7 @@ CGEN 1
       }
     },
     {
-      "id": 143,
+      "id": 142,
       "type": "Printf",
       "posX": 40.0,
       "posY": 2590.0,
@@ -1325,23 +1328,24 @@ CGEN 1
       }
     },
     {
-      "id": 144,
+      "id": 143,
       "type": "VariableRef",
       "posX": 200.0,
       "posY": 2590.0,
       "properties": {
-        "name": "flavor"
+        "name": "flavor",
+        "type": "int32_t"
       }
     },
     {
-      "id": 145,
+      "id": 144,
       "type": "Return",
       "posX": 360.0,
       "posY": 2590.0,
       "properties": {}
     },
     {
-      "id": 146,
+      "id": 145,
       "type": "FunctionDef",
       "posX": 40.0,
       "posY": 2600.0,
@@ -1352,7 +1356,7 @@ CGEN 1
       }
     },
     {
-      "id": 147,
+      "id": 146,
       "type": "VariableDecl",
       "posX": 40.0,
       "posY": 2670.0,
@@ -1362,7 +1366,7 @@ CGEN 1
       }
     },
     {
-      "id": 148,
+      "id": 147,
       "type": "ArrayDecl",
       "posX": 200.0,
       "posY": 2670.0,
@@ -1373,7 +1377,7 @@ CGEN 1
       }
     },
     {
-      "id": 149,
+      "id": 148,
       "type": "VariableDecl",
       "posX": 400.0,
       "posY": 2670.0,
@@ -1383,7 +1387,7 @@ CGEN 1
       }
     },
     {
-      "id": 150,
+      "id": 149,
       "type": "Literal",
       "posX": 560.0,
       "posY": 2670.0,
@@ -1393,7 +1397,7 @@ CGEN 1
       }
     },
     {
-      "id": 151,
+      "id": 150,
       "type": "Literal",
       "posX": 720.0,
       "posY": 2670.0,
@@ -1403,7 +1407,7 @@ CGEN 1
       }
     },
     {
-      "id": 152,
+      "id": 151,
       "type": "Printf",
       "posX": 40.0,
       "posY": 2750.0,
@@ -1412,7 +1416,7 @@ CGEN 1
       }
     },
     {
-      "id": 153,
+      "id": 152,
       "type": "FileOpen",
       "posX": 220.0,
       "posY": 2750.0,
@@ -1423,30 +1427,31 @@ CGEN 1
       }
     },
     {
-      "id": 154,
+      "id": 153,
       "type": "If",
       "posX": 400.0,
       "posY": 2750.0,
       "properties": {}
     },
     {
-      "id": 155,
+      "id": 154,
       "type": "Equal",
       "posX": 560.0,
       "posY": 2750.0,
       "properties": {}
     },
     {
-      "id": 156,
+      "id": 155,
       "type": "VariableRef",
       "posX": 720.0,
       "posY": 2750.0,
       "properties": {
-        "name": "fp"
+        "name": "fp",
+        "type": "int32_t"
       }
     },
     {
-      "id": 157,
+      "id": 156,
       "type": "Printf",
       "posX": 880.0,
       "posY": 2750.0,
@@ -1455,14 +1460,14 @@ CGEN 1
       }
     },
     {
-      "id": 158,
+      "id": 157,
       "type": "Return",
       "posX": 1040.0,
       "posY": 2750.0,
       "properties": {}
     },
     {
-      "id": 159,
+      "id": 158,
       "type": "Assign",
       "posX": 40.0,
       "posY": 2840.0,
@@ -1471,30 +1476,31 @@ CGEN 1
       }
     },
     {
-      "id": 160,
+      "id": 159,
       "type": "While",
       "posX": 200.0,
       "posY": 2840.0,
       "properties": {}
     },
     {
-      "id": 161,
+      "id": 160,
       "type": "Equal",
       "posX": 360.0,
       "posY": 2840.0,
       "properties": {}
     },
     {
-      "id": 162,
+      "id": 161,
       "type": "VariableRef",
       "posX": 520.0,
       "posY": 2840.0,
       "properties": {
-        "name": "ok"
+        "name": "ok",
+        "type": "int32_t"
       }
     },
     {
-      "id": 163,
+      "id": 162,
       "type": "FileGets",
       "posX": 680.0,
       "posY": 2840.0,
@@ -1506,30 +1512,31 @@ CGEN 1
       }
     },
     {
-      "id": 164,
+      "id": 163,
       "type": "If",
       "posX": 840.0,
       "posY": 2840.0,
       "properties": {}
     },
     {
-      "id": 165,
+      "id": 164,
       "type": "Equal",
       "posX": 1000.0,
       "posY": 2840.0,
       "properties": {}
     },
     {
-      "id": 166,
+      "id": 165,
       "type": "VariableRef",
       "posX": 1160.0,
       "posY": 2840.0,
       "properties": {
-        "name": "ok"
+        "name": "ok",
+        "type": "int32_t"
       }
     },
     {
-      "id": 167,
+      "id": 166,
       "type": "Printf",
       "posX": 40.0,
       "posY": 2920.0,
@@ -1538,16 +1545,17 @@ CGEN 1
       }
     },
     {
-      "id": 168,
+      "id": 167,
       "type": "VariableRef",
       "posX": 200.0,
       "posY": 2920.0,
       "properties": {
-        "name": "line"
+        "name": "line",
+        "type": "int32_t"
       }
     },
     {
-      "id": 169,
+      "id": 168,
       "type": "FileClose",
       "posX": 360.0,
       "posY": 2920.0,
@@ -1556,20 +1564,38 @@ CGEN 1
       }
     },
     {
-      "id": 170,
-      "type": "ArrayDecl",
+      "id": 169,
+      "type": "VariableDecl",
       "posX": 520.0,
       "posY": 2920.0,
       "properties": {
         "name": "stamp",
-        "elemType": "uint8_t",
-        "size": "4"
+        "type": "uint8_t*"
+      }
+    },
+    {
+      "id": 170,
+      "type": "Malloc",
+      "posX": 680.0,
+      "posY": 2920.0,
+      "properties": {
+        "elemType": "uint8_t"
       }
     },
     {
       "id": 171,
+      "type": "Literal",
+      "posX": 840.0,
+      "posY": 2920.0,
+      "properties": {
+        "value": "4",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 172,
       "type": "VariableDecl",
-      "posX": 720.0,
+      "posX": 1000.0,
       "posY": 2920.0,
       "properties": {
         "name": "fp2",
@@ -1577,7 +1603,7 @@ CGEN 1
       }
     },
     {
-      "id": 172,
+      "id": 173,
       "type": "FileOpen",
       "posX": 40.0,
       "posY": 3000.0,
@@ -1588,7 +1614,7 @@ CGEN 1
       }
     },
     {
-      "id": 173,
+      "id": 174,
       "type": "IndexAssign",
       "posX": 200.0,
       "posY": 3000.0,
@@ -1598,7 +1624,7 @@ CGEN 1
       }
     },
     {
-      "id": 174,
+      "id": 175,
       "type": "Literal",
       "posX": 360.0,
       "posY": 3000.0,
@@ -1608,7 +1634,7 @@ CGEN 1
       }
     },
     {
-      "id": 175,
+      "id": 176,
       "type": "Literal",
       "posX": 520.0,
       "posY": 3000.0,
@@ -1618,7 +1644,7 @@ CGEN 1
       }
     },
     {
-      "id": 176,
+      "id": 177,
       "type": "FileWrite",
       "posX": 680.0,
       "posY": 3000.0,
@@ -1630,7 +1656,7 @@ CGEN 1
       }
     },
     {
-      "id": 177,
+      "id": 178,
       "type": "FileClose",
       "posX": 840.0,
       "posY": 3000.0,
@@ -1639,7 +1665,7 @@ CGEN 1
       }
     },
     {
-      "id": 178,
+      "id": 179,
       "type": "FileOpen",
       "posX": 40.0,
       "posY": 3080.0,
@@ -1650,7 +1676,7 @@ CGEN 1
       }
     },
     {
-      "id": 179,
+      "id": 180,
       "type": "FileRead",
       "posX": 200.0,
       "posY": 3080.0,
@@ -1662,7 +1688,7 @@ CGEN 1
       }
     },
     {
-      "id": 180,
+      "id": 181,
       "type": "FileClose",
       "posX": 360.0,
       "posY": 3080.0,
@@ -1671,21 +1697,38 @@ CGEN 1
       }
     },
     {
-      "id": 181,
-      "type": "Return",
+      "id": 182,
+      "type": "Free",
       "posX": 520.0,
       "posY": 3080.0,
       "properties": {}
     },
     {
-      "id": 182,
+      "id": 183,
+      "type": "VariableRef",
+      "posX": 680.0,
+      "posY": 3080.0,
+      "properties": {
+        "name": "stamp",
+        "type": "uint8_t*"
+      }
+    },
+    {
+      "id": 184,
+      "type": "Return",
+      "posX": 840.0,
+      "posY": 3080.0,
+      "properties": {}
+    },
+    {
+      "id": 185,
       "type": "Start",
       "posX": 40.0,
       "posY": 4200.0,
       "properties": {}
     },
     {
-      "id": 183,
+      "id": 186,
       "type": "Comment",
       "posX": 200.0,
       "posY": 4200.0,
@@ -1694,73 +1737,29 @@ CGEN 1
       }
     },
     {
-      "id": 184,
-      "type": "FieldStore",
+      "id": 187,
+      "type": "VariableDecl",
       "posX": 40.0,
       "posY": 4280.0,
       "properties": {
-        "object": "hero",
-        "field": "hp",
-        "access": "."
-      }
-    },
-    {
-      "id": 185,
-      "type": "Literal",
-      "posX": 200.0,
-      "posY": 4280.0,
-      "properties": {
-        "value": "30",
-        "type": "int32_t"
-      }
-    },
-    {
-      "id": 186,
-      "type": "FieldStore",
-      "posX": 360.0,
-      "posY": 4280.0,
-      "properties": {
-        "object": "hero",
-        "field": "maxHp",
-        "access": "."
-      }
-    },
-    {
-      "id": 187,
-      "type": "FieldStore",
-      "posX": 520.0,
-      "posY": 4280.0,
-      "properties": {
-        "object": "hero",
-        "field": "atk",
-        "access": "."
+        "name": "hero",
+        "type": "Hero"
       }
     },
     {
       "id": 188,
-      "type": "Literal",
-      "posX": 680.0,
+      "type": "StructLiteral",
+      "posX": 220.0,
       "posY": 4280.0,
       "properties": {
-        "value": "6",
-        "type": "int32_t"
+        "type": "Hero",
+        "init": ".hp = 30, .maxHp = 30, .atk = 6, .gold = 0, .room = 0"
       }
     },
     {
       "id": 189,
-      "type": "FieldStore",
-      "posX": 840.0,
-      "posY": 4280.0,
-      "properties": {
-        "object": "hero",
-        "field": "gold",
-        "access": "."
-      }
-    },
-    {
-      "id": 190,
       "type": "Literal",
-      "posX": 1000.0,
+      "posX": 400.0,
       "posY": 4280.0,
       "properties": {
         "value": "0",
@@ -1768,20 +1767,9 @@ CGEN 1
       }
     },
     {
-      "id": 191,
-      "type": "FieldStore",
-      "posX": 40.0,
-      "posY": 4360.0,
-      "properties": {
-        "object": "hero",
-        "field": "room",
-        "access": "."
-      }
-    },
-    {
-      "id": 192,
+      "id": 190,
       "type": "ArrayDecl",
-      "posX": 200.0,
+      "posX": 40.0,
       "posY": 4360.0,
       "properties": {
         "name": "name",
@@ -1790,9 +1778,9 @@ CGEN 1
       }
     },
     {
-      "id": 193,
+      "id": 191,
       "type": "ArrayDecl",
-      "posX": 400.0,
+      "posX": 220.0,
       "posY": 4360.0,
       "properties": {
         "name": "title",
@@ -1801,9 +1789,9 @@ CGEN 1
       }
     },
     {
-      "id": 194,
+      "id": 192,
       "type": "VariableDecl",
-      "posX": 600.0,
+      "posX": 400.0,
       "posY": 4360.0,
       "properties": {
         "name": "menu",
@@ -1811,9 +1799,9 @@ CGEN 1
       }
     },
     {
-      "id": 195,
+      "id": 193,
       "type": "VariableDecl",
-      "posX": 760.0,
+      "posX": 560.0,
       "posY": 4360.0,
       "properties": {
         "name": "playing",
@@ -1821,9 +1809,9 @@ CGEN 1
       }
     },
     {
-      "id": 196,
+      "id": 194,
       "type": "Literal",
-      "posX": 920.0,
+      "posX": 720.0,
       "posY": 4360.0,
       "properties": {
         "value": "1",
@@ -1831,7 +1819,7 @@ CGEN 1
       }
     },
     {
-      "id": 197,
+      "id": 195,
       "type": "ScanfLine",
       "posX": 40.0,
       "posY": 4520.0,
@@ -1842,7 +1830,7 @@ CGEN 1
       }
     },
     {
-      "id": 198,
+      "id": 196,
       "type": "StrCpy",
       "posX": 220.0,
       "posY": 4520.0,
@@ -1852,7 +1840,7 @@ CGEN 1
       }
     },
     {
-      "id": 199,
+      "id": 197,
       "type": "StrNCpy",
       "posX": 400.0,
       "posY": 4520.0,
@@ -1863,7 +1851,7 @@ CGEN 1
       }
     },
     {
-      "id": 200,
+      "id": 198,
       "type": "StrLen",
       "posX": 560.0,
       "posY": 4520.0,
@@ -1872,7 +1860,7 @@ CGEN 1
       }
     },
     {
-      "id": 201,
+      "id": 199,
       "type": "VariableDecl",
       "posX": 720.0,
       "posY": 4520.0,
@@ -1882,30 +1870,31 @@ CGEN 1
       }
     },
     {
-      "id": 202,
+      "id": 200,
       "type": "If",
       "posX": 40.0,
       "posY": 4600.0,
       "properties": {}
     },
     {
-      "id": 203,
+      "id": 201,
       "type": "Equal",
       "posX": 200.0,
       "posY": 4600.0,
       "properties": {}
     },
     {
-      "id": 204,
+      "id": 202,
       "type": "VariableRef",
       "posX": 360.0,
       "posY": 4600.0,
       "properties": {
-        "name": "nameLen"
+        "name": "nameLen",
+        "type": "int32_t"
       }
     },
     {
-      "id": 205,
+      "id": 203,
       "type": "StrCpy",
       "posX": 520.0,
       "posY": 4600.0,
@@ -1915,7 +1904,7 @@ CGEN 1
       }
     },
     {
-      "id": 206,
+      "id": 204,
       "type": "Printf",
       "posX": 680.0,
       "posY": 4600.0,
@@ -1924,7 +1913,7 @@ CGEN 1
       }
     },
     {
-      "id": 207,
+      "id": 205,
       "type": "WaitEnter",
       "posX": 840.0,
       "posY": 4600.0,
@@ -1933,7 +1922,7 @@ CGEN 1
       }
     },
     {
-      "id": 208,
+      "id": 206,
       "type": "Call",
       "posX": 40.0,
       "posY": 4680.0,
@@ -1943,7 +1932,7 @@ CGEN 1
       }
     },
     {
-      "id": 209,
+      "id": 207,
       "type": "VariableDecl",
       "posX": 220.0,
       "posY": 4680.0,
@@ -1953,14 +1942,14 @@ CGEN 1
       }
     },
     {
-      "id": 210,
+      "id": 208,
       "type": "TimeNow",
       "posX": 400.0,
       "posY": 4680.0,
       "properties": {}
     },
     {
-      "id": 211,
+      "id": 209,
       "type": "Assign",
       "posX": 560.0,
       "posY": 4680.0,
@@ -1969,7 +1958,7 @@ CGEN 1
       }
     },
     {
-      "id": 212,
+      "id": 210,
       "type": "Printf",
       "posX": 720.0,
       "posY": 4680.0,
@@ -1978,39 +1967,41 @@ CGEN 1
       }
     },
     {
-      "id": 213,
+      "id": 211,
       "type": "VariableRef",
       "posX": 880.0,
       "posY": 4680.0,
       "properties": {
-        "name": "now"
+        "name": "now",
+        "type": "int32_t"
       }
     },
     {
-      "id": 214,
+      "id": 212,
       "type": "While",
       "posX": 40.0,
       "posY": 4760.0,
       "properties": {}
     },
     {
-      "id": 215,
+      "id": 213,
       "type": "Equal",
       "posX": 200.0,
       "posY": 4760.0,
       "properties": {}
     },
     {
-      "id": 216,
+      "id": 214,
       "type": "VariableRef",
       "posX": 360.0,
       "posY": 4760.0,
       "properties": {
-        "name": "playing"
+        "name": "playing",
+        "type": "int32_t"
       }
     },
     {
-      "id": 217,
+      "id": 215,
       "type": "Printf",
       "posX": 520.0,
       "posY": 4760.0,
@@ -2019,7 +2010,7 @@ CGEN 1
       }
     },
     {
-      "id": 218,
+      "id": 216,
       "type": "ScanfInt",
       "posX": 680.0,
       "posY": 4760.0,
@@ -2028,23 +2019,24 @@ CGEN 1
       }
     },
     {
-      "id": 219,
+      "id": 217,
       "type": "Switch",
       "posX": 840.0,
       "posY": 4760.0,
       "properties": {}
     },
     {
-      "id": 220,
+      "id": 218,
       "type": "VariableRef",
       "posX": 1000.0,
       "posY": 4760.0,
       "properties": {
-        "name": "menu"
+        "name": "menu",
+        "type": "int32_t"
       }
     },
     {
-      "id": 221,
+      "id": 219,
       "type": "Case",
       "posX": 40.0,
       "posY": 4840.0,
@@ -2053,7 +2045,7 @@ CGEN 1
       }
     },
     {
-      "id": 222,
+      "id": 220,
       "type": "Case",
       "posX": 200.0,
       "posY": 4840.0,
@@ -2062,7 +2054,7 @@ CGEN 1
       }
     },
     {
-      "id": 223,
+      "id": 221,
       "type": "Case",
       "posX": 360.0,
       "posY": 4840.0,
@@ -2071,7 +2063,7 @@ CGEN 1
       }
     },
     {
-      "id": 224,
+      "id": 222,
       "type": "Case",
       "posX": 520.0,
       "posY": 4840.0,
@@ -2080,7 +2072,7 @@ CGEN 1
       }
     },
     {
-      "id": 225,
+      "id": 223,
       "type": "Printf",
       "posX": 40.0,
       "posY": 4920.0,
@@ -2089,7 +2081,7 @@ CGEN 1
       }
     },
     {
-      "id": 226,
+      "id": 224,
       "type": "VariableDecl",
       "posX": 220.0,
       "posY": 4920.0,
@@ -2099,7 +2091,7 @@ CGEN 1
       }
     },
     {
-      "id": 227,
+      "id": 225,
       "type": "Assign",
       "posX": 400.0,
       "posY": 4920.0,
@@ -2108,21 +2100,21 @@ CGEN 1
       }
     },
     {
-      "id": 228,
+      "id": 226,
       "type": "Random",
       "posX": 560.0,
       "posY": 4920.0,
       "properties": {}
     },
     {
-      "id": 229,
+      "id": 227,
       "type": "Mod",
       "posX": 720.0,
       "posY": 4920.0,
       "properties": {}
     },
     {
-      "id": 230,
+      "id": 228,
       "type": "Literal",
       "posX": 880.0,
       "posY": 4920.0,
@@ -2132,30 +2124,31 @@ CGEN 1
       }
     },
     {
-      "id": 231,
+      "id": 229,
       "type": "If",
       "posX": 40.0,
       "posY": 5000.0,
       "properties": {}
     },
     {
-      "id": 232,
+      "id": 230,
       "type": "Equal",
       "posX": 200.0,
       "posY": 5000.0,
       "properties": {}
     },
     {
-      "id": 233,
+      "id": 231,
       "type": "VariableRef",
       "posX": 360.0,
       "posY": 5000.0,
       "properties": {
-        "name": "roll"
+        "name": "roll",
+        "type": "int32_t"
       }
     },
     {
-      "id": 234,
+      "id": 232,
       "type": "Call",
       "posX": 520.0,
       "posY": 5000.0,
@@ -2165,23 +2158,33 @@ CGEN 1
       }
     },
     {
-      "id": 235,
-      "type": "ElseIf",
+      "id": 233,
+      "type": "Literal",
       "posX": 680.0,
       "posY": 5000.0,
-      "properties": {}
+      "properties": {
+        "value": "&hero",
+        "type": "int32_t"
+      }
     },
     {
-      "id": 236,
-      "type": "Equal",
+      "id": 234,
+      "type": "ElseIf",
       "posX": 840.0,
       "posY": 5000.0,
       "properties": {}
     },
     {
-      "id": 237,
-      "type": "Literal",
+      "id": 235,
+      "type": "Equal",
       "posX": 1000.0,
+      "posY": 5000.0,
+      "properties": {}
+    },
+    {
+      "id": 236,
+      "type": "Literal",
+      "posX": 1160.0,
       "posY": 5000.0,
       "properties": {
         "value": "1",
@@ -2189,7 +2192,7 @@ CGEN 1
       }
     },
     {
-      "id": 238,
+      "id": 237,
       "type": "Call",
       "posX": 40.0,
       "posY": 5080.0,
@@ -2199,9 +2202,19 @@ CGEN 1
       }
     },
     {
+      "id": 238,
+      "type": "Literal",
+      "posX": 200.0,
+      "posY": 5080.0,
+      "properties": {
+        "value": "&hero",
+        "type": "int32_t"
+      }
+    },
+    {
       "id": 239,
       "type": "Printf",
-      "posX": 200.0,
+      "posX": 360.0,
       "posY": 5080.0,
       "properties": {
         "format": "The room is empty.\\n"
@@ -2210,7 +2223,7 @@ CGEN 1
     {
       "id": 240,
       "type": "Call",
-      "posX": 360.0,
+      "posX": 520.0,
       "posY": 5080.0,
       "properties": {
         "function": "log_event",
@@ -2220,7 +2233,7 @@ CGEN 1
     {
       "id": 241,
       "type": "Literal",
-      "posX": 520.0,
+      "posX": 680.0,
       "posY": 5080.0,
       "properties": {
         "value": "0",
@@ -2279,7 +2292,8 @@ CGEN 1
       "posX": 840.0,
       "posY": 5160.0,
       "properties": {
-        "name": "healBonus"
+        "name": "healBonus",
+        "type": "int32_t"
       }
     },
     {
@@ -2342,7 +2356,8 @@ CGEN 1
       "posX": 1000.0,
       "posY": 5240.0,
       "properties": {
-        "name": "heal"
+        "name": "heal",
+        "type": "int32_t"
       }
     },
     {
@@ -2435,96 +2450,105 @@ CGEN 1
     },
     {
       "id": 264,
-      "type": "Printf",
+      "type": "FieldLoad",
       "posX": 520.0,
       "posY": 5400.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 265,
+      "type": "FieldLoad",
+      "posX": 680.0,
+      "posY": 5400.0,
+      "properties": {
+        "object": "hero",
+        "field": "maxHp",
+        "access": "."
+      }
+    },
+    {
+      "id": 266,
+      "type": "FieldLoad",
+      "posX": 840.0,
+      "posY": 5400.0,
+      "properties": {
+        "object": "hero",
+        "field": "atk",
+        "access": "."
+      }
+    },
+    {
+      "id": 267,
+      "type": "FieldLoad",
+      "posX": 1000.0,
+      "posY": 5400.0,
+      "properties": {
+        "object": "hero",
+        "field": "gold",
+        "access": "."
+      }
+    },
+    {
+      "id": 268,
+      "type": "FieldLoad",
+      "posX": 1160.0,
+      "posY": 5400.0,
+      "properties": {
+        "object": "hero",
+        "field": "room",
+        "access": "."
+      }
+    },
+    {
+      "id": 269,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 5440.0,
       "properties": {
         "format": "Name buffer ready.\\n"
       }
     },
     {
-      "id": 265,
+      "id": 270,
       "type": "StrCmp",
-      "posX": 680.0,
-      "posY": 5400.0,
+      "posX": 200.0,
+      "posY": 5440.0,
       "properties": {
         "left": "name",
         "right": "\"Wanderer\""
       }
     },
     {
-      "id": 266,
+      "id": 271,
       "type": "VariableDecl",
-      "posX": 840.0,
-      "posY": 5400.0,
+      "posX": 360.0,
+      "posY": 5440.0,
       "properties": {
         "name": "cmp",
         "type": "int32_t"
       }
     },
     {
-      "id": 267,
+      "id": 272,
       "type": "Printf",
-      "posX": 1000.0,
-      "posY": 5400.0,
+      "posX": 520.0,
+      "posY": 5440.0,
       "properties": {
         "format": "Name vs Wanderer: %d\\n"
       }
     },
     {
-      "id": 268,
-      "type": "VariableRef",
-      "posX": 1160.0,
-      "posY": 5400.0,
-      "properties": {
-        "name": "cmp"
-      }
-    },
-    {
-      "id": 269,
-      "type": "VariableDecl",
-      "posX": 40.0,
-      "posY": 5440.0,
-      "properties": {
-        "name": "tick",
-        "type": "int32_t"
-      }
-    },
-    {
-      "id": 270,
-      "type": "Assign",
-      "posX": 200.0,
-      "posY": 5440.0,
-      "properties": {
-        "target": "tick"
-      }
-    },
-    {
-      "id": 271,
-      "type": "Literal",
-      "posX": 360.0,
-      "posY": 5440.0,
-      "properties": {
-        "value": "0",
-        "type": "int32_t"
-      }
-    },
-    {
-      "id": 272,
-      "type": "Inc",
-      "posX": 520.0,
-      "posY": 5440.0,
-      "properties": {
-        "target": "tick"
-      }
-    },
-    {
       "id": 273,
-      "type": "Dec",
+      "type": "VariableRef",
       "posX": 680.0,
       "posY": 5440.0,
       "properties": {
-        "target": "tick"
+        "name": "cmp",
+        "type": "int32_t"
       }
     },
     {
@@ -2533,7 +2557,7 @@ CGEN 1
       "posX": 840.0,
       "posY": 5440.0,
       "properties": {
-        "name": "flag",
+        "name": "tick",
         "type": "int32_t"
       }
     },
@@ -2543,68 +2567,116 @@ CGEN 1
       "posX": 1000.0,
       "posY": 5440.0,
       "properties": {
-        "target": "flag"
+        "target": "tick"
       }
     },
     {
       "id": 276,
-      "type": "LessEqual",
-      "posX": 40.0,
-      "posY": 5460.0,
-      "properties": {}
+      "type": "Literal",
+      "posX": 1160.0,
+      "posY": 5440.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
     },
     {
       "id": 277,
-      "type": "GreaterEqual",
-      "posX": 200.0,
-      "posY": 5460.0,
-      "properties": {}
+      "type": "Inc",
+      "posX": 40.0,
+      "posY": 5480.0,
+      "properties": {
+        "target": "tick"
+      }
     },
     {
       "id": 278,
-      "type": "Or",
-      "posX": 360.0,
-      "posY": 5460.0,
-      "properties": {}
+      "type": "Dec",
+      "posX": 200.0,
+      "posY": 5480.0,
+      "properties": {
+        "target": "tick"
+      }
     },
     {
       "id": 279,
-      "type": "Not",
-      "posX": 520.0,
-      "posY": 5460.0,
-      "properties": {}
+      "type": "VariableDecl",
+      "posX": 360.0,
+      "posY": 5480.0,
+      "properties": {
+        "name": "flag",
+        "type": "int32_t"
+      }
     },
     {
       "id": 280,
-      "type": "VariableRef",
-      "posX": 680.0,
-      "posY": 5460.0,
+      "type": "Assign",
+      "posX": 520.0,
+      "posY": 5480.0,
       "properties": {
-        "name": "tick"
+        "target": "flag"
       }
     },
     {
       "id": 281,
-      "type": "Literal",
+      "type": "LessEqual",
+      "posX": 680.0,
+      "posY": 5480.0,
+      "properties": {}
+    },
+    {
+      "id": 282,
+      "type": "GreaterEqual",
       "posX": 840.0,
-      "posY": 5460.0,
+      "posY": 5480.0,
+      "properties": {}
+    },
+    {
+      "id": 283,
+      "type": "Or",
+      "posX": 1000.0,
+      "posY": 5480.0,
+      "properties": {}
+    },
+    {
+      "id": 284,
+      "type": "Not",
+      "posX": 1160.0,
+      "posY": 5480.0,
+      "properties": {}
+    },
+    {
+      "id": 285,
+      "type": "VariableRef",
+      "posX": 40.0,
+      "posY": 5520.0,
+      "properties": {
+        "name": "tick",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 286,
+      "type": "Literal",
+      "posX": 200.0,
+      "posY": 5520.0,
       "properties": {
         "value": "1",
         "type": "int32_t"
       }
     },
     {
-      "id": 282,
+      "id": 287,
       "type": "If",
-      "posX": 40.0,
-      "posY": 5470.0,
+      "posX": 360.0,
+      "posY": 5520.0,
       "properties": {}
     },
     {
-      "id": 283,
+      "id": 288,
       "type": "For",
-      "posX": 200.0,
-      "posY": 5470.0,
+      "posX": 520.0,
+      "posY": 5520.0,
       "properties": {
         "iterator": "bi",
         "start": "0",
@@ -2613,76 +2685,77 @@ CGEN 1
       }
     },
     {
-      "id": 284,
+      "id": 289,
       "type": "Break",
-      "posX": 360.0,
-      "posY": 5470.0,
+      "posX": 680.0,
+      "posY": 5520.0,
       "properties": {}
     },
     {
-      "id": 285,
+      "id": 290,
       "type": "Assign",
       "posX": 40.0,
-      "posY": 5480.0,
+      "posY": 5560.0,
       "properties": {
         "target": "playing"
       }
     },
     {
-      "id": 286,
+      "id": 291,
       "type": "Printf",
       "posX": 200.0,
-      "posY": 5480.0,
+      "posY": 5560.0,
       "properties": {
         "format": "Farewell!\\n"
       }
     },
     {
-      "id": 287,
+      "id": 292,
       "type": "Printf",
       "posX": 360.0,
-      "posY": 5480.0,
+      "posY": 5560.0,
       "properties": {
         "format": "Unknown choice.\\n"
       }
     },
     {
-      "id": 288,
+      "id": 293,
       "type": "VariableDecl",
       "posX": 520.0,
-      "posY": 5480.0,
+      "posY": 5560.0,
       "properties": {
         "name": "again",
         "type": "char"
       }
     },
     {
-      "id": 289,
+      "id": 294,
       "type": "ScanfChar",
       "posX": 680.0,
-      "posY": 5480.0,
+      "posY": 5560.0,
       "properties": {
         "target": "again"
       }
     },
     {
-      "id": 290,
+      "id": 295,
       "type": "End",
       "posX": 40.0,
-      "posY": 5560.0,
+      "posY": 5640.0,
       "properties": {}
     },
     {
-      "id": 291,
+      "id": 296,
       "type": "VariableRef",
       "posX": 40.0,
-      "posY": 5475.0,
+      "posY": 5530.0,
       "properties": {
-        "name": "flag"
+        "name": "flag",
+        "type": "int32_t"
       }
     },
     {
-      "id": 292,
+      "id": 297,
       "type": "Literal",
       "posX": 40.0,
       "posY": 5700.0,
@@ -2695,1438 +2768,1438 @@ CGEN 1
   "edges": [
     {
       "id": 1,
-      "fromNodeId": 3,
+      "fromNodeId": 2,
       "fromPort": "Body",
-      "toNodeId": 4,
+      "toNodeId": 3,
       "toPort": "In"
     },
     {
       "id": 2,
-      "fromNodeId": 4,
+      "fromNodeId": 3,
       "fromPort": "Next",
-      "toNodeId": 5,
+      "toNodeId": 4,
       "toPort": "In"
     },
     {
       "id": 3,
-      "fromNodeId": 5,
+      "fromNodeId": 4,
       "fromPort": "Next",
-      "toNodeId": 8,
+      "toNodeId": 7,
       "toPort": "In"
     },
     {
       "id": 4,
-      "fromNodeId": 8,
+      "fromNodeId": 7,
       "fromPort": "Next",
-      "toNodeId": 12,
+      "toNodeId": 11,
       "toPort": "In"
     },
     {
       "id": 5,
-      "fromNodeId": 6,
+      "fromNodeId": 5,
       "fromPort": "Value",
-      "toNodeId": 5,
+      "toNodeId": 4,
       "toPort": "Arg0"
     },
     {
       "id": 6,
-      "fromNodeId": 7,
+      "fromNodeId": 6,
       "fromPort": "Value",
-      "toNodeId": 5,
+      "toNodeId": 4,
       "toPort": "Arg1"
     },
     {
       "id": 7,
-      "fromNodeId": 9,
+      "fromNodeId": 8,
       "fromPort": "Value",
-      "toNodeId": 8,
+      "toNodeId": 7,
       "toPort": "Arg0"
     },
     {
       "id": 8,
-      "fromNodeId": 10,
+      "fromNodeId": 9,
       "fromPort": "Value",
-      "toNodeId": 8,
+      "toNodeId": 7,
       "toPort": "Arg1"
     },
     {
       "id": 9,
-      "fromNodeId": 11,
+      "fromNodeId": 10,
       "fromPort": "Value",
-      "toNodeId": 8,
+      "toNodeId": 7,
       "toPort": "Arg2"
     },
     {
       "id": 10,
-      "fromNodeId": 13,
+      "fromNodeId": 12,
       "fromPort": "Body",
-      "toNodeId": 14,
+      "toNodeId": 13,
       "toPort": "In"
     },
     {
       "id": 11,
-      "fromNodeId": 21,
+      "fromNodeId": 20,
+      "fromPort": "Value",
+      "toNodeId": 13,
+      "toPort": "Init"
+    },
+    {
+      "id": 12,
+      "fromNodeId": 20,
       "fromPort": "Value",
       "toNodeId": 14,
       "toPort": "Init"
     },
     {
-      "id": 12,
-      "fromNodeId": 21,
+      "id": 13,
+      "fromNodeId": 20,
       "fromPort": "Value",
       "toNodeId": 15,
       "toPort": "Init"
     },
     {
-      "id": 13,
-      "fromNodeId": 21,
+      "id": 14,
+      "fromNodeId": 20,
       "fromPort": "Value",
       "toNodeId": 16,
       "toPort": "Init"
     },
     {
-      "id": 14,
-      "fromNodeId": 21,
+      "id": 15,
+      "fromNodeId": 20,
       "fromPort": "Value",
       "toNodeId": 17,
       "toPort": "Init"
     },
     {
-      "id": 15,
-      "fromNodeId": 21,
+      "id": 16,
+      "fromNodeId": 20,
       "fromPort": "Value",
       "toNodeId": 18,
       "toPort": "Init"
     },
     {
-      "id": 16,
-      "fromNodeId": 21,
-      "fromPort": "Value",
-      "toNodeId": 19,
-      "toPort": "Init"
+      "id": 17,
+      "fromNodeId": 13,
+      "fromPort": "Next",
+      "toNodeId": 14,
+      "toPort": "In"
     },
     {
-      "id": 17,
+      "id": 18,
       "fromNodeId": 14,
       "fromPort": "Next",
       "toNodeId": 15,
       "toPort": "In"
     },
     {
-      "id": 18,
+      "id": 19,
       "fromNodeId": 15,
       "fromPort": "Next",
       "toNodeId": 16,
       "toPort": "In"
     },
     {
-      "id": 19,
+      "id": 20,
       "fromNodeId": 16,
       "fromPort": "Next",
       "toNodeId": 17,
       "toPort": "In"
     },
     {
-      "id": 20,
+      "id": 21,
       "fromNodeId": 17,
       "fromPort": "Next",
       "toNodeId": 18,
       "toPort": "In"
     },
     {
-      "id": 21,
+      "id": 22,
       "fromNodeId": 18,
       "fromPort": "Next",
       "toNodeId": 19,
       "toPort": "In"
     },
     {
-      "id": 22,
+      "id": 23,
       "fromNodeId": 19,
       "fromPort": "Next",
-      "toNodeId": 20,
+      "toNodeId": 21,
       "toPort": "In"
     },
     {
-      "id": 23,
-      "fromNodeId": 20,
+      "id": 24,
+      "fromNodeId": 21,
       "fromPort": "Next",
       "toNodeId": 22,
       "toPort": "In"
     },
     {
-      "id": 24,
+      "id": 25,
       "fromNodeId": 22,
       "fromPort": "Next",
       "toNodeId": 23,
       "toPort": "In"
     },
     {
-      "id": 25,
-      "fromNodeId": 23,
-      "fromPort": "Next",
-      "toNodeId": 24,
-      "toPort": "In"
-    },
-    {
       "id": 26,
-      "fromNodeId": 26,
+      "fromNodeId": 25,
       "fromPort": "Value",
-      "toNodeId": 25,
+      "toNodeId": 24,
       "toPort": "Left"
     },
     {
       "id": 27,
-      "fromNodeId": 21,
+      "fromNodeId": 20,
       "fromPort": "Value",
-      "toNodeId": 25,
+      "toNodeId": 24,
       "toPort": "Right"
     },
     {
       "id": 28,
-      "fromNodeId": 25,
+      "fromNodeId": 24,
       "fromPort": "Result",
-      "toNodeId": 24,
+      "toNodeId": 23,
       "toPort": "Cond"
     },
     {
       "id": 29,
-      "fromNodeId": 24,
+      "fromNodeId": 23,
       "fromPort": "Then",
-      "toNodeId": 27,
+      "toNodeId": 26,
       "toPort": "In"
     },
     {
       "id": 30,
-      "fromNodeId": 28,
+      "fromNodeId": 27,
       "fromPort": "Value",
-      "toNodeId": 27,
+      "toNodeId": 26,
       "toPort": "Arg0"
     },
     {
       "id": 31,
-      "fromNodeId": 29,
+      "fromNodeId": 28,
       "fromPort": "Value",
-      "toNodeId": 27,
+      "toNodeId": 26,
       "toPort": "Arg1"
     },
     {
       "id": 32,
-      "fromNodeId": 30,
+      "fromNodeId": 29,
       "fromPort": "Value",
-      "toNodeId": 27,
+      "toNodeId": 26,
       "toPort": "Arg2"
     },
     {
       "id": 33,
-      "fromNodeId": 31,
+      "fromNodeId": 30,
       "fromPort": "Value",
-      "toNodeId": 27,
+      "toNodeId": 26,
       "toPort": "Arg3"
     },
     {
       "id": 34,
-      "fromNodeId": 32,
+      "fromNodeId": 31,
       "fromPort": "Value",
-      "toNodeId": 27,
+      "toNodeId": 26,
       "toPort": "Arg4"
     },
     {
       "id": 35,
-      "fromNodeId": 33,
+      "fromNodeId": 32,
       "fromPort": "Value",
-      "toNodeId": 27,
+      "toNodeId": 26,
       "toPort": "Arg5"
     },
     {
       "id": 36,
-      "fromNodeId": 34,
+      "fromNodeId": 33,
       "fromPort": "Value",
-      "toNodeId": 27,
+      "toNodeId": 26,
       "toPort": "Arg6"
     },
     {
       "id": 37,
-      "fromNodeId": 27,
+      "fromNodeId": 26,
+      "fromPort": "Next",
+      "toNodeId": 34,
+      "toPort": "In"
+    },
+    {
+      "id": 38,
+      "fromNodeId": 34,
       "fromPort": "Next",
       "toNodeId": 35,
       "toPort": "In"
     },
     {
-      "id": 38,
-      "fromNodeId": 35,
-      "fromPort": "Next",
-      "toNodeId": 36,
-      "toPort": "In"
-    },
-    {
       "id": 39,
-      "fromNodeId": 24,
+      "fromNodeId": 23,
       "fromPort": "Next",
-      "toNodeId": 36,
+      "toNodeId": 35,
       "toPort": "In"
     },
     {
       "id": 40,
-      "fromNodeId": 37,
+      "fromNodeId": 36,
       "fromPort": "Body",
-      "toNodeId": 38,
+      "toNodeId": 37,
       "toPort": "In"
     },
     {
       "id": 41,
+      "fromNodeId": 39,
+      "fromPort": "Value",
+      "toNodeId": 37,
+      "toPort": "Init"
+    },
+    {
+      "id": 42,
+      "fromNodeId": 37,
+      "fromPort": "Next",
+      "toNodeId": 38,
+      "toPort": "In"
+    },
+    {
+      "id": 43,
       "fromNodeId": 40,
       "fromPort": "Value",
       "toNodeId": 38,
       "toPort": "Init"
     },
     {
-      "id": 42,
+      "id": 44,
       "fromNodeId": 38,
       "fromPort": "Next",
-      "toNodeId": 39,
-      "toPort": "In"
-    },
-    {
-      "id": 43,
-      "fromNodeId": 41,
-      "fromPort": "Value",
-      "toNodeId": 39,
-      "toPort": "Init"
-    },
-    {
-      "id": 44,
-      "fromNodeId": 39,
-      "fromPort": "Next",
-      "toNodeId": 47,
+      "toNodeId": 46,
       "toPort": "In"
     },
     {
       "id": 45,
-      "fromNodeId": 42,
+      "fromNodeId": 41,
       "fromPort": "Value",
-      "toNodeId": 43,
+      "toNodeId": 42,
       "toPort": "Left"
     },
     {
       "id": 46,
-      "fromNodeId": 44,
+      "fromNodeId": 43,
       "fromPort": "Value",
-      "toNodeId": 43,
+      "toNodeId": 42,
       "toPort": "Right"
     },
     {
       "id": 47,
-      "fromNodeId": 46,
+      "fromNodeId": 45,
       "fromPort": "Value",
-      "toNodeId": 45,
+      "toNodeId": 44,
       "toPort": "Left"
     },
     {
       "id": 48,
-      "fromNodeId": 43,
+      "fromNodeId": 42,
       "fromPort": "Result",
-      "toNodeId": 45,
+      "toNodeId": 44,
       "toPort": "Right"
     },
     {
       "id": 49,
-      "fromNodeId": 45,
+      "fromNodeId": 44,
       "fromPort": "Result",
-      "toNodeId": 47,
+      "toNodeId": 46,
       "toPort": "Value"
     },
     {
       "id": 50,
-      "fromNodeId": 47,
+      "fromNodeId": 46,
       "fromPort": "Next",
-      "toNodeId": 51,
+      "toNodeId": 50,
       "toPort": "In"
     },
     {
       "id": 51,
-      "fromNodeId": 50,
+      "fromNodeId": 49,
       "fromPort": "Value",
-      "toNodeId": 48,
+      "toNodeId": 47,
       "toPort": "Left"
     },
     {
       "id": 52,
-      "fromNodeId": 49,
+      "fromNodeId": 48,
       "fromPort": "Value",
-      "toNodeId": 48,
+      "toNodeId": 47,
       "toPort": "Right"
     },
     {
       "id": 53,
-      "fromNodeId": 48,
+      "fromNodeId": 47,
       "fromPort": "Result",
-      "toNodeId": 51,
+      "toNodeId": 50,
       "toPort": "Value"
     },
     {
       "id": 54,
-      "fromNodeId": 51,
+      "fromNodeId": 50,
       "fromPort": "Next",
-      "toNodeId": 53,
+      "toNodeId": 52,
       "toPort": "In"
     },
     {
       "id": 55,
-      "fromNodeId": 50,
+      "fromNodeId": 49,
       "fromPort": "Value",
-      "toNodeId": 52,
+      "toNodeId": 51,
       "toPort": "Value"
     },
     {
       "id": 56,
-      "fromNodeId": 52,
+      "fromNodeId": 51,
       "fromPort": "Result",
-      "toNodeId": 53,
+      "toNodeId": 52,
       "toPort": "Value"
     },
     {
       "id": 57,
-      "fromNodeId": 53,
+      "fromNodeId": 52,
       "fromPort": "Next",
-      "toNodeId": 54,
+      "toNodeId": 53,
       "toPort": "In"
     },
     {
       "id": 58,
-      "fromNodeId": 55,
+      "fromNodeId": 54,
       "fromPort": "Value",
-      "toNodeId": 54,
+      "toNodeId": 53,
       "toPort": "Arg0"
     },
     {
       "id": 59,
-      "fromNodeId": 54,
+      "fromNodeId": 53,
       "fromPort": "Next",
-      "toNodeId": 56,
+      "toNodeId": 55,
       "toPort": "In"
     },
     {
       "id": 60,
-      "fromNodeId": 60,
+      "fromNodeId": 59,
       "fromPort": "Value",
-      "toNodeId": 57,
+      "toNodeId": 56,
       "toPort": "Left"
     },
     {
       "id": 61,
-      "fromNodeId": 40,
+      "fromNodeId": 39,
       "fromPort": "Value",
-      "toNodeId": 57,
+      "toNodeId": 56,
       "toPort": "Right"
     },
     {
       "id": 62,
-      "fromNodeId": 57,
+      "fromNodeId": 56,
       "fromPort": "Result",
-      "toNodeId": 56,
+      "toNodeId": 55,
       "toPort": "Cond"
     },
     {
       "id": 63,
-      "fromNodeId": 56,
+      "fromNodeId": 55,
       "fromPort": "Then",
-      "toNodeId": 58,
+      "toNodeId": 57,
       "toPort": "In"
     },
     {
       "id": 64,
-      "fromNodeId": 60,
-      "fromPort": "Value",
-      "toNodeId": 59,
-      "toPort": "Value"
-    },
-    {
-      "id": 65,
       "fromNodeId": 59,
-      "fromPort": "Result",
+      "fromPort": "Value",
       "toNodeId": 58,
       "toPort": "Value"
     },
     {
+      "id": 65,
+      "fromNodeId": 58,
+      "fromPort": "Result",
+      "toNodeId": 57,
+      "toPort": "Value"
+    },
+    {
       "id": 66,
-      "fromNodeId": 56,
+      "fromNodeId": 55,
       "fromPort": "Next",
-      "toNodeId": 61,
+      "toNodeId": 60,
       "toPort": "In"
     },
     {
       "id": 67,
-      "fromNodeId": 60,
+      "fromNodeId": 59,
       "fromPort": "Value",
-      "toNodeId": 61,
+      "toNodeId": 60,
       "toPort": "Value"
     },
     {
       "id": 68,
-      "fromNodeId": 62,
+      "fromNodeId": 61,
       "fromPort": "Body",
-      "toNodeId": 63,
+      "toNodeId": 62,
       "toPort": "In"
     },
     {
       "id": 69,
+      "fromNodeId": 62,
+      "fromPort": "Next",
+      "toNodeId": 63,
+      "toPort": "In"
+    },
+    {
+      "id": 70,
+      "fromNodeId": 65,
+      "fromPort": "Value",
+      "toNodeId": 63,
+      "toPort": "Init"
+    },
+    {
+      "id": 71,
       "fromNodeId": 63,
       "fromPort": "Next",
       "toNodeId": 64,
       "toPort": "In"
     },
     {
-      "id": 70,
+      "id": 72,
       "fromNodeId": 66,
       "fromPort": "Value",
       "toNodeId": 64,
       "toPort": "Init"
     },
     {
-      "id": 71,
+      "id": 73,
       "fromNodeId": 64,
       "fromPort": "Next",
-      "toNodeId": 65,
+      "toNodeId": 67,
       "toPort": "In"
     },
     {
-      "id": 72,
+      "id": 74,
       "fromNodeId": 67,
-      "fromPort": "Value",
-      "toNodeId": 65,
-      "toPort": "Init"
-    },
-    {
-      "id": 73,
-      "fromNodeId": 65,
       "fromPort": "Next",
       "toNodeId": 68,
       "toPort": "In"
     },
     {
-      "id": 74,
-      "fromNodeId": 68,
-      "fromPort": "Next",
-      "toNodeId": 69,
-      "toPort": "In"
-    },
-    {
       "id": 75,
-      "fromNodeId": 71,
+      "fromNodeId": 70,
       "fromPort": "Value",
-      "toNodeId": 70,
+      "toNodeId": 69,
       "toPort": "Left"
     },
     {
       "id": 76,
-      "fromNodeId": 67,
+      "fromNodeId": 66,
       "fromPort": "Value",
-      "toNodeId": 70,
+      "toNodeId": 69,
       "toPort": "Right"
     },
     {
       "id": 77,
-      "fromNodeId": 73,
+      "fromNodeId": 72,
       "fromPort": "Value",
-      "toNodeId": 72,
+      "toNodeId": 71,
       "toPort": "Left"
     },
     {
       "id": 78,
-      "fromNodeId": 67,
+      "fromNodeId": 66,
       "fromPort": "Value",
-      "toNodeId": 72,
+      "toNodeId": 71,
       "toPort": "Right"
     },
     {
       "id": 79,
-      "fromNodeId": 70,
+      "fromNodeId": 69,
       "fromPort": "Result",
-      "toNodeId": 74,
+      "toNodeId": 73,
       "toPort": "Left"
     },
     {
       "id": 80,
-      "fromNodeId": 72,
+      "fromNodeId": 71,
       "fromPort": "Result",
-      "toNodeId": 74,
+      "toNodeId": 73,
       "toPort": "Right"
     },
     {
       "id": 81,
-      "fromNodeId": 74,
+      "fromNodeId": 73,
       "fromPort": "Result",
-      "toNodeId": 69,
+      "toNodeId": 68,
       "toPort": "Cond"
     },
     {
       "id": 82,
-      "fromNodeId": 69,
+      "fromNodeId": 68,
       "fromPort": "Body",
-      "toNodeId": 75,
+      "toNodeId": 74,
       "toPort": "In"
     },
     {
       "id": 83,
-      "fromNodeId": 76,
+      "fromNodeId": 75,
       "fromPort": "Value",
-      "toNodeId": 75,
+      "toNodeId": 74,
       "toPort": "Arg0"
     },
     {
       "id": 84,
-      "fromNodeId": 75,
+      "fromNodeId": 74,
       "fromPort": "Next",
-      "toNodeId": 77,
+      "toNodeId": 76,
       "toPort": "In"
     },
     {
       "id": 85,
-      "fromNodeId": 78,
+      "fromNodeId": 77,
       "fromPort": "Value",
-      "toNodeId": 77,
+      "toNodeId": 76,
       "toPort": "Arg0"
     },
     {
       "id": 86,
-      "fromNodeId": 77,
+      "fromNodeId": 76,
       "fromPort": "Next",
-      "toNodeId": 79,
+      "toNodeId": 78,
       "toPort": "In"
     },
     {
       "id": 87,
-      "fromNodeId": 78,
+      "fromNodeId": 77,
       "fromPort": "Value",
-      "toNodeId": 79,
+      "toNodeId": 78,
       "toPort": "Value"
     },
     {
       "id": 88,
-      "fromNodeId": 79,
+      "fromNodeId": 78,
       "fromPort": "Next",
-      "toNodeId": 80,
+      "toNodeId": 79,
       "toPort": "In"
     },
     {
       "id": 89,
-      "fromNodeId": 78,
+      "fromNodeId": 77,
       "fromPort": "Value",
-      "toNodeId": 81,
+      "toNodeId": 80,
       "toPort": "Left"
     },
     {
       "id": 90,
-      "fromNodeId": 67,
+      "fromNodeId": 66,
       "fromPort": "Value",
-      "toNodeId": 81,
+      "toNodeId": 80,
       "toPort": "Right"
     },
     {
       "id": 91,
-      "fromNodeId": 81,
+      "fromNodeId": 80,
       "fromPort": "Result",
-      "toNodeId": 80,
+      "toNodeId": 79,
       "toPort": "Cond"
     },
     {
       "id": 92,
-      "fromNodeId": 80,
+      "fromNodeId": 79,
       "fromPort": "Then",
-      "toNodeId": 82,
+      "toNodeId": 81,
       "toPort": "In"
     },
     {
       "id": 93,
-      "fromNodeId": 80,
+      "fromNodeId": 79,
       "fromPort": "Else",
-      "toNodeId": 83,
+      "toNodeId": 82,
       "toPort": "In"
     },
     {
       "id": 94,
-      "fromNodeId": 85,
+      "fromNodeId": 84,
       "fromPort": "Value",
-      "toNodeId": 84,
+      "toNodeId": 83,
       "toPort": "Left"
     },
     {
       "id": 95,
-      "fromNodeId": 67,
+      "fromNodeId": 66,
       "fromPort": "Value",
-      "toNodeId": 84,
+      "toNodeId": 83,
       "toPort": "Right"
     },
     {
       "id": 96,
-      "fromNodeId": 84,
+      "fromNodeId": 83,
       "fromPort": "Result",
-      "toNodeId": 83,
+      "toNodeId": 82,
       "toPort": "Cond"
     },
     {
       "id": 97,
-      "fromNodeId": 83,
+      "fromNodeId": 82,
       "fromPort": "Then",
-      "toNodeId": 86,
+      "toNodeId": 85,
       "toPort": "In"
     },
     {
       "id": 98,
-      "fromNodeId": 87,
+      "fromNodeId": 86,
       "fromPort": "Value",
-      "toNodeId": 86,
+      "toNodeId": 85,
       "toPort": "Arg0"
     },
     {
       "id": 99,
-      "fromNodeId": 86,
+      "fromNodeId": 85,
       "fromPort": "Next",
-      "toNodeId": 88,
+      "toNodeId": 87,
       "toPort": "In"
     },
     {
       "id": 100,
-      "fromNodeId": 89,
+      "fromNodeId": 88,
       "fromPort": "Value",
-      "toNodeId": 88,
+      "toNodeId": 87,
       "toPort": "Arg0"
     },
     {
       "id": 101,
-      "fromNodeId": 88,
+      "fromNodeId": 87,
       "fromPort": "Next",
-      "toNodeId": 92,
+      "toNodeId": 91,
       "toPort": "In"
     },
     {
       "id": 102,
-      "fromNodeId": 91,
+      "fromNodeId": 90,
       "fromPort": "Value",
-      "toNodeId": 90,
+      "toNodeId": 89,
       "toPort": "Left"
     },
     {
       "id": 103,
-      "fromNodeId": 89,
+      "fromNodeId": 88,
       "fromPort": "Value",
-      "toNodeId": 90,
+      "toNodeId": 89,
       "toPort": "Right"
     },
     {
       "id": 104,
-      "fromNodeId": 90,
+      "fromNodeId": 89,
       "fromPort": "Result",
-      "toNodeId": 92,
+      "toNodeId": 91,
       "toPort": "Value"
     },
     {
       "id": 105,
-      "fromNodeId": 92,
+      "fromNodeId": 91,
       "fromPort": "Next",
-      "toNodeId": 93,
+      "toNodeId": 92,
       "toPort": "In"
     },
     {
       "id": 106,
-      "fromNodeId": 96,
+      "fromNodeId": 95,
       "fromPort": "Value",
-      "toNodeId": 95,
+      "toNodeId": 94,
       "toPort": "Left"
     },
     {
       "id": 107,
-      "fromNodeId": 94,
+      "fromNodeId": 93,
       "fromPort": "Value",
-      "toNodeId": 95,
+      "toNodeId": 94,
       "toPort": "Right"
     },
     {
       "id": 108,
-      "fromNodeId": 95,
+      "fromNodeId": 94,
       "fromPort": "Result",
-      "toNodeId": 93,
+      "toNodeId": 92,
       "toPort": "Cond"
     },
     {
       "id": 109,
-      "fromNodeId": 69,
+      "fromNodeId": 68,
       "fromPort": "Exit",
-      "toNodeId": 97,
+      "toNodeId": 96,
       "toPort": "In"
     },
     {
       "id": 110,
-      "fromNodeId": 99,
+      "fromNodeId": 98,
       "fromPort": "Value",
-      "toNodeId": 98,
+      "toNodeId": 97,
       "toPort": "Left"
     },
     {
       "id": 111,
-      "fromNodeId": 67,
+      "fromNodeId": 66,
       "fromPort": "Value",
-      "toNodeId": 98,
+      "toNodeId": 97,
       "toPort": "Right"
     },
     {
       "id": 112,
-      "fromNodeId": 98,
+      "fromNodeId": 97,
       "fromPort": "Result",
-      "toNodeId": 97,
+      "toNodeId": 96,
       "toPort": "Cond"
     },
     {
       "id": 113,
-      "fromNodeId": 97,
+      "fromNodeId": 96,
       "fromPort": "Then",
-      "toNodeId": 100,
+      "toNodeId": 99,
       "toPort": "In"
     },
     {
       "id": 114,
-      "fromNodeId": 100,
+      "fromNodeId": 99,
       "fromPort": "Next",
-      "toNodeId": 101,
+      "toNodeId": 100,
       "toPort": "In"
     },
     {
       "id": 115,
-      "fromNodeId": 102,
+      "fromNodeId": 101,
       "fromPort": "Value",
-      "toNodeId": 101,
+      "toNodeId": 100,
       "toPort": "Arg0"
     },
     {
       "id": 116,
-      "fromNodeId": 101,
+      "fromNodeId": 100,
       "fromPort": "Next",
-      "toNodeId": 106,
+      "toNodeId": 105,
       "toPort": "In"
     },
     {
       "id": 117,
-      "fromNodeId": 104,
+      "fromNodeId": 103,
       "fromPort": "Value",
-      "toNodeId": 103,
+      "toNodeId": 102,
       "toPort": "Left"
     },
     {
       "id": 118,
-      "fromNodeId": 105,
+      "fromNodeId": 104,
       "fromPort": "Value",
-      "toNodeId": 103,
+      "toNodeId": 102,
       "toPort": "Right"
     },
     {
       "id": 119,
-      "fromNodeId": 103,
+      "fromNodeId": 102,
       "fromPort": "Result",
-      "toNodeId": 106,
+      "toNodeId": 105,
       "toPort": "Value"
     },
     {
       "id": 120,
-      "fromNodeId": 106,
+      "fromNodeId": 105,
       "fromPort": "Next",
-      "toNodeId": 115,
+      "toNodeId": 114,
       "toPort": "In"
     },
     {
       "id": 121,
-      "fromNodeId": 114,
+      "fromNodeId": 113,
       "fromPort": "Value",
-      "toNodeId": 113,
+      "toNodeId": 112,
       "toPort": "Left"
     },
     {
       "id": 122,
-      "fromNodeId": 102,
+      "fromNodeId": 101,
       "fromPort": "Value",
-      "toNodeId": 113,
+      "toNodeId": 112,
       "toPort": "Right"
     },
     {
       "id": 123,
-      "fromNodeId": 113,
+      "fromNodeId": 112,
       "fromPort": "Result",
-      "toNodeId": 115,
+      "toNodeId": 114,
       "toPort": "Value"
     },
     {
       "id": 124,
-      "fromNodeId": 97,
+      "fromNodeId": 96,
       "fromPort": "Else",
-      "toNodeId": 107,
+      "toNodeId": 106,
       "toPort": "In"
     },
     {
       "id": 125,
-      "fromNodeId": 107,
+      "fromNodeId": 106,
       "fromPort": "Next",
-      "toNodeId": 108,
+      "toNodeId": 107,
       "toPort": "In"
     },
     {
       "id": 126,
-      "fromNodeId": 109,
+      "fromNodeId": 108,
       "fromPort": "Value",
-      "toNodeId": 108,
+      "toNodeId": 107,
       "toPort": "Arg0"
     },
     {
       "id": 127,
-      "fromNodeId": 108,
+      "fromNodeId": 107,
       "fromPort": "Next",
-      "toNodeId": 110,
+      "toNodeId": 109,
       "toPort": "In"
     },
     {
       "id": 128,
-      "fromNodeId": 111,
+      "fromNodeId": 110,
       "fromPort": "Value",
-      "toNodeId": 110,
+      "toNodeId": 109,
       "toPort": "Value"
     },
     {
       "id": 129,
-      "fromNodeId": 97,
+      "fromNodeId": 96,
       "fromPort": "Next",
-      "toNodeId": 112,
+      "toNodeId": 111,
       "toPort": "In"
     },
     {
       "id": 130,
-      "fromNodeId": 117,
+      "fromNodeId": 116,
       "fromPort": "Body",
-      "toNodeId": 118,
+      "toNodeId": 117,
       "toPort": "In"
     },
     {
       "id": 131,
-      "fromNodeId": 118,
+      "fromNodeId": 117,
       "fromPort": "Next",
-      "toNodeId": 119,
+      "toNodeId": 118,
       "toPort": "In"
     },
     {
       "id": 132,
-      "fromNodeId": 119,
+      "fromNodeId": 118,
       "fromPort": "Body",
-      "toNodeId": 120,
+      "toNodeId": 119,
       "toPort": "In"
     },
     {
       "id": 133,
-      "fromNodeId": 121,
+      "fromNodeId": 120,
       "fromPort": "Value",
-      "toNodeId": 120,
+      "toNodeId": 119,
       "toPort": "Index"
     },
     {
       "id": 134,
-      "fromNodeId": 121,
+      "fromNodeId": 120,
       "fromPort": "Value",
-      "toNodeId": 122,
+      "toNodeId": 121,
       "toPort": "Left"
     },
     {
       "id": 135,
-      "fromNodeId": 123,
+      "fromNodeId": 122,
       "fromPort": "Value",
-      "toNodeId": 122,
+      "toNodeId": 121,
       "toPort": "Right"
     },
     {
       "id": 136,
-      "fromNodeId": 122,
+      "fromNodeId": 121,
       "fromPort": "Result",
-      "toNodeId": 124,
+      "toNodeId": 123,
       "toPort": "Left"
     },
     {
       "id": 137,
-      "fromNodeId": 125,
+      "fromNodeId": 124,
       "fromPort": "Value",
-      "toNodeId": 124,
+      "toNodeId": 123,
       "toPort": "Right"
     },
     {
       "id": 138,
-      "fromNodeId": 124,
+      "fromNodeId": 123,
       "fromPort": "Result",
-      "toNodeId": 120,
+      "toNodeId": 119,
       "toPort": "Value"
     },
     {
       "id": 139,
-      "fromNodeId": 119,
+      "fromNodeId": 118,
       "fromPort": "Exit",
-      "toNodeId": 126,
+      "toNodeId": 125,
       "toPort": "In"
     },
     {
       "id": 140,
-      "fromNodeId": 126,
+      "fromNodeId": 125,
       "fromPort": "Next",
-      "toNodeId": 127,
+      "toNodeId": 126,
       "toPort": "In"
     },
     {
       "id": 141,
-      "fromNodeId": 128,
+      "fromNodeId": 127,
       "fromPort": "Value",
-      "toNodeId": 127,
+      "toNodeId": 126,
       "toPort": "Length"
     },
     {
       "id": 142,
-      "fromNodeId": 127,
+      "fromNodeId": 126,
       "fromPort": "Next",
-      "toNodeId": 129,
+      "toNodeId": 128,
       "toPort": "In"
     },
     {
       "id": 143,
-      "fromNodeId": 131,
+      "fromNodeId": 130,
       "fromPort": "Value",
-      "toNodeId": 129,
+      "toNodeId": 128,
       "toPort": "Init"
     },
     {
       "id": 144,
-      "fromNodeId": 129,
+      "fromNodeId": 128,
       "fromPort": "Next",
-      "toNodeId": 132,
+      "toNodeId": 131,
       "toPort": "In"
     },
     {
       "id": 145,
-      "fromNodeId": 131,
+      "fromNodeId": 130,
       "fromPort": "Value",
-      "toNodeId": 130,
+      "toNodeId": 129,
       "toPort": "Index"
     },
     {
       "id": 146,
-      "fromNodeId": 130,
+      "fromNodeId": 129,
       "fromPort": "Value",
-      "toNodeId": 132,
+      "toNodeId": 131,
       "toPort": "Value"
     },
     {
       "id": 147,
-      "fromNodeId": 132,
+      "fromNodeId": 131,
       "fromPort": "Next",
-      "toNodeId": 133,
+      "toNodeId": 132,
       "toPort": "In"
     },
     {
       "id": 148,
-      "fromNodeId": 134,
+      "fromNodeId": 133,
       "fromPort": "Value",
-      "toNodeId": 133,
+      "toNodeId": 132,
       "toPort": "Arg0"
     },
     {
       "id": 149,
-      "fromNodeId": 133,
+      "fromNodeId": 132,
       "fromPort": "Next",
-      "toNodeId": 137,
+      "toNodeId": 136,
       "toPort": "In"
     },
     {
       "id": 150,
-      "fromNodeId": 136,
+      "fromNodeId": 135,
       "fromPort": "Value",
-      "toNodeId": 135,
+      "toNodeId": 134,
       "toPort": "Left"
     },
     {
       "id": 151,
-      "fromNodeId": 134,
+      "fromNodeId": 133,
       "fromPort": "Value",
-      "toNodeId": 135,
+      "toNodeId": 134,
       "toPort": "Right"
     },
     {
       "id": 152,
-      "fromNodeId": 135,
+      "fromNodeId": 134,
       "fromPort": "Result",
-      "toNodeId": 137,
+      "toNodeId": 136,
       "toPort": "Value"
     },
     {
       "id": 153,
-      "fromNodeId": 137,
+      "fromNodeId": 136,
       "fromPort": "Next",
-      "toNodeId": 138,
+      "toNodeId": 137,
       "toPort": "In"
     },
     {
       "id": 154,
-      "fromNodeId": 131,
+      "fromNodeId": 130,
       "fromPort": "Value",
-      "toNodeId": 138,
+      "toNodeId": 137,
       "toPort": "Init"
     },
     {
       "id": 155,
-      "fromNodeId": 138,
+      "fromNodeId": 137,
       "fromPort": "Next",
-      "toNodeId": 140,
+      "toNodeId": 139,
       "toPort": "In"
     },
     {
       "id": 156,
-      "fromNodeId": 139,
+      "fromNodeId": 138,
       "fromPort": "Value",
-      "toNodeId": 140,
+      "toNodeId": 139,
       "toPort": "Value"
     },
     {
       "id": 157,
-      "fromNodeId": 140,
+      "fromNodeId": 139,
       "fromPort": "Next",
-      "toNodeId": 141,
+      "toNodeId": 140,
       "toPort": "In"
     },
     {
       "id": 158,
-      "fromNodeId": 142,
+      "fromNodeId": 141,
       "fromPort": "Value",
-      "toNodeId": 141,
+      "toNodeId": 140,
       "toPort": "Arg0"
     },
     {
       "id": 159,
-      "fromNodeId": 141,
+      "fromNodeId": 140,
       "fromPort": "Next",
-      "toNodeId": 143,
+      "toNodeId": 142,
       "toPort": "In"
     },
     {
       "id": 160,
-      "fromNodeId": 144,
+      "fromNodeId": 143,
       "fromPort": "Value",
-      "toNodeId": 143,
+      "toNodeId": 142,
       "toPort": "Arg0"
     },
     {
       "id": 161,
-      "fromNodeId": 143,
+      "fromNodeId": 142,
       "fromPort": "Next",
-      "toNodeId": 145,
+      "toNodeId": 144,
       "toPort": "In"
     },
     {
       "id": 162,
-      "fromNodeId": 146,
+      "fromNodeId": 145,
       "fromPort": "Body",
-      "toNodeId": 147,
+      "toNodeId": 146,
       "toPort": "In"
     },
     {
       "id": 163,
+      "fromNodeId": 146,
+      "fromPort": "Next",
+      "toNodeId": 147,
+      "toPort": "In"
+    },
+    {
+      "id": 164,
       "fromNodeId": 147,
       "fromPort": "Next",
       "toNodeId": 148,
       "toPort": "In"
     },
     {
-      "id": 164,
-      "fromNodeId": 148,
-      "fromPort": "Next",
-      "toNodeId": 149,
-      "toPort": "In"
-    },
-    {
       "id": 165,
-      "fromNodeId": 150,
+      "fromNodeId": 149,
       "fromPort": "Value",
-      "toNodeId": 149,
+      "toNodeId": 148,
       "toPort": "Init"
     },
     {
       "id": 166,
-      "fromNodeId": 149,
+      "fromNodeId": 148,
+      "fromPort": "Next",
+      "toNodeId": 151,
+      "toPort": "In"
+    },
+    {
+      "id": 167,
+      "fromNodeId": 151,
       "fromPort": "Next",
       "toNodeId": 152,
       "toPort": "In"
     },
     {
-      "id": 167,
+      "id": 168,
       "fromNodeId": 152,
       "fromPort": "Next",
       "toNodeId": 153,
       "toPort": "In"
     },
     {
-      "id": 168,
-      "fromNodeId": 153,
-      "fromPort": "Next",
-      "toNodeId": 154,
-      "toPort": "In"
-    },
-    {
       "id": 169,
-      "fromNodeId": 156,
+      "fromNodeId": 155,
       "fromPort": "Value",
-      "toNodeId": 155,
+      "toNodeId": 154,
       "toPort": "Left"
     },
     {
       "id": 170,
-      "fromNodeId": 150,
+      "fromNodeId": 149,
       "fromPort": "Value",
-      "toNodeId": 155,
+      "toNodeId": 154,
       "toPort": "Right"
     },
     {
       "id": 171,
-      "fromNodeId": 155,
+      "fromNodeId": 154,
       "fromPort": "Result",
-      "toNodeId": 154,
+      "toNodeId": 153,
       "toPort": "Cond"
     },
     {
       "id": 172,
-      "fromNodeId": 154,
+      "fromNodeId": 153,
       "fromPort": "Then",
-      "toNodeId": 157,
+      "toNodeId": 156,
       "toPort": "In"
     },
     {
       "id": 173,
-      "fromNodeId": 157,
+      "fromNodeId": 156,
       "fromPort": "Next",
-      "toNodeId": 158,
+      "toNodeId": 157,
       "toPort": "In"
     },
     {
       "id": 174,
-      "fromNodeId": 154,
+      "fromNodeId": 153,
       "fromPort": "Else",
-      "toNodeId": 159,
+      "toNodeId": 158,
       "toPort": "In"
     },
     {
       "id": 175,
-      "fromNodeId": 151,
+      "fromNodeId": 150,
       "fromPort": "Value",
-      "toNodeId": 159,
+      "toNodeId": 158,
       "toPort": "Value"
     },
     {
       "id": 176,
-      "fromNodeId": 159,
+      "fromNodeId": 158,
       "fromPort": "Next",
-      "toNodeId": 160,
+      "toNodeId": 159,
       "toPort": "In"
     },
     {
       "id": 177,
-      "fromNodeId": 162,
+      "fromNodeId": 161,
       "fromPort": "Value",
-      "toNodeId": 161,
+      "toNodeId": 160,
       "toPort": "Left"
     },
     {
       "id": 178,
-      "fromNodeId": 151,
+      "fromNodeId": 150,
       "fromPort": "Value",
-      "toNodeId": 161,
+      "toNodeId": 160,
       "toPort": "Right"
     },
     {
       "id": 179,
-      "fromNodeId": 161,
+      "fromNodeId": 160,
       "fromPort": "Result",
-      "toNodeId": 160,
+      "toNodeId": 159,
       "toPort": "Cond"
     },
     {
       "id": 180,
-      "fromNodeId": 160,
+      "fromNodeId": 159,
       "fromPort": "Body",
-      "toNodeId": 163,
+      "toNodeId": 162,
       "toPort": "In"
     },
     {
       "id": 181,
-      "fromNodeId": 163,
+      "fromNodeId": 162,
       "fromPort": "Next",
-      "toNodeId": 164,
+      "toNodeId": 163,
       "toPort": "In"
     },
     {
       "id": 182,
-      "fromNodeId": 166,
+      "fromNodeId": 165,
       "fromPort": "Value",
-      "toNodeId": 165,
+      "toNodeId": 164,
       "toPort": "Left"
     },
     {
       "id": 183,
-      "fromNodeId": 151,
+      "fromNodeId": 150,
       "fromPort": "Value",
-      "toNodeId": 165,
+      "toNodeId": 164,
       "toPort": "Right"
     },
     {
       "id": 184,
-      "fromNodeId": 165,
+      "fromNodeId": 164,
       "fromPort": "Result",
-      "toNodeId": 164,
+      "toNodeId": 163,
       "toPort": "Cond"
     },
     {
       "id": 185,
-      "fromNodeId": 164,
+      "fromNodeId": 163,
       "fromPort": "Then",
-      "toNodeId": 167,
+      "toNodeId": 166,
       "toPort": "In"
     },
     {
       "id": 186,
-      "fromNodeId": 168,
+      "fromNodeId": 167,
       "fromPort": "Value",
-      "toNodeId": 167,
+      "toNodeId": 166,
       "toPort": "Arg0"
     },
     {
       "id": 187,
-      "fromNodeId": 160,
+      "fromNodeId": 159,
       "fromPort": "Exit",
-      "toNodeId": 169,
+      "toNodeId": 168,
       "toPort": "In"
     },
     {
       "id": 188,
-      "fromNodeId": 169,
+      "fromNodeId": 168,
       "fromPort": "Next",
-      "toNodeId": 170,
+      "toNodeId": 169,
       "toPort": "In"
     },
     {
       "id": 189,
-      "fromNodeId": 170,
-      "fromPort": "Next",
-      "toNodeId": 171,
-      "toPort": "In"
+      "fromNodeId": 171,
+      "fromPort": "Value",
+      "toNodeId": 170,
+      "toPort": "Size"
     },
     {
       "id": 190,
-      "fromNodeId": 171,
+      "fromNodeId": 170,
+      "fromPort": "Ptr",
+      "toNodeId": 169,
+      "toPort": "Init"
+    },
+    {
+      "id": 191,
+      "fromNodeId": 169,
       "fromPort": "Next",
       "toNodeId": 172,
       "toPort": "In"
     },
     {
-      "id": 191,
+      "id": 192,
       "fromNodeId": 172,
       "fromPort": "Next",
       "toNodeId": 173,
       "toPort": "In"
     },
     {
-      "id": 192,
-      "fromNodeId": 175,
-      "fromPort": "Value",
-      "toNodeId": 173,
-      "toPort": "Index"
-    },
-    {
       "id": 193,
-      "fromNodeId": 174,
-      "fromPort": "Value",
-      "toNodeId": 173,
-      "toPort": "Value"
-    },
-    {
-      "id": 194,
       "fromNodeId": 173,
       "fromPort": "Next",
-      "toNodeId": 176,
+      "toNodeId": 174,
       "toPort": "In"
     },
     {
-      "id": 195,
+      "id": 194,
       "fromNodeId": 176,
+      "fromPort": "Value",
+      "toNodeId": 174,
+      "toPort": "Index"
+    },
+    {
+      "id": 195,
+      "fromNodeId": 175,
+      "fromPort": "Value",
+      "toNodeId": 174,
+      "toPort": "Value"
+    },
+    {
+      "id": 196,
+      "fromNodeId": 174,
       "fromPort": "Next",
       "toNodeId": 177,
       "toPort": "In"
     },
     {
-      "id": 196,
+      "id": 197,
       "fromNodeId": 177,
       "fromPort": "Next",
       "toNodeId": 178,
       "toPort": "In"
     },
     {
-      "id": 197,
+      "id": 198,
       "fromNodeId": 178,
       "fromPort": "Next",
       "toNodeId": 179,
       "toPort": "In"
     },
     {
-      "id": 198,
+      "id": 199,
       "fromNodeId": 179,
       "fromPort": "Next",
       "toNodeId": 180,
       "toPort": "In"
     },
     {
-      "id": 199,
+      "id": 200,
       "fromNodeId": 180,
       "fromPort": "Next",
       "toNodeId": 181,
       "toPort": "In"
     },
     {
-      "id": 200,
-      "fromNodeId": 154,
-      "fromPort": "Next",
-      "toNodeId": 181,
-      "toPort": "In"
-    },
-    {
       "id": 201,
-      "fromNodeId": 182,
+      "fromNodeId": 181,
       "fromPort": "Next",
-      "toNodeId": 183,
+      "toNodeId": 182,
       "toPort": "In"
     },
     {
       "id": 202,
       "fromNodeId": 183,
+      "fromPort": "Value",
+      "toNodeId": 182,
+      "toPort": "Ptr"
+    },
+    {
+      "id": 203,
+      "fromNodeId": 182,
       "fromPort": "Next",
       "toNodeId": 184,
       "toPort": "In"
     },
     {
-      "id": 203,
-      "fromNodeId": 185,
-      "fromPort": "Value",
-      "toNodeId": 184,
-      "toPort": "Value"
-    },
-    {
       "id": 204,
-      "fromNodeId": 184,
+      "fromNodeId": 153,
       "fromPort": "Next",
-      "toNodeId": 186,
+      "toNodeId": 184,
       "toPort": "In"
     },
     {
       "id": 205,
       "fromNodeId": 185,
-      "fromPort": "Value",
+      "fromPort": "Next",
       "toNodeId": 186,
-      "toPort": "Value"
+      "toPort": "In"
     },
     {
       "id": 206,
@@ -4140,349 +4213,349 @@ CGEN 1
       "fromNodeId": 188,
       "fromPort": "Value",
       "toNodeId": 187,
-      "toPort": "Value"
+      "toPort": "Init"
     },
     {
       "id": 208,
       "fromNodeId": 187,
       "fromPort": "Next",
-      "toNodeId": 189,
+      "toNodeId": 190,
       "toPort": "In"
     },
     {
       "id": 209,
       "fromNodeId": 190,
-      "fromPort": "Value",
-      "toNodeId": 189,
-      "toPort": "Value"
-    },
-    {
-      "id": 210,
-      "fromNodeId": 189,
       "fromPort": "Next",
       "toNodeId": 191,
       "toPort": "In"
     },
     {
-      "id": 211,
-      "fromNodeId": 190,
-      "fromPort": "Value",
-      "toNodeId": 191,
-      "toPort": "Value"
-    },
-    {
-      "id": 212,
+      "id": 210,
       "fromNodeId": 191,
       "fromPort": "Next",
       "toNodeId": 192,
       "toPort": "In"
     },
     {
-      "id": 213,
+      "id": 211,
+      "fromNodeId": 189,
+      "fromPort": "Value",
+      "toNodeId": 192,
+      "toPort": "Init"
+    },
+    {
+      "id": 212,
       "fromNodeId": 192,
       "fromPort": "Next",
       "toNodeId": 193,
       "toPort": "In"
     },
     {
+      "id": 213,
+      "fromNodeId": 194,
+      "fromPort": "Value",
+      "toNodeId": 193,
+      "toPort": "Init"
+    },
+    {
       "id": 214,
       "fromNodeId": 193,
       "fromPort": "Next",
-      "toNodeId": 194,
+      "toNodeId": 195,
       "toPort": "In"
     },
     {
       "id": 215,
-      "fromNodeId": 190,
-      "fromPort": "Value",
-      "toNodeId": 194,
-      "toPort": "Init"
-    },
-    {
-      "id": 216,
-      "fromNodeId": 194,
+      "fromNodeId": 195,
       "fromPort": "Next",
-      "toNodeId": 195,
+      "toNodeId": 196,
       "toPort": "In"
     },
     {
-      "id": 217,
+      "id": 216,
       "fromNodeId": 196,
-      "fromPort": "Value",
-      "toNodeId": 195,
-      "toPort": "Init"
-    },
-    {
-      "id": 218,
-      "fromNodeId": 195,
       "fromPort": "Next",
       "toNodeId": 197,
       "toPort": "In"
     },
     {
-      "id": 219,
+      "id": 217,
       "fromNodeId": 197,
-      "fromPort": "Next",
-      "toNodeId": 198,
-      "toPort": "In"
-    },
-    {
-      "id": 220,
-      "fromNodeId": 198,
       "fromPort": "Next",
       "toNodeId": 199,
       "toPort": "In"
     },
     {
-      "id": 221,
-      "fromNodeId": 199,
-      "fromPort": "Next",
-      "toNodeId": 201,
-      "toPort": "In"
-    },
-    {
-      "id": 222,
-      "fromNodeId": 200,
+      "id": 218,
+      "fromNodeId": 198,
       "fromPort": "Value",
-      "toNodeId": 201,
+      "toNodeId": 199,
       "toPort": "Init"
     },
     {
-      "id": 223,
-      "fromNodeId": 201,
+      "id": 219,
+      "fromNodeId": 199,
       "fromPort": "Next",
-      "toNodeId": 202,
+      "toNodeId": 200,
+      "toPort": "In"
+    },
+    {
+      "id": 220,
+      "fromNodeId": 202,
+      "fromPort": "Value",
+      "toNodeId": 201,
+      "toPort": "Left"
+    },
+    {
+      "id": 221,
+      "fromNodeId": 189,
+      "fromPort": "Value",
+      "toNodeId": 201,
+      "toPort": "Right"
+    },
+    {
+      "id": 222,
+      "fromNodeId": 201,
+      "fromPort": "Result",
+      "toNodeId": 200,
+      "toPort": "Cond"
+    },
+    {
+      "id": 223,
+      "fromNodeId": 200,
+      "fromPort": "Then",
+      "toNodeId": 203,
       "toPort": "In"
     },
     {
       "id": 224,
-      "fromNodeId": 204,
-      "fromPort": "Value",
-      "toNodeId": 203,
-      "toPort": "Left"
+      "fromNodeId": 200,
+      "fromPort": "Next",
+      "toNodeId": 204,
+      "toPort": "In"
     },
     {
       "id": 225,
-      "fromNodeId": 190,
-      "fromPort": "Value",
-      "toNodeId": 203,
-      "toPort": "Right"
-    },
-    {
-      "id": 226,
-      "fromNodeId": 203,
-      "fromPort": "Result",
-      "toNodeId": 202,
-      "toPort": "Cond"
-    },
-    {
-      "id": 227,
-      "fromNodeId": 202,
-      "fromPort": "Then",
+      "fromNodeId": 204,
+      "fromPort": "Next",
       "toNodeId": 205,
       "toPort": "In"
     },
     {
-      "id": 228,
-      "fromNodeId": 202,
+      "id": 226,
+      "fromNodeId": 205,
       "fromPort": "Next",
       "toNodeId": 206,
       "toPort": "In"
     },
     {
-      "id": 229,
+      "id": 227,
       "fromNodeId": 206,
       "fromPort": "Next",
       "toNodeId": 207,
       "toPort": "In"
     },
     {
-      "id": 230,
+      "id": 228,
+      "fromNodeId": 189,
+      "fromPort": "Value",
+      "toNodeId": 207,
+      "toPort": "Init"
+    },
+    {
+      "id": 229,
       "fromNodeId": 207,
       "fromPort": "Next",
-      "toNodeId": 208,
+      "toNodeId": 209,
       "toPort": "In"
     },
     {
-      "id": 231,
+      "id": 230,
       "fromNodeId": 208,
-      "fromPort": "Next",
+      "fromPort": "Value",
       "toNodeId": 209,
+      "toPort": "Value"
+    },
+    {
+      "id": 231,
+      "fromNodeId": 209,
+      "fromPort": "Next",
+      "toNodeId": 210,
       "toPort": "In"
     },
     {
       "id": 232,
-      "fromNodeId": 190,
+      "fromNodeId": 211,
       "fromPort": "Value",
-      "toNodeId": 209,
-      "toPort": "Init"
+      "toNodeId": 210,
+      "toPort": "Arg0"
     },
     {
       "id": 233,
-      "fromNodeId": 209,
+      "fromNodeId": 210,
       "fromPort": "Next",
-      "toNodeId": 211,
+      "toNodeId": 212,
       "toPort": "In"
     },
     {
       "id": 234,
-      "fromNodeId": 210,
+      "fromNodeId": 214,
       "fromPort": "Value",
-      "toNodeId": 211,
-      "toPort": "Value"
+      "toNodeId": 213,
+      "toPort": "Left"
     },
     {
       "id": 235,
-      "fromNodeId": 211,
-      "fromPort": "Next",
-      "toNodeId": 212,
-      "toPort": "In"
+      "fromNodeId": 194,
+      "fromPort": "Value",
+      "toNodeId": 213,
+      "toPort": "Right"
     },
     {
       "id": 236,
       "fromNodeId": 213,
-      "fromPort": "Value",
+      "fromPort": "Result",
       "toNodeId": 212,
-      "toPort": "Arg0"
+      "toPort": "Cond"
     },
     {
       "id": 237,
       "fromNodeId": 212,
-      "fromPort": "Next",
-      "toNodeId": 214,
+      "fromPort": "Body",
+      "toNodeId": 215,
       "toPort": "In"
     },
     {
       "id": 238,
-      "fromNodeId": 216,
-      "fromPort": "Value",
-      "toNodeId": 215,
-      "toPort": "Left"
+      "fromNodeId": 215,
+      "fromPort": "Next",
+      "toNodeId": 216,
+      "toPort": "In"
     },
     {
       "id": 239,
-      "fromNodeId": 196,
-      "fromPort": "Value",
-      "toNodeId": 215,
-      "toPort": "Right"
-    },
-    {
-      "id": 240,
-      "fromNodeId": 215,
-      "fromPort": "Result",
-      "toNodeId": 214,
-      "toPort": "Cond"
-    },
-    {
-      "id": 241,
-      "fromNodeId": 214,
-      "fromPort": "Body",
+      "fromNodeId": 216,
+      "fromPort": "Next",
       "toNodeId": 217,
       "toPort": "In"
     },
     {
-      "id": 242,
+      "id": 240,
+      "fromNodeId": 218,
+      "fromPort": "Value",
+      "toNodeId": 217,
+      "toPort": "Value"
+    },
+    {
+      "id": 241,
       "fromNodeId": 217,
-      "fromPort": "Next",
-      "toNodeId": 218,
+      "fromPort": "Cases",
+      "toNodeId": 219,
+      "toPort": "In"
+    },
+    {
+      "id": 242,
+      "fromNodeId": 219,
+      "fromPort": "NextCase",
+      "toNodeId": 220,
       "toPort": "In"
     },
     {
       "id": 243,
-      "fromNodeId": 218,
-      "fromPort": "Next",
-      "toNodeId": 219,
-      "toPort": "In"
-    },
-    {
-      "id": 244,
       "fromNodeId": 220,
-      "fromPort": "Value",
-      "toNodeId": 219,
-      "toPort": "Value"
-    },
-    {
-      "id": 245,
-      "fromNodeId": 219,
-      "fromPort": "Cases",
+      "fromPort": "NextCase",
       "toNodeId": 221,
       "toPort": "In"
     },
     {
-      "id": 246,
+      "id": 244,
       "fromNodeId": 221,
       "fromPort": "NextCase",
       "toNodeId": 222,
       "toPort": "In"
     },
     {
-      "id": 247,
-      "fromNodeId": 222,
-      "fromPort": "NextCase",
+      "id": 245,
+      "fromNodeId": 219,
+      "fromPort": "Body",
       "toNodeId": 223,
       "toPort": "In"
     },
     {
-      "id": 248,
+      "id": 246,
       "fromNodeId": 223,
-      "fromPort": "NextCase",
+      "fromPort": "Next",
       "toNodeId": 224,
       "toPort": "In"
     },
     {
-      "id": 249,
-      "fromNodeId": 221,
-      "fromPort": "Body",
+      "id": 247,
+      "fromNodeId": 189,
+      "fromPort": "Value",
+      "toNodeId": 224,
+      "toPort": "Init"
+    },
+    {
+      "id": 248,
+      "fromNodeId": 224,
+      "fromPort": "Next",
       "toNodeId": 225,
       "toPort": "In"
     },
     {
+      "id": 249,
+      "fromNodeId": 226,
+      "fromPort": "Value",
+      "toNodeId": 227,
+      "toPort": "Left"
+    },
+    {
       "id": 250,
-      "fromNodeId": 225,
-      "fromPort": "Next",
-      "toNodeId": 226,
-      "toPort": "In"
+      "fromNodeId": 228,
+      "fromPort": "Value",
+      "toNodeId": 227,
+      "toPort": "Right"
     },
     {
       "id": 251,
-      "fromNodeId": 190,
-      "fromPort": "Value",
-      "toNodeId": 226,
-      "toPort": "Init"
+      "fromNodeId": 227,
+      "fromPort": "Result",
+      "toNodeId": 225,
+      "toPort": "Value"
     },
     {
       "id": 252,
-      "fromNodeId": 226,
+      "fromNodeId": 225,
       "fromPort": "Next",
-      "toNodeId": 227,
+      "toNodeId": 229,
       "toPort": "In"
     },
     {
       "id": 253,
-      "fromNodeId": 228,
+      "fromNodeId": 231,
       "fromPort": "Value",
-      "toNodeId": 229,
+      "toNodeId": 230,
       "toPort": "Left"
     },
     {
       "id": 254,
-      "fromNodeId": 230,
+      "fromNodeId": 189,
       "fromPort": "Value",
-      "toNodeId": 229,
+      "toNodeId": 230,
       "toPort": "Right"
     },
     {
       "id": 255,
-      "fromNodeId": 229,
+      "fromNodeId": 230,
       "fromPort": "Result",
-      "toNodeId": 227,
-      "toPort": "Value"
+      "toNodeId": 229,
+      "toPort": "Cond"
     },
     {
       "id": 256,
-      "fromNodeId": 227,
-      "fromPort": "Next",
-      "toNodeId": 231,
+      "fromNodeId": 229,
+      "fromPort": "Then",
+      "toNodeId": 232,
       "toPort": "In"
     },
     {
@@ -4490,494 +4563,515 @@ CGEN 1
       "fromNodeId": 233,
       "fromPort": "Value",
       "toNodeId": 232,
-      "toPort": "Left"
+      "toPort": "Arg0"
     },
     {
       "id": 258,
-      "fromNodeId": 190,
-      "fromPort": "Value",
-      "toNodeId": 232,
-      "toPort": "Right"
-    },
-    {
-      "id": 259,
-      "fromNodeId": 232,
-      "fromPort": "Result",
-      "toNodeId": 231,
-      "toPort": "Cond"
-    },
-    {
-      "id": 260,
-      "fromNodeId": 231,
-      "fromPort": "Then",
+      "fromNodeId": 229,
+      "fromPort": "Else",
       "toNodeId": 234,
       "toPort": "In"
     },
     {
-      "id": 261,
+      "id": 259,
       "fromNodeId": 231,
-      "fromPort": "Else",
-      "toNodeId": 235,
-      "toPort": "In"
-    },
-    {
-      "id": 262,
-      "fromNodeId": 233,
       "fromPort": "Value",
-      "toNodeId": 236,
+      "toNodeId": 235,
       "toPort": "Left"
     },
     {
-      "id": 263,
-      "fromNodeId": 237,
+      "id": 260,
+      "fromNodeId": 236,
       "fromPort": "Value",
-      "toNodeId": 236,
+      "toNodeId": 235,
       "toPort": "Right"
     },
     {
-      "id": 264,
-      "fromNodeId": 236,
+      "id": 261,
+      "fromNodeId": 235,
       "fromPort": "Result",
-      "toNodeId": 235,
+      "toNodeId": 234,
       "toPort": "Cond"
     },
     {
-      "id": 265,
-      "fromNodeId": 235,
+      "id": 262,
+      "fromNodeId": 234,
       "fromPort": "Then",
-      "toNodeId": 238,
+      "toNodeId": 237,
       "toPort": "In"
     },
     {
-      "id": 266,
-      "fromNodeId": 235,
+      "id": 263,
+      "fromNodeId": 238,
+      "fromPort": "Value",
+      "toNodeId": 237,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 264,
+      "fromNodeId": 234,
       "fromPort": "Else",
       "toNodeId": 239,
       "toPort": "In"
     },
     {
-      "id": 267,
+      "id": 265,
       "fromNodeId": 239,
       "fromPort": "Next",
       "toNodeId": 240,
       "toPort": "In"
     },
     {
-      "id": 268,
+      "id": 266,
       "fromNodeId": 241,
       "fromPort": "Value",
       "toNodeId": 240,
       "toPort": "Arg0"
     },
     {
-      "id": 269,
-      "fromNodeId": 222,
+      "id": 267,
+      "fromNodeId": 220,
       "fromPort": "Body",
       "toNodeId": 245,
       "toPort": "In"
     },
     {
-      "id": 271,
+      "id": 269,
       "fromNodeId": 245,
       "fromPort": "Next",
       "toNodeId": 242,
       "toPort": "In"
     },
     {
-      "id": 272,
+      "id": 270,
       "fromNodeId": 242,
       "fromPort": "Next",
       "toNodeId": 243,
       "toPort": "In"
     },
     {
-      "id": 273,
+      "id": 271,
       "fromNodeId": 243,
       "fromPort": "Next",
       "toNodeId": 244,
       "toPort": "In"
     },
     {
-      "id": 274,
+      "id": 272,
       "fromNodeId": 244,
       "fromPort": "Next",
       "toNodeId": 248,
       "toPort": "In"
     },
     {
-      "id": 275,
-      "fromNodeId": 190,
+      "id": 273,
+      "fromNodeId": 189,
       "fromPort": "Value",
       "toNodeId": 248,
       "toPort": "Init"
     },
     {
-      "id": 276,
+      "id": 274,
       "fromNodeId": 248,
       "fromPort": "Next",
       "toNodeId": 249,
       "toPort": "In"
     },
     {
-      "id": 277,
+      "id": 275,
       "fromNodeId": 247,
       "fromPort": "Value",
       "toNodeId": 246,
       "toPort": "Value"
     },
     {
-      "id": 278,
+      "id": 276,
       "fromNodeId": 246,
       "fromPort": "Result",
       "toNodeId": 250,
       "toPort": "Left"
     },
     {
-      "id": 279,
+      "id": 277,
       "fromNodeId": 251,
       "fromPort": "Value",
       "toNodeId": 250,
       "toPort": "Right"
     },
     {
-      "id": 280,
+      "id": 278,
       "fromNodeId": 250,
       "fromPort": "Result",
       "toNodeId": 249,
       "toPort": "Value"
     },
     {
-      "id": 281,
+      "id": 279,
       "fromNodeId": 249,
       "fromPort": "Next",
       "toNodeId": 255,
       "toPort": "In"
     },
     {
-      "id": 282,
+      "id": 280,
       "fromNodeId": 252,
       "fromPort": "Value",
       "toNodeId": 253,
       "toPort": "Left"
     },
     {
-      "id": 283,
+      "id": 281,
       "fromNodeId": 254,
       "fromPort": "Value",
       "toNodeId": 253,
       "toPort": "Right"
     },
     {
-      "id": 284,
+      "id": 282,
       "fromNodeId": 253,
       "fromPort": "Result",
       "toNodeId": 255,
       "toPort": "Value"
     },
     {
-      "id": 285,
+      "id": 283,
       "fromNodeId": 255,
       "fromPort": "Next",
       "toNodeId": 256,
       "toPort": "In"
     },
     {
-      "id": 286,
+      "id": 284,
       "fromNodeId": 258,
       "fromPort": "Value",
       "toNodeId": 257,
       "toPort": "Left"
     },
     {
-      "id": 287,
+      "id": 285,
       "fromNodeId": 259,
       "fromPort": "Value",
       "toNodeId": 257,
       "toPort": "Right"
     },
     {
-      "id": 288,
+      "id": 286,
       "fromNodeId": 257,
       "fromPort": "Result",
       "toNodeId": 256,
       "toPort": "Cond"
     },
     {
-      "id": 289,
+      "id": 287,
       "fromNodeId": 256,
       "fromPort": "Then",
       "toNodeId": 260,
       "toPort": "In"
     },
     {
-      "id": 290,
+      "id": 288,
       "fromNodeId": 259,
       "fromPort": "Value",
       "toNodeId": 260,
       "toPort": "Value"
     },
     {
-      "id": 291,
+      "id": 289,
       "fromNodeId": 256,
       "fromPort": "Next",
       "toNodeId": 261,
       "toPort": "In"
     },
     {
-      "id": 292,
+      "id": 290,
       "fromNodeId": 262,
       "fromPort": "Value",
       "toNodeId": 261,
       "toPort": "Arg0"
     },
     {
-      "id": 293,
-      "fromNodeId": 223,
+      "id": 291,
+      "fromNodeId": 221,
       "fromPort": "Body",
       "toNodeId": 263,
       "toPort": "In"
     },
     {
+      "id": 292,
+      "fromNodeId": 264,
+      "fromPort": "Value",
+      "toNodeId": 263,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 293,
+      "fromNodeId": 265,
+      "fromPort": "Value",
+      "toNodeId": 263,
+      "toPort": "Arg1"
+    },
+    {
       "id": 294,
-      "fromNodeId": 263,
-      "fromPort": "Next",
-      "toNodeId": 264,
-      "toPort": "In"
+      "fromNodeId": 266,
+      "fromPort": "Value",
+      "toNodeId": 263,
+      "toPort": "Arg2"
     },
     {
       "id": 295,
-      "fromNodeId": 264,
-      "fromPort": "Next",
-      "toNodeId": 266,
-      "toPort": "In"
+      "fromNodeId": 267,
+      "fromPort": "Value",
+      "toNodeId": 263,
+      "toPort": "Arg3"
     },
     {
       "id": 296,
-      "fromNodeId": 265,
+      "fromNodeId": 268,
       "fromPort": "Value",
-      "toNodeId": 266,
-      "toPort": "Init"
+      "toNodeId": 263,
+      "toPort": "Arg4"
     },
     {
       "id": 297,
-      "fromNodeId": 266,
+      "fromNodeId": 263,
       "fromPort": "Next",
-      "toNodeId": 267,
+      "toNodeId": 269,
       "toPort": "In"
     },
     {
       "id": 298,
-      "fromNodeId": 268,
-      "fromPort": "Value",
-      "toNodeId": 267,
-      "toPort": "Arg0"
+      "fromNodeId": 269,
+      "fromPort": "Next",
+      "toNodeId": 271,
+      "toPort": "In"
     },
     {
       "id": 299,
-      "fromNodeId": 267,
-      "fromPort": "Next",
-      "toNodeId": 269,
-      "toPort": "In"
+      "fromNodeId": 270,
+      "fromPort": "Value",
+      "toNodeId": 271,
+      "toPort": "Init"
     },
     {
       "id": 300,
       "fromNodeId": 271,
-      "fromPort": "Value",
-      "toNodeId": 269,
-      "toPort": "Init"
-    },
-    {
-      "id": 301,
-      "fromNodeId": 269,
-      "fromPort": "Next",
-      "toNodeId": 270,
-      "toPort": "In"
-    },
-    {
-      "id": 302,
-      "fromNodeId": 271,
-      "fromPort": "Value",
-      "toNodeId": 270,
-      "toPort": "Value"
-    },
-    {
-      "id": 303,
-      "fromNodeId": 270,
       "fromPort": "Next",
       "toNodeId": 272,
       "toPort": "In"
     },
     {
-      "id": 304,
-      "fromNodeId": 272,
-      "fromPort": "Next",
-      "toNodeId": 273,
-      "toPort": "In"
+      "id": 301,
+      "fromNodeId": 273,
+      "fromPort": "Value",
+      "toNodeId": 272,
+      "toPort": "Arg0"
     },
     {
-      "id": 305,
-      "fromNodeId": 273,
+      "id": 302,
+      "fromNodeId": 272,
       "fromPort": "Next",
       "toNodeId": 274,
       "toPort": "In"
     },
     {
-      "id": 306,
-      "fromNodeId": 271,
+      "id": 303,
+      "fromNodeId": 276,
       "fromPort": "Value",
       "toNodeId": 274,
       "toPort": "Init"
     },
     {
-      "id": 307,
+      "id": 304,
       "fromNodeId": 274,
       "fromPort": "Next",
       "toNodeId": 275,
       "toPort": "In"
     },
     {
-      "id": 308,
-      "fromNodeId": 280,
-      "fromPort": "Value",
-      "toNodeId": 276,
-      "toPort": "Left"
-    },
-    {
-      "id": 309,
-      "fromNodeId": 271,
-      "fromPort": "Value",
-      "toNodeId": 276,
-      "toPort": "Right"
-    },
-    {
-      "id": 310,
-      "fromNodeId": 280,
-      "fromPort": "Value",
-      "toNodeId": 277,
-      "toPort": "Left"
-    },
-    {
-      "id": 311,
-      "fromNodeId": 281,
-      "fromPort": "Value",
-      "toNodeId": 277,
-      "toPort": "Right"
-    },
-    {
-      "id": 312,
-      "fromNodeId": 277,
-      "fromPort": "Result",
-      "toNodeId": 279,
-      "toPort": "Value"
-    },
-    {
-      "id": 313,
+      "id": 305,
       "fromNodeId": 276,
-      "fromPort": "Result",
-      "toNodeId": 278,
-      "toPort": "Left"
-    },
-    {
-      "id": 314,
-      "fromNodeId": 279,
-      "fromPort": "Result",
-      "toNodeId": 278,
-      "toPort": "Right"
-    },
-    {
-      "id": 315,
-      "fromNodeId": 278,
-      "fromPort": "Result",
+      "fromPort": "Value",
       "toNodeId": 275,
       "toPort": "Value"
     },
     {
-      "id": 316,
+      "id": 306,
       "fromNodeId": 275,
       "fromPort": "Next",
-      "toNodeId": 282,
+      "toNodeId": 277,
       "toPort": "In"
     },
     {
-      "id": 317,
-      "fromNodeId": 291,
-      "fromPort": "Value",
-      "toNodeId": 282,
-      "toPort": "Cond"
-    },
-    {
-      "id": 318,
-      "fromNodeId": 282,
-      "fromPort": "Then",
-      "toNodeId": 283,
-      "toPort": "In"
-    },
-    {
-      "id": 319,
-      "fromNodeId": 283,
-      "fromPort": "Body",
-      "toNodeId": 284,
-      "toPort": "In"
-    },
-    {
-      "id": 320,
-      "fromNodeId": 224,
-      "fromPort": "Body",
-      "toNodeId": 285,
-      "toPort": "In"
-    },
-    {
-      "id": 321,
-      "fromNodeId": 190,
-      "fromPort": "Value",
-      "toNodeId": 285,
-      "toPort": "Value"
-    },
-    {
-      "id": 322,
-      "fromNodeId": 285,
+      "id": 307,
+      "fromNodeId": 277,
       "fromPort": "Next",
-      "toNodeId": 286,
+      "toNodeId": 278,
       "toPort": "In"
     },
     {
-      "id": 323,
-      "fromNodeId": 286,
+      "id": 308,
+      "fromNodeId": 278,
       "fromPort": "Next",
-      "toNodeId": 288,
+      "toNodeId": 279,
       "toPort": "In"
     },
     {
-      "id": 324,
-      "fromNodeId": 190,
+      "id": 309,
+      "fromNodeId": 276,
       "fromPort": "Value",
-      "toNodeId": 288,
+      "toNodeId": 279,
       "toPort": "Init"
     },
     {
-      "id": 325,
-      "fromNodeId": 288,
+      "id": 310,
+      "fromNodeId": 279,
       "fromPort": "Next",
-      "toNodeId": 289,
+      "toNodeId": 280,
       "toPort": "In"
     },
     {
-      "id": 326,
-      "fromNodeId": 219,
-      "fromPort": "Default",
+      "id": 311,
+      "fromNodeId": 285,
+      "fromPort": "Value",
+      "toNodeId": 281,
+      "toPort": "Left"
+    },
+    {
+      "id": 312,
+      "fromNodeId": 276,
+      "fromPort": "Value",
+      "toNodeId": 281,
+      "toPort": "Right"
+    },
+    {
+      "id": 313,
+      "fromNodeId": 285,
+      "fromPort": "Value",
+      "toNodeId": 282,
+      "toPort": "Left"
+    },
+    {
+      "id": 314,
+      "fromNodeId": 286,
+      "fromPort": "Value",
+      "toNodeId": 282,
+      "toPort": "Right"
+    },
+    {
+      "id": 315,
+      "fromNodeId": 282,
+      "fromPort": "Result",
+      "toNodeId": 284,
+      "toPort": "Value"
+    },
+    {
+      "id": 316,
+      "fromNodeId": 281,
+      "fromPort": "Result",
+      "toNodeId": 283,
+      "toPort": "Left"
+    },
+    {
+      "id": 317,
+      "fromNodeId": 284,
+      "fromPort": "Result",
+      "toNodeId": 283,
+      "toPort": "Right"
+    },
+    {
+      "id": 318,
+      "fromNodeId": 283,
+      "fromPort": "Result",
+      "toNodeId": 280,
+      "toPort": "Value"
+    },
+    {
+      "id": 319,
+      "fromNodeId": 280,
+      "fromPort": "Next",
       "toNodeId": 287,
       "toPort": "In"
     },
     {
-      "id": 327,
-      "fromNodeId": 214,
-      "fromPort": "Exit",
+      "id": 320,
+      "fromNodeId": 296,
+      "fromPort": "Value",
+      "toNodeId": 287,
+      "toPort": "Cond"
+    },
+    {
+      "id": 321,
+      "fromNodeId": 287,
+      "fromPort": "Then",
+      "toNodeId": 288,
+      "toPort": "In"
+    },
+    {
+      "id": 322,
+      "fromNodeId": 288,
+      "fromPort": "Body",
+      "toNodeId": 289,
+      "toPort": "In"
+    },
+    {
+      "id": 323,
+      "fromNodeId": 222,
+      "fromPort": "Body",
       "toNodeId": 290,
       "toPort": "In"
     },
     {
+      "id": 324,
+      "fromNodeId": 189,
+      "fromPort": "Value",
+      "toNodeId": 290,
+      "toPort": "Value"
+    },
+    {
+      "id": 325,
+      "fromNodeId": 290,
+      "fromPort": "Next",
+      "toNodeId": 291,
+      "toPort": "In"
+    },
+    {
+      "id": 326,
+      "fromNodeId": 291,
+      "fromPort": "Next",
+      "toNodeId": 293,
+      "toPort": "In"
+    },
+    {
+      "id": 327,
+      "fromNodeId": 189,
+      "fromPort": "Value",
+      "toNodeId": 293,
+      "toPort": "Init"
+    },
+    {
       "id": 328,
-      "fromNodeId": 292,
+      "fromNodeId": 293,
+      "fromPort": "Next",
+      "toNodeId": 294,
+      "toPort": "In"
+    },
+    {
+      "id": 329,
+      "fromNodeId": 217,
+      "fromPort": "Default",
+      "toNodeId": 292,
+      "toPort": "In"
+    },
+    {
+      "id": 330,
+      "fromNodeId": 212,
+      "fromPort": "Exit",
+      "toNodeId": 295,
+      "toPort": "In"
+    },
+    {
+      "id": 331,
+      "fromNodeId": 297,
       "fromPort": "Value",
       "toNodeId": 245,
       "toPort": "Init"

@@ -3,8 +3,10 @@
  *\brief Block type strings and node factory.
  */
 #include "model/block_type.h"
+#include "model/graph_document.h"
 #include "model/node.h"
 
+#include <string>
 #include <utility>
 
 namespace Cgen
@@ -190,10 +192,10 @@ namespace Cgen
           "File-scope typedef struct. Properties: name, fields (C field list).",
           false},
          {BlockType::FieldLoad, "FieldLoad", "Field Get",
-          "Reads object.field or object->field. Properties: object, field, access.",
+          "Reads object.field or object->field. Properties: object, field (nested a.b ok), access.",
           true},
          {BlockType::FieldStore, "FieldStore", "Field Set",
-          "Writes Value into object.field or object->field. Properties: object, field, access.",
+          "Writes Value into object.field or object->field. Properties: object, field (nested a.b ok), access.",
           false},
          {BlockType::RandomChar, "RandomChar", "Rand Char",
           "Random character expression. Property: set = lower, upper, digit, or special.",
@@ -226,8 +228,11 @@ namespace Cgen
           "Returns from a function. Optional Value input for the return expression.",
           false},
          {BlockType::Call, "Call", "Call",
-          "Calls a function. Properties: function, storeTo. Wire Arg0.",
-          false}
+          "Calls a function. Properties: function, returnType, storeTo. Wire Arg0-Arg7; Result for expression use.",
+          false},
+         {BlockType::StructLiteral, "StructLiteral", "Struct Literal",
+          "Expression: designated initializer. Properties: type, init (e.g. .hp = 30, .atk = 6).",
+          true}
       };
 
       constexpr size_t BlockTableCount = sizeof(BlockTable) / sizeof(BlockTable[0]);
@@ -433,12 +438,14 @@ namespace Cgen
          case BlockType::VariableRef:
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
             node.properties["name"] = "value";
+            node.properties["type"] = "int32_t";
             break;
          case BlockType::Assign:
             node.ports.push_back(MakeControlIn("In"));
             node.ports.push_back(MakeControlOut("Next"));
             node.ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
             node.properties["target"] = "value";
+            node.properties["type"] = "int32_t";
             break;
          case BlockType::CompoundAssign:
             node.ports.push_back(MakeControlIn("In"));
@@ -692,13 +699,28 @@ namespace Cgen
          case BlockType::Call:
             node.ports.push_back(MakeControlIn("In"));
             node.ports.push_back(MakeControlOut("Next"));
-            node.ports.push_back(MakeDataIn("Arg0", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeDataIn("Arg0", PrimitiveType::Void, false));
+            node.ports.push_back(MakeDataIn("Arg1", PrimitiveType::Void, false));
+            node.ports.push_back(MakeDataIn("Arg2", PrimitiveType::Void, false));
+            node.ports.push_back(MakeDataIn("Arg3", PrimitiveType::Void, false));
+            node.ports.push_back(MakeDataIn("Arg4", PrimitiveType::Void, false));
+            node.ports.push_back(MakeDataIn("Arg5", PrimitiveType::Void, false));
+            node.ports.push_back(MakeDataIn("Arg6", PrimitiveType::Void, false));
+            node.ports.push_back(MakeDataIn("Arg7", PrimitiveType::Void, false));
             node.ports.push_back(MakeDataOut("Result", PrimitiveType::Int32, false));
             node.properties["function"] = "helper";
+            node.properties["returnType"] = "int32_t";
             node.properties["storeTo"] = "";
+            break;
+         case BlockType::StructLiteral:
+            node.ports.push_back(MakeDataOut("Value", PrimitiveType::Void, false));
+            node.properties["type"] = "Point";
+            node.properties["init"] = ".x = 0, .y = 0";
             break;
       }
 
+      SyncNodePortTypes(&node);
+      SyncPrintfArgVisibility(&node, nullptr);
       return node;
    }
 
@@ -728,5 +750,172 @@ namespace Cgen
          }
       }
       return nullptr;
+   }
+
+   namespace
+   {
+      void ApplyTypeToPort(Port* pPort, std::string_view typeText)
+      {
+         if (pPort == nullptr)
+         {
+            return;
+         }
+         CType parsed {};
+         if (CTypeFromString(typeText, &parsed))
+         {
+            pPort->dataType = parsed;
+            return;
+         }
+         parsed.base = PrimitiveType::Void;
+         parsed.isPointer = false;
+         pPort->dataType = parsed;
+      }
+
+      uint32_t CountPrintfConversions(std::string_view formatText)
+      {
+         uint32_t count = 0;
+         for (size_t index = 0; index < formatText.size(); ++index)
+         {
+            if (formatText[index] != '%')
+            {
+               continue;
+            }
+            if (((index + 1) < formatText.size()) && (formatText[index + 1] == '%'))
+            {
+               ++index;
+               continue;
+            }
+            ++count;
+         }
+         return count;
+      }
+   } // namespace
+
+   void SyncNodePortTypes(Node* pNode)
+   {
+      if (pNode == nullptr)
+      {
+         return;
+      }
+
+      if ((pNode->type == BlockType::VariableDecl) ||
+          (pNode->type == BlockType::GlobalDecl))
+      {
+         const auto typeIterator = pNode->properties.find("type");
+         const std::string_view typeText =
+            (typeIterator != pNode->properties.end()) ? typeIterator->second
+                                                      : std::string_view("int32_t");
+         ApplyTypeToPort(FindPortMutable(pNode, "Init"), typeText);
+         return;
+      }
+      if (pNode->type == BlockType::VariableRef)
+      {
+         const auto typeIterator = pNode->properties.find("type");
+         const std::string_view typeText =
+            (typeIterator != pNode->properties.end()) ? typeIterator->second
+                                                      : std::string_view("int32_t");
+         ApplyTypeToPort(FindPortMutable(pNode, "Value"), typeText);
+         return;
+      }
+      if (pNode->type == BlockType::Assign)
+      {
+         const auto typeIterator = pNode->properties.find("type");
+         const std::string_view typeText =
+            (typeIterator != pNode->properties.end()) ? typeIterator->second
+                                                      : std::string_view("int32_t");
+         ApplyTypeToPort(FindPortMutable(pNode, "Value"), typeText);
+         return;
+      }
+      if (pNode->type == BlockType::Call)
+      {
+         for (uint32_t argIndex = 0; argIndex < 8; ++argIndex)
+         {
+            std::string argName = "Arg";
+            argName.append(std::to_string(argIndex));
+            Port* pArg = FindPortMutable(pNode, argName);
+            if (pArg == nullptr)
+            {
+               Port created;
+               created.name = argName;
+               created.kind = PortKind::Data;
+               created.direction = PortDirection::In;
+               created.dataType.base = PrimitiveType::Void;
+               created.dataType.isPointer = false;
+               created.visible = true;
+               pNode->ports.push_back(created);
+               pArg = FindPortMutable(pNode, argName);
+            }
+            if (pArg != nullptr)
+            {
+               pArg->dataType.base = PrimitiveType::Void;
+               pArg->dataType.isPointer = false;
+            }
+         }
+         const auto returnIterator = pNode->properties.find("returnType");
+         const std::string_view returnText =
+            (returnIterator != pNode->properties.end()) ? returnIterator->second
+                                                        : std::string_view("int32_t");
+         ApplyTypeToPort(FindPortMutable(pNode, "Result"), returnText);
+         return;
+      }
+      if (pNode->type == BlockType::StructLiteral)
+      {
+         Port* pValue = FindPortMutable(pNode, "Value");
+         if (pValue != nullptr)
+         {
+            pValue->dataType.base = PrimitiveType::Void;
+            pValue->dataType.isPointer = false;
+         }
+      }
+   }
+
+   void SyncPrintfArgVisibility(Node* pNode, const GraphDocument* pDocument)
+   {
+      if (pNode == nullptr)
+      {
+         return;
+      }
+      if ((pNode->type != BlockType::Printf) && (pNode->type != BlockType::FilePrintf))
+      {
+         return;
+      }
+
+      const auto formatIterator = pNode->properties.find("format");
+      const std::string_view formatText =
+         (formatIterator != pNode->properties.end()) ? formatIterator->second
+                                                     : std::string_view("");
+      const uint32_t conversionCount = CountPrintfConversions(formatText);
+      const uint32_t maxArgs = (pNode->type == BlockType::FilePrintf) ? 8u : 6u;
+
+      for (uint32_t argIndex = 0; argIndex < maxArgs; ++argIndex)
+      {
+         std::string argName = "Arg";
+         argName.append(std::to_string(argIndex));
+         Port* pArg = FindPortMutable(pNode, argName);
+         if (pArg == nullptr)
+         {
+            continue;
+         }
+         bool wired = false;
+         if (pDocument != nullptr)
+         {
+            wired = (pDocument->FindIncomingEdge(pNode->id, argName) != nullptr);
+         }
+         pArg->visible = (argIndex < conversionCount) || wired;
+      }
+   }
+
+   void SyncAllNodePorts(GraphDocument* pDocument)
+   {
+      if (pDocument == nullptr)
+      {
+         return;
+      }
+      std::vector<Node>& nodes = pDocument->GetNodesMutable();
+      for (size_t index = 0; index < nodes.size(); ++index)
+      {
+         SyncNodePortTypes(&nodes[index]);
+         SyncPrintfArgVisibility(&nodes[index], pDocument);
+      }
    }
 } // namespace Cgen

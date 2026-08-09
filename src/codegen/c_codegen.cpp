@@ -376,8 +376,33 @@ namespace Cgen
             case BlockType::Call:
             {
                const std::string functionName = GetProperty(*pNode, "function", "helper");
-               const std::string arg0 = EmitInputExpression(pContext, nodeId, "Arg0");
-               expression = functionName + "(" + arg0 + ")";
+               expression = functionName + "(";
+               bool wroteArg = false;
+               for (int32_t argIndex = 0; argIndex < 8; ++argIndex)
+               {
+                  std::ostringstream portName;
+                  portName << "Arg" << argIndex;
+                  const std::string argExpr =
+                     EmitInputExpression(pContext, nodeId, portName.str());
+                  if (argExpr.empty())
+                  {
+                     continue;
+                  }
+                  if (wroteArg)
+                  {
+                     expression.append(", ");
+                  }
+                  expression.append(argExpr);
+                  wroteArg = true;
+               }
+               expression.append(")");
+               break;
+            }
+            case BlockType::StructLiteral:
+            {
+               const std::string typeName = GetProperty(*pNode, "type", "Point");
+               const std::string initText = GetProperty(*pNode, "init", ".x = 0");
+               expression = "((" + typeName + "){ " + initText + " })";
                break;
             }
             default:

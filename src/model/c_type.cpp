@@ -110,6 +110,20 @@ namespace Cgen
 
    bool AreTypesCompatible(const CType& left, const CType& right)
    {
-      return (left.base == right.base) && (left.isPointer == right.isPointer);
+      if ((left.base == right.base) && (left.isPointer == right.isPointer))
+      {
+         return true;
+      }
+      if (left.isPointer && right.isPointer &&
+          ((left.base == PrimitiveType::Void) || (right.base == PrimitiveType::Void)))
+      {
+         return true;
+      }
+      if ((!left.isPointer) && (!right.isPointer) &&
+          ((left.base == PrimitiveType::Void) || (right.base == PrimitiveType::Void)))
+      {
+         return true;
+      }
+      return false;
    }
 } // namespace Cgen

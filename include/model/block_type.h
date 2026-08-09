@@ -84,7 +84,8 @@ namespace Cgen
       Random,
       FunctionDef,
       Return,
-      Call
+      Call,
+      StructLiteral
    };
 
    /*!

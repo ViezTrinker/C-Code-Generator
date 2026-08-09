@@ -35,6 +35,10 @@ namespace Cgen
       size_t outCount = 0;
       for (size_t index = 0; index < node.ports.size(); ++index)
       {
+         if (!node.ports[index].visible)
+         {
+            continue;
+         }
          if (node.ports[index].direction == PortDirection::In)
          {
             ++inCount;

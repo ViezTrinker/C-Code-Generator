@@ -240,6 +240,13 @@ namespace Cgen
       void RemoveFromSelection(NodeId nodeId);
       void PanByScreenDelta(float screenDeltaX, float screenDeltaY);
       void ZoomAtScreenPoint(float delta, sf::Vector2f screenPoint);
+      void DrawFunctionRegions(sf::RenderTarget* pTarget) const;
+      void DrawStickyFunctionHeaders(sf::RenderTarget* pTarget) const;
+      void CollectFunctionBodyBounds(NodeId functionId,
+                                    float* pOutMinX,
+                                    float* pOutMinY,
+                                    float* pOutMaxX,
+                                    float* pOutMaxY) const;
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
@@ -257,6 +264,9 @@ namespace Cgen
       sf::Vector2f _marqueeEndWorld {};
       std::optional<PortHit> _wireStart;
       sf::Vector2f _wirePreviewWorld {};
+      bool _hasHoveredPort = false;
+      std::string _hoveredPortName;
+      sf::Vector2f _hoveredPortScreen {};
    };
 } // namespace Cgen
 

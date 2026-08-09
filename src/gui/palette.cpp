@@ -140,6 +140,7 @@ namespace Cgen
 
       constexpr BlockType StructTypes[] = {
          BlockType::StructDecl,
+         BlockType::StructLiteral,
          BlockType::FieldLoad,
          BlockType::FieldStore
       };

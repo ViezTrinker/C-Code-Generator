@@ -60,6 +60,28 @@ namespace Cgen
     *\return Pointer to port or nullptr.
     */
    Port* FindPortMutable(Node* pNode, std::string_view portName);
+
+   /*!
+    *\brief Updates data-port CTypes from node type properties.
+    *
+    *\param[in,out] pNode Node to sync.
+    */
+   void SyncNodePortTypes(Node* pNode);
+
+   /*!
+    *\brief Shows or hides Printf/FilePrintf Arg ports from format and wires.
+    *
+    *\param[in,out] pNode Printf or FilePrintf node.
+    *\param[in] pDocument Document used to detect wired Arg ports (nullable).
+    */
+   void SyncPrintfArgVisibility(Node* pNode, const class GraphDocument* pDocument);
+
+   /*!
+    *\brief Runs SyncNodePortTypes and Printf visibility for every node.
+    *
+    *\param[in,out] pDocument Document to sync.
+    */
+   void SyncAllNodePorts(class GraphDocument* pDocument);
 } // namespace Cgen
 
 #endif // NODE_H

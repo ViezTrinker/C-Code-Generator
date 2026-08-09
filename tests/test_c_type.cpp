@@ -45,3 +45,25 @@ TEST(CTypeTest, CompatibilityRequiresSameShape)
    right.isPointer = true;
    EXPECT_FALSE(Cgen::AreTypesCompatible(left, right));
 }
+
+TEST(CTypeTest, VoidPointerCompatibleWithTypedPointer)
+{
+   Cgen::CType voidPtr {};
+   voidPtr.base = Cgen::PrimitiveType::Void;
+   voidPtr.isPointer = true;
+   Cgen::CType uint8Ptr {};
+   uint8Ptr.base = Cgen::PrimitiveType::Uint8;
+   uint8Ptr.isPointer = true;
+   EXPECT_TRUE(Cgen::AreTypesCompatible(voidPtr, uint8Ptr));
+   EXPECT_TRUE(Cgen::AreTypesCompatible(uint8Ptr, voidPtr));
+}
+
+TEST(CTypeTest, VoidNonPointerActsAsUniversalNonPointer)
+{
+   Cgen::CType anyValue {};
+   anyValue.base = Cgen::PrimitiveType::Void;
+   anyValue.isPointer = false;
+   Cgen::CType intValue {};
+   intValue.base = Cgen::PrimitiveType::Int32;
+   EXPECT_TRUE(Cgen::AreTypesCompatible(anyValue, intValue));
+}

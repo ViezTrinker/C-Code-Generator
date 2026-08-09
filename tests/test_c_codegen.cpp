@@ -472,3 +472,127 @@ TEST(CCodegenTest, EmitsStructDeclBeforeGlobalOfStructType)
    ASSERT_NE(globalPos, std::string::npos);
    EXPECT_LT(structPos, globalPos);
 }
+
+TEST(CCodegenTest, EmitsMultiArgCallAndStructLiteral)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId litA =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 40.0f);
+   document.FindNodeMutable(litA)->properties["value"] = "1";
+   const Cgen::NodeId litB =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 100.0f);
+   document.FindNodeMutable(litB)->properties["value"] = "2";
+   const Cgen::NodeId litC =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 160.0f);
+   document.FindNodeMutable(litC)->properties["value"] = "3";
+   const Cgen::NodeId callId =
+      document.AddNode(Cgen::BlockType::Call, 200.0f, 40.0f);
+   document.FindNodeMutable(callId)->properties["function"] = "combine";
+   document.FindNodeMutable(callId)->properties["storeTo"] = "sum";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", callId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(litA, "Value", callId, "Arg0", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(litB, "Value", callId, "Arg1", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(litC, "Value", callId, "Arg2", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(callId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput callOutput = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(callOutput.result)) << callOutput.diagnostics;
+   EXPECT_NE(callOutput.source.find("sum = combine(1, 2, 3);"), std::string::npos);
+
+   Cgen::GraphDocument literalDoc;
+   const Cgen::NodeId structLit =
+      literalDoc.AddNode(Cgen::BlockType::StructLiteral, 40.0f, 40.0f);
+   literalDoc.FindNodeMutable(structLit)->properties["type"] = "Hero";
+   literalDoc.FindNodeMutable(structLit)->properties["init"] =
+      ".hp = 30, .atk = 6";
+   const Cgen::NodeId decl =
+      literalDoc.AddNode(Cgen::BlockType::VariableDecl, 200.0f, 40.0f);
+   literalDoc.FindNodeMutable(decl)->properties["name"] = "hero";
+   literalDoc.FindNodeMutable(decl)->properties["type"] = "Hero";
+   Cgen::SyncNodePortTypes(literalDoc.FindNodeMutable(decl));
+   Cgen::SyncNodePortTypes(literalDoc.FindNodeMutable(structLit));
+   const Cgen::NodeId litStart = literalDoc.GetNodes().front().id;
+   const Cgen::NodeId litEnd =
+      literalDoc.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   ASSERT_TRUE(
+      Cgen::IsOk(literalDoc.Connect(litStart, "Next", decl, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(literalDoc.Connect(structLit, "Value", decl, "Init", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(literalDoc.Connect(decl, "Next", litEnd, "In", nullptr)));
+
+   const Cgen::CodegenOutput litOutput = Cgen::GenerateCSource(literalDoc);
+   EXPECT_TRUE(Cgen::IsOk(litOutput.result)) << litOutput.diagnostics;
+   EXPECT_NE(litOutput.source.find("Hero hero = ((Hero){ .hp = 30, .atk = 6 });"),
+             std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsMallocIntoTypedPointerDecl)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId sizeLit =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 120.0f);
+   document.FindNodeMutable(sizeLit)->properties["value"] = "16";
+
+   const Cgen::NodeId mallocId =
+      document.AddNode(Cgen::BlockType::Malloc, 200.0f, 40.0f);
+   Cgen::Port* pSize =
+      Cgen::FindPortMutable(document.FindNodeMutable(mallocId), "Size");
+   ASSERT_NE(pSize, nullptr);
+   pSize->dataType.base = Cgen::PrimitiveType::Int32;
+   pSize->dataType.isPointer = false;
+
+   const Cgen::NodeId decl =
+      document.AddNode(Cgen::BlockType::VariableDecl, 360.0f, 40.0f);
+   document.FindNodeMutable(decl)->properties["name"] = "pBuf";
+   document.FindNodeMutable(decl)->properties["type"] = "uint8_t*";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(decl));
+   const Cgen::NodeId freeId =
+      document.AddNode(Cgen::BlockType::Free, 520.0f, 40.0f);
+   const Cgen::NodeId ref =
+      document.AddNode(Cgen::BlockType::VariableRef, 520.0f, 120.0f);
+   document.FindNodeMutable(ref)->properties["name"] = "pBuf";
+   document.FindNodeMutable(ref)->properties["type"] = "uint8_t*";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(ref));
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 700.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", decl, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(sizeLit, "Value", mallocId, "Size", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(mallocId, "Ptr", decl, "Init", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(decl, "Next", freeId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(ref, "Value", freeId, "Ptr", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(freeId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("uint8_t* pBuf = ((uint8_t*)malloc((size_t)(16)));"),
+             std::string::npos);
+   EXPECT_NE(output.source.find("free(pBuf);"), std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsNestedFieldPath)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId store =
+      document.AddNode(Cgen::BlockType::FieldStore, 200.0f, 40.0f);
+   document.FindNodeMutable(store)->properties["object"] = "hero";
+   document.FindNodeMutable(store)->properties["field"] = "stats.hp";
+   document.FindNodeMutable(store)->properties["access"] = ".";
+   const Cgen::NodeId lit =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 120.0f);
+   document.FindNodeMutable(lit)->properties["value"] = "10";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", store, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(lit, "Value", store, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(store, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("hero.stats.hp = 10;"), std::string::npos);
+}

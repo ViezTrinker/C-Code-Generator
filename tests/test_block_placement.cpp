@@ -109,20 +109,41 @@ TEST(BlockPlacementTest, RepeatedSamePreferredYieldsDistinctSlots)
 TEST(BlockPlacementTest, PrintfHeightFitsAllInputPorts)
 {
    const Cgen::Node printfNode = Cgen::CreateNode(1, Cgen::BlockType::Printf, 0.0f, 0.0f);
-   size_t inCount = 0;
+   size_t visibleInCount = 0;
    for (size_t index = 0; index < printfNode.ports.size(); ++index)
    {
-      if (printfNode.ports[index].direction == Cgen::PortDirection::In)
+      if ((!printfNode.ports[index].visible) ||
+          (printfNode.ports[index].direction != Cgen::PortDirection::In))
       {
-         ++inCount;
+         continue;
       }
+      ++visibleInCount;
    }
-   ASSERT_GE(inCount, 7u);
+   ASSERT_GE(visibleInCount, 1u);
 
    const float height = Cgen::ComputeBlockNodeHeight(printfNode);
    const float lastPortY =
       Cgen::BlockPortTopOffset +
-      (static_cast<float>(inCount - 1) * Cgen::BlockPortSpacing);
+      (static_cast<float>(visibleInCount - 1) * Cgen::BlockPortSpacing);
    EXPECT_GT(height, lastPortY);
    EXPECT_GE(height, Cgen::BlockNodeHeight);
+}
+
+TEST(BlockPlacementTest, PrintfHidesUnusedArgsByFormat)
+{
+   Cgen::Node printfNode = Cgen::CreateNode(1, Cgen::BlockType::Printf, 0.0f, 0.0f);
+   printfNode.properties["format"] = "value=%d\\n";
+   Cgen::SyncPrintfArgVisibility(&printfNode, nullptr);
+   const Cgen::Port* pArg0 = Cgen::FindPort(printfNode, "Arg0");
+   const Cgen::Port* pArg1 = Cgen::FindPort(printfNode, "Arg1");
+   ASSERT_NE(pArg0, nullptr);
+   ASSERT_NE(pArg1, nullptr);
+   EXPECT_TRUE(pArg0->visible);
+   EXPECT_FALSE(pArg1->visible);
+   const float shortHeight = Cgen::ComputeBlockNodeHeight(printfNode);
+
+   printfNode.properties["format"] = "%d %d %d %d %d %d\\n";
+   Cgen::SyncPrintfArgVisibility(&printfNode, nullptr);
+   const float tallHeight = Cgen::ComputeBlockNodeHeight(printfNode);
+   EXPECT_LT(shortHeight, tallHeight);
 }

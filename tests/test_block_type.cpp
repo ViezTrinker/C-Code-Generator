@@ -22,6 +22,8 @@ TEST(BlockTypeTest, RoundTripsKnownIds)
    EXPECT_EQ(parsed, Cgen::BlockType::Cast);
    ASSERT_TRUE(Cgen::BlockTypeFromString("StructDecl", &parsed));
    EXPECT_EQ(parsed, Cgen::BlockType::StructDecl);
+   ASSERT_TRUE(Cgen::BlockTypeFromString("StructLiteral", &parsed));
+   EXPECT_EQ(parsed, Cgen::BlockType::StructLiteral);
 }
 
 TEST(BlockTypeTest, RejectsUnknownId)
@@ -39,6 +41,7 @@ TEST(BlockTypeTest, ExpressionClassification)
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::Neg));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::Cast));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::FieldLoad));
+   EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::StructLiteral));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::StrLen));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::Random));
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::Printf));
@@ -121,7 +124,8 @@ TEST(BlockTypeTest, EveryBlockHasHelpText)
       Cgen::BlockType::Random,
       Cgen::BlockType::FunctionDef,
       Cgen::BlockType::Return,
-      Cgen::BlockType::Call
+      Cgen::BlockType::Call,
+      Cgen::BlockType::StructLiteral
    };
 
    for (size_t index = 0; index < (sizeof(AllTypes) / sizeof(AllTypes[0])); ++index)

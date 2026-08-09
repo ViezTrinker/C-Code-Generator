@@ -39,6 +39,7 @@ namespace Cgen
       PortKind kind = PortKind::Control;
       PortDirection direction = PortDirection::Out;
       CType dataType {};
+      bool visible = true;
    };
 } // namespace Cgen
 

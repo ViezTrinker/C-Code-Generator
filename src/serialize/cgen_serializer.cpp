@@ -22,6 +22,7 @@ namespace Cgen
          json["kind"] = (port.kind == PortKind::Control) ? "Control" : "Data";
          json["direction"] = (port.direction == PortDirection::In) ? "In" : "Out";
          json["dataType"] = CTypeToString(port.dataType);
+         json["visible"] = port.visible;
          return json;
       }
 
@@ -86,6 +87,11 @@ namespace Cgen
                }
                return false;
             }
+         }
+         pPort->visible = true;
+         if (json.contains("visible"))
+         {
+            pPort->visible = json.at("visible").get<bool>();
          }
          return true;
       }
@@ -309,6 +315,7 @@ namespace Cgen
       }
       pDocument->SetFilePath(filePath);
       pDocument->SetDirty(false);
+      SyncAllNodePorts(pDocument);
       return Result::Ok;
    }
 } // namespace Cgen

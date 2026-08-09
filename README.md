@@ -167,12 +167,13 @@ A checked-in C snapshot lives at [`examples/build_out/dungeon_log.c`](examples/b
 - Place blocks from the left **Blocks** panel (filter box finds blocks by name)
 - Drag nodes; connect amber **control** ports and blue **data** ports
 - **Wheel** pans vertically; **Shift+wheel** pans horizontally; **Ctrl+wheel** zooms
-- **Middle-drag**, **Space+drag**, or **arrow keys** also pan the canvas
+- **Middle-drag**, **Space+drag**, or **arrow keys** also pan the canvas; hover ports for name tooltips
+- **Call** accepts up to 8 args (`Arg0`–`Arg7`); **Struct Literal** builds designated initializers; set Decl/Ref/Assign `type` (e.g. `uint8_t*`) to wire **Malloc**/**Free**
 - **Shift+click** / marquee multi-select; **Ctrl+A** select all; **Ctrl+C** / **Ctrl+V** copy/paste
 - Right-click a block for **Delete Block**, or a wired port for **Delete Wire**
-- **Delete** / **Backspace** removes selected blocks (not Start); **Ctrl+Z** undoes, **Ctrl+Y** redoes
+- **Delete** / **Backspace** removes selected blocks (not Start); **Ctrl+Z** / **Ctrl+Y** undo/redo (up to 64 steps)
 - **Tidy** / **Ctrl+L** auto-layouts control flow left-to-right
-- Edit properties on the right (Enter commits); each selection shows a short **C:** preview
+- Edit properties on the right (Enter commits; each commit is one undo step); each selection shows a short **C:** preview
 - **Generate C** validates the graph (click an issue in Compiler to jump), writes `build_out/<cgen-name>.c`, and opens a scrollable source view (Esc closes it)
 - **Build** runs `gcc`; logs appear in the Compiler pane
 - **Run** starts the program in the background and streams stdout into Program Output; type into the input line at the bottom of that pane for `scanf` / Enter prompts; **Stop** kills a running program

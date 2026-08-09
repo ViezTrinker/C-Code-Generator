@@ -6,11 +6,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <queue>
+#include <unordered_set>
 
 #include <SFML/Window/Keyboard.hpp>
 
 #include "gui/block_placement.h"
 #include "model/graph_layout.h"
+#include "model/node.h"
 
 namespace Cgen
 {
@@ -329,6 +332,10 @@ namespace Cgen
       size_t sameSideIndex = 0;
       for (size_t index = 0; index < portIndex; ++index)
       {
+         if (!node.ports[index].visible)
+         {
+            continue;
+         }
          if (node.ports[index].direction == port.direction)
          {
             ++sameSideIndex;
@@ -355,6 +362,10 @@ namespace Cgen
          const Node& node = nodes[nodeIndex];
          for (size_t portIndex = 0; portIndex < node.ports.size(); ++portIndex)
          {
+            if (!node.ports[portIndex].visible)
+            {
+               continue;
+            }
             const sf::Vector2f portPos = PortWorldPosition(node, portIndex);
             const float deltaX = worldPoint.x - portPos.x;
             const float deltaY = worldPoint.y - portPos.y;
@@ -507,6 +518,8 @@ namespace Cgen
                                 portHit.nodeId,
                                 portHit.portName,
                                 nullptr);
+            Node* pToNode = _pDocument->FindNodeMutable(portHit.nodeId);
+            SyncPrintfArgVisibility(pToNode, _pDocument);
             _wireStart.reset();
          }
          return true;
@@ -558,6 +571,8 @@ namespace Cgen
                                    portHit.nodeId,
                                    portHit.portName,
                                    nullptr);
+               Node* pToNode = _pDocument->FindNodeMutable(portHit.nodeId);
+               SyncPrintfArgVisibility(pToNode, _pDocument);
             }
             _wireStart.reset();
          }
@@ -611,6 +626,19 @@ namespace Cgen
       _lastScreenPoint = screenPoint;
       const sf::Vector2f world = ScreenToWorld(screenPoint);
       _wirePreviewWorld = world;
+
+      PortHit hoverHit;
+      if (HitTestPort(world, &hoverHit))
+      {
+         _hasHoveredPort = true;
+         _hoveredPortName = hoverHit.portName;
+         _hoveredPortScreen = WorldToScreen(hoverHit.worldPosition);
+      }
+      else
+      {
+         _hasHoveredPort = false;
+         _hoveredPortName.clear();
+      }
 
       if (_isPanning)
       {
@@ -782,8 +810,28 @@ namespace Cgen
       {
          return;
       }
+      const Edge* pEdge = nullptr;
+      const std::vector<Edge>& edges = _pDocument->GetEdges();
+      for (size_t index = 0; index < edges.size(); ++index)
+      {
+         if (edges[index].id == edgeId)
+         {
+            pEdge = &edges[index];
+            break;
+         }
+      }
+      NodeId printfNodeId = 0;
+      if (pEdge != nullptr)
+      {
+         printfNodeId = pEdge->toNodeId;
+      }
       PushCheckpoint();
       _pDocument->RemoveEdge(edgeId);
+      if (printfNodeId != 0)
+      {
+         SyncPrintfArgVisibility(_pDocument->FindNodeMutable(printfNodeId),
+                                 _pDocument);
+      }
    }
 
    void CanvasView::DeleteNode(NodeId nodeId)
@@ -805,6 +853,178 @@ namespace Cgen
       if (IsOk(_pDocument->RemoveNode(nodeId)))
       {
          RemoveFromSelection(nodeId);
+      }
+   }
+
+   void CanvasView::CollectFunctionBodyBounds(NodeId functionId,
+                                             float* pOutMinX,
+                                             float* pOutMinY,
+                                             float* pOutMaxX,
+                                             float* pOutMaxY) const
+   {
+      if ((pOutMinX == nullptr) || (pOutMinY == nullptr) || (pOutMaxX == nullptr) ||
+          (pOutMaxY == nullptr) || (_pDocument == nullptr))
+      {
+         return;
+      }
+      const Node* pFunction = _pDocument->FindNode(functionId);
+      if (pFunction == nullptr)
+      {
+         return;
+      }
+
+      *pOutMinX = pFunction->posX;
+      *pOutMinY = pFunction->posY;
+      *pOutMaxX = pFunction->posX + BlockNodeWidth;
+      *pOutMaxY = pFunction->posY + ComputeBlockNodeHeight(*pFunction);
+
+      std::queue<NodeId> pending;
+      std::unordered_set<NodeId> visited;
+      const Edge* pBody = _pDocument->FindOutgoingEdge(functionId, "Body");
+      if (pBody != nullptr)
+      {
+         pending.push(pBody->toNodeId);
+      }
+
+      while (!pending.empty())
+      {
+         const NodeId currentId = pending.front();
+         pending.pop();
+         if (visited.find(currentId) != visited.end())
+         {
+            continue;
+         }
+         visited.insert(currentId);
+         const Node* pNode = _pDocument->FindNode(currentId);
+         if (pNode == nullptr)
+         {
+            continue;
+         }
+         const float height = ComputeBlockNodeHeight(*pNode);
+         if (pNode->posX < *pOutMinX)
+         {
+            *pOutMinX = pNode->posX;
+         }
+         if (pNode->posY < *pOutMinY)
+         {
+            *pOutMinY = pNode->posY;
+         }
+         if ((pNode->posX + BlockNodeWidth) > *pOutMaxX)
+         {
+            *pOutMaxX = pNode->posX + BlockNodeWidth;
+         }
+         if ((pNode->posY + height) > *pOutMaxY)
+         {
+            *pOutMaxY = pNode->posY + height;
+         }
+         for (size_t portIndex = 0; portIndex < pNode->ports.size(); ++portIndex)
+         {
+            const Port& port = pNode->ports[portIndex];
+            if ((port.kind != PortKind::Control) ||
+                (port.direction != PortDirection::Out))
+            {
+               continue;
+            }
+            const Edge* pEdge =
+               _pDocument->FindOutgoingEdge(currentId, port.name);
+            if ((pEdge != nullptr) &&
+                (visited.find(pEdge->toNodeId) == visited.end()))
+            {
+               pending.push(pEdge->toNodeId);
+            }
+         }
+      }
+   }
+
+   void CanvasView::DrawFunctionRegions(sf::RenderTarget* pTarget) const
+   {
+      if ((pTarget == nullptr) || (_pDocument == nullptr))
+      {
+         return;
+      }
+      constexpr float RegionPad = 18.0f;
+      const std::vector<Node>& nodes = _pDocument->GetNodes();
+      for (size_t index = 0; index < nodes.size(); ++index)
+      {
+         if (nodes[index].type != BlockType::FunctionDef)
+         {
+            continue;
+         }
+         float minX = 0.0f;
+         float minY = 0.0f;
+         float maxX = 0.0f;
+         float maxY = 0.0f;
+         CollectFunctionBodyBounds(nodes[index].id, &minX, &minY, &maxX, &maxY);
+         const sf::Vector2f topLeft =
+            WorldToScreen(sf::Vector2f(minX - RegionPad, minY - RegionPad));
+         const sf::Vector2f bottomRight =
+            WorldToScreen(sf::Vector2f(maxX + RegionPad, maxY + RegionPad));
+         sf::RectangleShape region;
+         region.setPosition(topLeft);
+         region.setSize(sf::Vector2f(bottomRight.x - topLeft.x,
+                                     bottomRight.y - topLeft.y));
+         region.setFillColor(sf::Color(36, 32, 58, 90));
+         region.setOutlineColor(sf::Color(110, 90, 170, 160));
+         region.setOutlineThickness(1.0f);
+         pTarget->draw(region);
+      }
+   }
+
+   void CanvasView::DrawStickyFunctionHeaders(sf::RenderTarget* pTarget) const
+   {
+      if ((pTarget == nullptr) || (_pFont == nullptr) || (_pDocument == nullptr))
+      {
+         return;
+      }
+      const float zoom = _pDocument->GetViewportZoom();
+      const std::vector<Node>& nodes = _pDocument->GetNodes();
+      for (size_t index = 0; index < nodes.size(); ++index)
+      {
+         const Node& node = nodes[index];
+         if (node.type != BlockType::FunctionDef)
+         {
+            continue;
+         }
+         const sf::Vector2f topLeft = WorldToScreen(sf::Vector2f(node.posX, node.posY));
+         if (topLeft.y >= _bounds.position.y)
+         {
+            continue;
+         }
+         const auto nameIterator = node.properties.find("name");
+         const auto returnIterator = node.properties.find("returnType");
+         const auto paramsIterator = node.properties.find("params");
+         std::string header = "fn ";
+         if (returnIterator != node.properties.end())
+         {
+            header.append(returnIterator->second);
+            header.append(" ");
+         }
+         if (nameIterator != node.properties.end())
+         {
+            header.append(nameIterator->second);
+         }
+         else
+         {
+            header.append("helper");
+         }
+         header.append("(");
+         if (paramsIterator != node.properties.end())
+         {
+            header.append(paramsIterator->second);
+         }
+         header.append(")");
+
+         sf::RectangleShape bar;
+         bar.setPosition(sf::Vector2f(_bounds.position.x, _bounds.position.y));
+         bar.setSize(sf::Vector2f(_bounds.size.x, 22.0f * std::max(zoom, 0.7f)));
+         bar.setFillColor(sf::Color(48, 40, 78, 220));
+         pTarget->draw(bar);
+
+         sf::Text label(*_pFont, header, 12);
+         label.setFillColor(sf::Color(220, 210, 255));
+         label.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
+                                        _bounds.position.y + 3.0f));
+         pTarget->draw(label);
       }
    }
 
@@ -840,6 +1060,8 @@ namespace Cgen
       background.setSize(_bounds.size);
       background.setFillColor(sf::Color(24, 26, 30));
       pTarget->draw(background);
+
+      DrawFunctionRegions(pTarget);
 
       const std::vector<Edge>& edges = _pDocument->GetEdges();
       for (size_t index = 0; index < edges.size(); ++index)
@@ -905,11 +1127,11 @@ namespace Cgen
       }
 
       const std::vector<Node>& nodes = _pDocument->GetNodes();
+      const float zoom = _pDocument->GetViewportZoom();
       for (size_t index = 0; index < nodes.size(); ++index)
       {
          const Node& node = nodes[index];
          const sf::Vector2f topLeft = WorldToScreen(sf::Vector2f(node.posX, node.posY));
-         const float zoom = _pDocument->GetViewportZoom();
          const float nodeHeight = ComputeBlockNodeHeight(node);
          sf::RectangleShape shape;
          shape.setPosition(topLeft);
@@ -918,6 +1140,12 @@ namespace Cgen
          {
             shape.setFillColor(sf::Color(70, 90, 130));
             shape.setOutlineColor(sf::Color(255, 220, 100));
+            shape.setOutlineThickness(2.0f);
+         }
+         else if (node.type == BlockType::FunctionDef)
+         {
+            shape.setFillColor(sf::Color(52, 42, 88));
+            shape.setOutlineColor(sf::Color(150, 120, 220));
             shape.setOutlineThickness(2.0f);
          }
          else if (IsExpressionBlock(node.type))
@@ -938,11 +1166,28 @@ namespace Cgen
          label.setFillColor(sf::Color::White);
          label.setPosition(sf::Vector2f(topLeft.x + (8.0f * zoom), topLeft.y + (6.0f * zoom)));
          pTarget->draw(label);
+         if (node.type == BlockType::FunctionDef)
+         {
+            const auto nameIterator = node.properties.find("name");
+            if (nameIterator != node.properties.end())
+            {
+               sf::Text nameLabel(*_pFont, nameIterator->second, 11);
+               nameLabel.setFillColor(sf::Color(200, 190, 255));
+               nameLabel.setPosition(sf::Vector2f(topLeft.x + (8.0f * zoom),
+                                                   topLeft.y + (22.0f * zoom)));
+               pTarget->draw(nameLabel);
+            }
+         }
 
          for (size_t portIndex = 0; portIndex < node.ports.size(); ++portIndex)
          {
             const Port& port = node.ports[portIndex];
-            const sf::Vector2f portScreen = WorldToScreen(PortWorldPosition(node, portIndex));
+            if (!port.visible)
+            {
+               continue;
+            }
+            const sf::Vector2f portScreen =
+               WorldToScreen(PortWorldPosition(node, portIndex));
             sf::CircleShape circle(PortRadius * zoom);
             circle.setOrigin(sf::Vector2f(PortRadius * zoom, PortRadius * zoom));
             circle.setPosition(portScreen);
@@ -955,7 +1200,41 @@ namespace Cgen
                circle.setFillColor(sf::Color(240, 180, 70));
             }
             pTarget->draw(circle);
+
+            if (zoom >= 0.7f)
+            {
+               sf::Text portLabel(*_pFont, port.name, 9);
+               portLabel.setFillColor(sf::Color(190, 195, 210));
+               if (port.direction == PortDirection::In)
+               {
+                  portLabel.setPosition(sf::Vector2f(portScreen.x + (8.0f * zoom),
+                                                     portScreen.y - (6.0f * zoom)));
+               }
+               else
+               {
+                  portLabel.setPosition(sf::Vector2f(portScreen.x - (42.0f * zoom),
+                                                     portScreen.y - (6.0f * zoom)));
+               }
+               pTarget->draw(portLabel);
+            }
          }
+      }
+
+      if (_hasHoveredPort)
+      {
+         sf::Text tip(*_pFont, _hoveredPortName, 12);
+         tip.setFillColor(sf::Color::White);
+         tip.setPosition(sf::Vector2f(_hoveredPortScreen.x + 12.0f,
+                                      _hoveredPortScreen.y - 18.0f));
+         const sf::FloatRect tipBounds = tip.getLocalBounds();
+         sf::RectangleShape tipBg;
+         tipBg.setPosition(tip.getPosition() + sf::Vector2f(-4.0f, -2.0f));
+         tipBg.setSize(sf::Vector2f(tipBounds.size.x + 8.0f, tipBounds.size.y + 8.0f));
+         tipBg.setFillColor(sf::Color(20, 20, 28, 220));
+         tipBg.setOutlineColor(sf::Color(160, 160, 180));
+         tipBg.setOutlineThickness(1.0f);
+         pTarget->draw(tipBg);
+         pTarget->draw(tip);
       }
 
       if (_isMarquee)
@@ -968,13 +1247,15 @@ namespace Cgen
             worldRect.position.y + worldRect.size.y));
          sf::RectangleShape marquee;
          marquee.setPosition(topLeft);
-         marquee.setSize(sf::Vector2f(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y));
+         marquee.setSize(sf::Vector2f(bottomRight.x - topLeft.x,
+                                      bottomRight.y - topLeft.y));
          marquee.setFillColor(sf::Color(80, 140, 220, 40));
          marquee.setOutlineColor(sf::Color(120, 180, 255));
          marquee.setOutlineThickness(1.0f);
          pTarget->draw(marquee);
       }
 
+      DrawStickyFunctionHeaders(pTarget);
       pTarget->setView(previousView);
    }
 } // namespace Cgen

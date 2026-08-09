@@ -257,6 +257,8 @@ namespace Cgen
          _pHistory->PushCheckpoint(*_pDocument);
       }
       pNode->properties[field.key] = field.value;
+      SyncNodePortTypes(pNode);
+      SyncPrintfArgVisibility(pNode, _pDocument);
       _pDocument->SetDirty(true);
       RebuildPreviewLines(GenerateCSnippet(*_pDocument, _selectedNodeId));
    }

@@ -174,12 +174,21 @@ namespace Cgen
       void HandleMouseMove(sf::Vector2f screenPoint);
 
       /*!
-       *\brief Handles mouse wheel zoom.
+       *\brief Handles mouse wheel pan or zoom.
        *
-       *\param[in] delta Wheel delta.
+       *\param[in] delta Wheel delta (sign indicates direction).
        *\param[in] screenPoint Screen position.
+       *\param[in] horizontal true for a horizontal wheel/trackpad axis.
        */
-      void HandleWheel(float delta, sf::Vector2f screenPoint);
+      void HandleWheel(float delta, sf::Vector2f screenPoint, bool horizontal);
+
+      /*!
+       *\brief Pans the viewport with arrow keys when the canvas can accept them.
+       *
+       *\param[in] keyCode Pressed key.
+       *\return true if the key was consumed as a pan.
+       */
+      bool HandlePanKey(sf::Keyboard::Key keyCode);
 
       /*!
        *\brief Deletes the selection if allowed.
@@ -229,6 +238,8 @@ namespace Cgen
       void AddToSelection(NodeId nodeId);
       void ToggleSelection(NodeId nodeId);
       void RemoveFromSelection(NodeId nodeId);
+      void PanByScreenDelta(float screenDeltaX, float screenDeltaY);
+      void ZoomAtScreenPoint(float delta, sf::Vector2f screenPoint);
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};

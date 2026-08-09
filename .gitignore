@@ -13,3 +13,5 @@ cmake_test_discovery_*.json
 *.dll
 /_deps/
 ttt_history.txt
+dungeon_log.txt
+dungeon_stamp.bin

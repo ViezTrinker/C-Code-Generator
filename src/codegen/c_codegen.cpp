@@ -1317,9 +1317,10 @@ namespace Cgen
       }
       stream << "\n";
 
+      EmitStructDecls(&context);
+      stream << "\n";
       EmitGlobals(&context);
       stream << "\n";
-      EmitStructDecls(&context);
       EmitFunctions(&context);
 
       const Node* pStart = FindStartNode(document);

@@ -105,3 +105,24 @@ TEST(BlockPlacementTest, RepeatedSamePreferredYieldsDistinctSlots)
       }
    }
 }
+
+TEST(BlockPlacementTest, PrintfHeightFitsAllInputPorts)
+{
+   const Cgen::Node printfNode = Cgen::CreateNode(1, Cgen::BlockType::Printf, 0.0f, 0.0f);
+   size_t inCount = 0;
+   for (size_t index = 0; index < printfNode.ports.size(); ++index)
+   {
+      if (printfNode.ports[index].direction == Cgen::PortDirection::In)
+      {
+         ++inCount;
+      }
+   }
+   ASSERT_GE(inCount, 7u);
+
+   const float height = Cgen::ComputeBlockNodeHeight(printfNode);
+   const float lastPortY =
+      Cgen::BlockPortTopOffset +
+      (static_cast<float>(inCount - 1) * Cgen::BlockPortSpacing);
+   EXPECT_GT(height, lastPortY);
+   EXPECT_GE(height, Cgen::BlockNodeHeight);
+}

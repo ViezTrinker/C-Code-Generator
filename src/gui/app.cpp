@@ -321,9 +321,10 @@ namespace Cgen
          "Editing\n"
          "- Click a block in the left Blocks panel to place it on the canvas.\n"
          "- Type in the Blocks filter to find blocks by name.\n"
-         "- Drag blocks to move them. Middle-drag pans; left-drag empty for marquee.\n"
+         "- Drag blocks to move them. Middle-drag or Space+drag pans; left-drag empty for marquee.\n"
          "- Shift+click toggles multi-select. Ctrl+A selects all.\n"
-         "- Mouse wheel zooms the canvas.\n"
+         "- Mouse wheel pans the canvas vertically; Shift+wheel pans horizontally.\n"
+         "- Ctrl+wheel zooms. Arrow keys also pan.\n"
          "- Drag from an output port to an input port to wire blocks.\n"
          "- Amber ports = control flow, blue ports = data.\n"
          "- Click a block, then edit its properties on the right (Enter commits).\n"
@@ -739,6 +740,8 @@ namespace Cgen
             {
                const sf::Vector2f point(static_cast<float>(pWheel->position.x),
                                         static_cast<float>(pWheel->position.y));
+               const bool horizontal =
+                  (pWheel->wheel == sf::Mouse::Wheel::Horizontal);
                if (_helpViewVisible && _pHelpLog->HandleWheel(pWheel->delta, point))
                {
                }
@@ -756,7 +759,7 @@ namespace Cgen
                }
                else if ((!_sourceViewVisible) && (!_helpViewVisible))
                {
-                  _pCanvas->HandleWheel(pWheel->delta, point);
+                  _pCanvas->HandleWheel(pWheel->delta, point, horizontal);
                }
             }
             else if (const auto* pText = event->getIf<sf::Event::TextEntered>())
@@ -861,6 +864,9 @@ namespace Cgen
                {
                   _pCanvas->TidyLayout();
                   SyncSelectionUi();
+               }
+               else if (_pCanvas->HandlePanKey(pKey->code))
+               {
                }
             }
          }

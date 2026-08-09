@@ -18,11 +18,26 @@ namespace Cgen
    {
       constexpr float PortRadius = 6.0f;
       constexpr float MarqueeThreshold = 4.0f;
+      constexpr float WheelPanPixels = 48.0f;
+      constexpr float KeyPanPixels = 64.0f;
+      constexpr float MinViewportZoom = 0.15f;
+      constexpr float MaxViewportZoom = 2.5f;
 
       bool IsShiftHeld(void)
       {
          return sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) ||
                 sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RShift);
+      }
+
+      bool IsCtrlHeld(void)
+      {
+         return sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl) ||
+                sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RControl);
+      }
+
+      bool IsSpaceHeld(void)
+      {
+         return sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
       }
 
       sf::FloatRect NormalizeRect(sf::Vector2f a, sf::Vector2f b)
@@ -158,8 +173,9 @@ namespace Cgen
          return;
       }
       const float zoom = _pDocument->GetViewportZoom();
+      const float nodeHeight = ComputeBlockNodeHeight(*pNode);
       const float centerWorldX = pNode->posX + (BlockNodeWidth * 0.5f);
-      const float centerWorldY = pNode->posY + (BlockNodeHeight * 0.5f);
+      const float centerWorldY = pNode->posY + (nodeHeight * 0.5f);
       const float viewW = _bounds.size.x / zoom;
       const float viewH = _bounds.size.y / zoom;
       _pDocument->SetViewport(centerWorldX - (viewW * 0.5f),
@@ -203,6 +219,7 @@ namespace Cgen
       float minY = _clipboard.nodes.front().posY;
       float maxX = minX;
       float maxY = minY;
+      float tallestHeight = BlockNodeHeight;
       for (size_t index = 0; index < _clipboard.nodes.size(); ++index)
       {
          const ClipboardNode& item = _clipboard.nodes[index];
@@ -222,9 +239,15 @@ namespace Cgen
          {
             maxY = item.posY;
          }
+         const Node probe = CreateNode(0, item.type, 0.0f, 0.0f);
+         const float itemHeight = ComputeBlockNodeHeight(probe);
+         if (itemHeight > tallestHeight)
+         {
+            tallestHeight = itemHeight;
+         }
       }
       const float groupWidth = (maxX - minX) + BlockNodeWidth + BlockPlacementGap;
-      const float groupHeight = (maxY - minY) + BlockNodeHeight + BlockPlacementGap;
+      const float groupHeight = (maxY - minY) + tallestHeight + BlockPlacementGap;
       const float cascade = static_cast<float>(_pasteCascade);
       const float preferredOffsetX = groupWidth * cascade;
       const float preferredOffsetY = groupHeight * cascade;
@@ -296,13 +319,13 @@ namespace Cgen
    sf::FloatRect CanvasView::NodeBounds(const Node& node) const
    {
       return sf::FloatRect(sf::Vector2f(node.posX, node.posY),
-                           sf::Vector2f(BlockNodeWidth, BlockNodeHeight));
+                           sf::Vector2f(BlockNodeWidth, ComputeBlockNodeHeight(node)));
    }
 
    sf::Vector2f CanvasView::PortWorldPosition(const Node& node, size_t portIndex) const
    {
       const Port& port = node.ports[portIndex];
-      float offsetY = 18.0f;
+      float offsetY = BlockPortTopOffset;
       size_t sameSideIndex = 0;
       for (size_t index = 0; index < portIndex; ++index)
       {
@@ -311,7 +334,7 @@ namespace Cgen
             ++sameSideIndex;
          }
       }
-      offsetY += static_cast<float>(sameSideIndex) * 14.0f;
+      offsetY += static_cast<float>(sameSideIndex) * BlockPortSpacing;
       if (port.direction == PortDirection::In)
       {
          return sf::Vector2f(node.posX, node.posY + offsetY);
@@ -426,8 +449,10 @@ namespace Cgen
       WorldPosition preferred;
       preferred.x = preferredScreen.x;
       preferred.y = preferredScreen.y;
-      const WorldPosition world =
-         FindFreeBlockWorldPosition(preferred, _pDocument->GetNodes());
+      const Node probe = CreateNode(0, blockType, 0.0f, 0.0f);
+      const float proposedHeight = ComputeBlockNodeHeight(probe);
+      const WorldPosition world = FindFreeBlockWorldPosition(
+         preferred, _pDocument->GetNodes(), proposedHeight);
       const NodeId id = _pDocument->AddNode(blockType, world.x, world.y);
       SetSelectedNodeId(id);
    }
@@ -456,6 +481,14 @@ namespace Cgen
       if (button != sf::Mouse::Button::Left)
       {
          return false;
+      }
+
+      if (IsSpaceHeld())
+      {
+         _isPanning = true;
+         _isMarquee = false;
+         _isDraggingNode = false;
+         return true;
       }
 
       PortHit portHit;
@@ -581,10 +614,7 @@ namespace Cgen
 
       if (_isPanning)
       {
-         const float zoom = _pDocument->GetViewportZoom();
-         _pDocument->SetViewport(_pDocument->GetViewportX() - (delta.x / zoom),
-                                 _pDocument->GetViewportY() - (delta.y / zoom),
-                                 zoom);
+         PanByScreenDelta(delta.x, delta.y);
          return;
       }
 
@@ -618,22 +648,38 @@ namespace Cgen
       }
    }
 
-   void CanvasView::HandleWheel(float delta, sf::Vector2f screenPoint)
+   void CanvasView::PanByScreenDelta(float screenDeltaX, float screenDeltaY)
    {
-      if ((_pDocument == nullptr) || (!_bounds.contains(screenPoint)))
+      if (_pDocument == nullptr)
+      {
+         return;
+      }
+      const float zoom = _pDocument->GetViewportZoom();
+      if (zoom <= 0.0f)
+      {
+         return;
+      }
+      _pDocument->SetViewport(_pDocument->GetViewportX() - (screenDeltaX / zoom),
+                              _pDocument->GetViewportY() - (screenDeltaY / zoom),
+                              zoom);
+   }
+
+   void CanvasView::ZoomAtScreenPoint(float delta, sf::Vector2f screenPoint)
+   {
+      if (_pDocument == nullptr)
       {
          return;
       }
       const sf::Vector2f before = ScreenToWorld(screenPoint);
       float zoom = _pDocument->GetViewportZoom();
       zoom *= (delta > 0.0f) ? 1.1f : (1.0f / 1.1f);
-      if (zoom < 0.35f)
+      if (zoom < MinViewportZoom)
       {
-         zoom = 0.35f;
+         zoom = MinViewportZoom;
       }
-      if (zoom > 2.5f)
+      if (zoom > MaxViewportZoom)
       {
-         zoom = 2.5f;
+         zoom = MaxViewportZoom;
       }
       _pDocument->SetViewport(_pDocument->GetViewportX(),
                               _pDocument->GetViewportY(),
@@ -642,6 +688,58 @@ namespace Cgen
       _pDocument->SetViewport(_pDocument->GetViewportX() + (before.x - after.x),
                               _pDocument->GetViewportY() + (before.y - after.y),
                               zoom);
+   }
+
+   void CanvasView::HandleWheel(float delta,
+                                sf::Vector2f screenPoint,
+                                bool horizontal)
+   {
+      if ((_pDocument == nullptr) || (!_bounds.contains(screenPoint)))
+      {
+         return;
+      }
+      if (IsCtrlHeld())
+      {
+         ZoomAtScreenPoint(delta, screenPoint);
+         return;
+      }
+
+      const float panAmount = delta * WheelPanPixels;
+      if (horizontal || IsShiftHeld())
+      {
+         PanByScreenDelta(panAmount, 0.0f);
+         return;
+      }
+      PanByScreenDelta(0.0f, panAmount);
+   }
+
+   bool CanvasView::HandlePanKey(sf::Keyboard::Key keyCode)
+   {
+      if (_pDocument == nullptr)
+      {
+         return false;
+      }
+      if (keyCode == sf::Keyboard::Key::Left)
+      {
+         PanByScreenDelta(KeyPanPixels, 0.0f);
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Right)
+      {
+         PanByScreenDelta(-KeyPanPixels, 0.0f);
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Up)
+      {
+         PanByScreenDelta(0.0f, KeyPanPixels);
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Down)
+      {
+         PanByScreenDelta(0.0f, -KeyPanPixels);
+         return true;
+      }
+      return false;
    }
 
    void CanvasView::DeleteSelection(void)
@@ -812,9 +910,10 @@ namespace Cgen
          const Node& node = nodes[index];
          const sf::Vector2f topLeft = WorldToScreen(sf::Vector2f(node.posX, node.posY));
          const float zoom = _pDocument->GetViewportZoom();
+         const float nodeHeight = ComputeBlockNodeHeight(node);
          sf::RectangleShape shape;
          shape.setPosition(topLeft);
-         shape.setSize(sf::Vector2f(BlockNodeWidth * zoom, BlockNodeHeight * zoom));
+         shape.setSize(sf::Vector2f(BlockNodeWidth * zoom, nodeHeight * zoom));
          if (IsNodeSelected(node.id))
          {
             shape.setFillColor(sf::Color(70, 90, 130));

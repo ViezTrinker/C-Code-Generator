@@ -448,3 +448,27 @@ TEST(CCodegenTest, EmitsFileIoAndStructFields)
    EXPECT_NE(output.source.find("point.x = 9;"), std::string::npos);
    EXPECT_NE(output.source.find("point.x"), std::string::npos);
 }
+
+TEST(CCodegenTest, EmitsStructDeclBeforeGlobalOfStructType)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId structId =
+      document.AddNode(Cgen::BlockType::StructDecl, 40.0f, -40.0f);
+   document.FindNodeMutable(structId)->properties["name"] = "Hero";
+   document.FindNodeMutable(structId)->properties["fields"] =
+      "int32_t hp; int32_t atk";
+
+   const Cgen::NodeId globalId =
+      document.AddNode(Cgen::BlockType::GlobalDecl, 40.0f, 40.0f);
+   document.FindNodeMutable(globalId)->properties["name"] = "hero";
+   document.FindNodeMutable(globalId)->properties["type"] = "Hero";
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+
+   const size_t structPos = output.source.find("typedef struct Hero");
+   const size_t globalPos = output.source.find("Hero hero;");
+   ASSERT_NE(structPos, std::string::npos);
+   ASSERT_NE(globalPos, std::string::npos);
+   EXPECT_LT(structPos, globalPos);
+}

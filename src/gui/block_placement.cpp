@@ -29,16 +29,51 @@ namespace Cgen
       }
    } // namespace
 
+   float ComputeBlockNodeHeight(const Node& node)
+   {
+      size_t inCount = 0;
+      size_t outCount = 0;
+      for (size_t index = 0; index < node.ports.size(); ++index)
+      {
+         if (node.ports[index].direction == PortDirection::In)
+         {
+            ++inCount;
+         }
+         else
+         {
+            ++outCount;
+         }
+      }
+
+      const size_t sideCount = (inCount > outCount) ? inCount : outCount;
+      if (sideCount == 0)
+      {
+         return BlockNodeHeight;
+      }
+
+      const float fitted =
+         BlockPortTopOffset +
+         (static_cast<float>(sideCount - 1) * BlockPortSpacing) +
+         BlockPortBottomPad;
+      if (fitted < BlockNodeHeight)
+      {
+         return BlockNodeHeight;
+      }
+      return fitted;
+   }
+
    bool BlockPlacementOverlapsExisting(WorldPosition topLeft,
-                                       const std::vector<Node>& nodes)
+                                       const std::vector<Node>& nodes,
+                                       float proposedHeight)
    {
       const float paddedX = topLeft.x - BlockOverlapPadding;
       const float paddedY = topLeft.y - BlockOverlapPadding;
       const float paddedWidth = BlockNodeWidth + (BlockOverlapPadding * 2.0f);
-      const float paddedHeight = BlockNodeHeight + (BlockOverlapPadding * 2.0f);
+      const float paddedHeight = proposedHeight + (BlockOverlapPadding * 2.0f);
 
       for (size_t index = 0; index < nodes.size(); ++index)
       {
+         const float existingHeight = ComputeBlockNodeHeight(nodes[index]);
          if (RectsOverlap(paddedX,
                           paddedY,
                           paddedWidth,
@@ -46,7 +81,7 @@ namespace Cgen
                           nodes[index].posX,
                           nodes[index].posY,
                           BlockNodeWidth,
-                          BlockNodeHeight))
+                          existingHeight))
          {
             return true;
          }
@@ -55,12 +90,13 @@ namespace Cgen
    }
 
    WorldPosition FindFreeBlockWorldPosition(WorldPosition preferred,
-                                            const std::vector<Node>& nodes)
+                                            const std::vector<Node>& nodes,
+                                            float proposedHeight)
    {
       constexpr uint32_t MaxColumns = 10;
       constexpr uint32_t MaxRows = 10;
       const float stepX = BlockNodeWidth + BlockPlacementGap;
-      const float stepY = BlockNodeHeight + BlockPlacementGap;
+      const float stepY = proposedHeight + BlockPlacementGap;
 
       for (uint32_t row = 0; row < MaxRows; ++row)
       {
@@ -69,7 +105,7 @@ namespace Cgen
             WorldPosition candidate;
             candidate.x = preferred.x + (static_cast<float>(column) * stepX);
             candidate.y = preferred.y + (static_cast<float>(row) * stepY);
-            if (!BlockPlacementOverlapsExisting(candidate, nodes))
+            if (!BlockPlacementOverlapsExisting(candidate, nodes, proposedHeight))
             {
                return candidate;
             }

@@ -1,0 +1,4986 @@
+CGEN 1
+{
+  "nextNodeId": 293,
+  "nextEdgeId": 329,
+  "viewport": {
+    "x": 0.0,
+    "y": 0.0,
+    "zoom": 1.0
+  },
+  "types": [],
+  "nodes": [
+    {
+      "id": 1,
+      "type": "StructDecl",
+      "posX": 40.0,
+      "posY": -200.0,
+      "properties": {
+        "name": "Hero",
+        "fields": "int32_t hp; int32_t maxHp; int32_t atk; int32_t gold; int32_t room"
+      }
+    },
+    {
+      "id": 2,
+      "type": "GlobalDecl",
+      "posX": 40.0,
+      "posY": -120.0,
+      "properties": {
+        "name": "hero",
+        "type": "Hero"
+      }
+    },
+    {
+      "id": 3,
+      "type": "FunctionDef",
+      "posX": 40.0,
+      "posY": 0.0,
+      "properties": {
+        "name": "print_status",
+        "returnType": "void",
+        "params": "void"
+      }
+    },
+    {
+      "id": 4,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 80.0,
+      "properties": {
+        "format": "--- Status ---\\n"
+      }
+    },
+    {
+      "id": 5,
+      "type": "Printf",
+      "posX": 220.0,
+      "posY": 80.0,
+      "properties": {
+        "format": "HP: %d / %d\\n"
+      }
+    },
+    {
+      "id": 6,
+      "type": "FieldLoad",
+      "posX": 400.0,
+      "posY": 80.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 7,
+      "type": "FieldLoad",
+      "posX": 560.0,
+      "posY": 80.0,
+      "properties": {
+        "object": "hero",
+        "field": "maxHp",
+        "access": "."
+      }
+    },
+    {
+      "id": 8,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 160.0,
+      "properties": {
+        "format": "ATK: %d  Gold: %d  Room: %d\\n"
+      }
+    },
+    {
+      "id": 9,
+      "type": "FieldLoad",
+      "posX": 220.0,
+      "posY": 160.0,
+      "properties": {
+        "object": "hero",
+        "field": "atk",
+        "access": "."
+      }
+    },
+    {
+      "id": 10,
+      "type": "FieldLoad",
+      "posX": 380.0,
+      "posY": 160.0,
+      "properties": {
+        "object": "hero",
+        "field": "gold",
+        "access": "."
+      }
+    },
+    {
+      "id": 11,
+      "type": "FieldLoad",
+      "posX": 540.0,
+      "posY": 160.0,
+      "properties": {
+        "object": "hero",
+        "field": "room",
+        "access": "."
+      }
+    },
+    {
+      "id": 12,
+      "type": "Return",
+      "posX": 700.0,
+      "posY": 160.0,
+      "properties": {}
+    },
+    {
+      "id": 13,
+      "type": "FunctionDef",
+      "posX": 40.0,
+      "posY": 450.0,
+      "properties": {
+        "name": "log_event",
+        "returnType": "void",
+        "params": "int32_t code"
+      }
+    },
+    {
+      "id": 14,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "year",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 15,
+      "type": "VariableDecl",
+      "posX": 180.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "month",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 16,
+      "type": "VariableDecl",
+      "posX": 320.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "day",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 17,
+      "type": "VariableDecl",
+      "posX": 460.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "hour",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 18,
+      "type": "VariableDecl",
+      "posX": 600.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "minute",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 19,
+      "type": "VariableDecl",
+      "posX": 740.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "second",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 20,
+      "type": "VariableDecl",
+      "posX": 880.0,
+      "posY": 520.0,
+      "properties": {
+        "name": "fp",
+        "type": "FILE*"
+      }
+    },
+    {
+      "id": 21,
+      "type": "Literal",
+      "posX": 1020.0,
+      "posY": 520.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 22,
+      "type": "LocalTime",
+      "posX": 40.0,
+      "posY": 600.0,
+      "properties": {
+        "year": "year",
+        "month": "month",
+        "day": "day",
+        "hour": "hour",
+        "minute": "minute",
+        "second": "second"
+      }
+    },
+    {
+      "id": 23,
+      "type": "FileOpen",
+      "posX": 200.0,
+      "posY": 600.0,
+      "properties": {
+        "handle": "fp",
+        "path": "dungeon_log.txt",
+        "mode": "a"
+      }
+    },
+    {
+      "id": 24,
+      "type": "If",
+      "posX": 360.0,
+      "posY": 600.0,
+      "properties": {}
+    },
+    {
+      "id": 25,
+      "type": "NotEqual",
+      "posX": 520.0,
+      "posY": 600.0,
+      "properties": {}
+    },
+    {
+      "id": 26,
+      "type": "VariableRef",
+      "posX": 680.0,
+      "posY": 600.0,
+      "properties": {
+        "name": "fp"
+      }
+    },
+    {
+      "id": 27,
+      "type": "FilePrintf",
+      "posX": 40.0,
+      "posY": 690.0,
+      "properties": {
+        "handle": "fp",
+        "format": "%d %d-%d-%d %d:%d:%d\\n"
+      }
+    },
+    {
+      "id": 28,
+      "type": "VariableRef",
+      "posX": 200.0,
+      "posY": 690.0,
+      "properties": {
+        "name": "code"
+      }
+    },
+    {
+      "id": 29,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 690.0,
+      "properties": {
+        "name": "year"
+      }
+    },
+    {
+      "id": 30,
+      "type": "VariableRef",
+      "posX": 520.0,
+      "posY": 690.0,
+      "properties": {
+        "name": "month"
+      }
+    },
+    {
+      "id": 31,
+      "type": "VariableRef",
+      "posX": 680.0,
+      "posY": 690.0,
+      "properties": {
+        "name": "day"
+      }
+    },
+    {
+      "id": 32,
+      "type": "VariableRef",
+      "posX": 840.0,
+      "posY": 690.0,
+      "properties": {
+        "name": "hour"
+      }
+    },
+    {
+      "id": 33,
+      "type": "VariableRef",
+      "posX": 1000.0,
+      "posY": 690.0,
+      "properties": {
+        "name": "minute"
+      }
+    },
+    {
+      "id": 34,
+      "type": "VariableRef",
+      "posX": 1160.0,
+      "posY": 690.0,
+      "properties": {
+        "name": "second"
+      }
+    },
+    {
+      "id": 35,
+      "type": "FileClose",
+      "posX": 40.0,
+      "posY": 770.0,
+      "properties": {
+        "handle": "fp"
+      }
+    },
+    {
+      "id": 36,
+      "type": "Return",
+      "posX": 200.0,
+      "posY": 770.0,
+      "properties": {}
+    },
+    {
+      "id": 37,
+      "type": "FunctionDef",
+      "posX": 40.0,
+      "posY": 900.0,
+      "properties": {
+        "name": "roll_damage",
+        "returnType": "int32_t",
+        "params": "int32_t atk"
+      }
+    },
+    {
+      "id": 38,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 970.0,
+      "properties": {
+        "name": "dmg",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 39,
+      "type": "VariableDecl",
+      "posX": 200.0,
+      "posY": 970.0,
+      "properties": {
+        "name": "bonus",
+        "type": "float"
+      }
+    },
+    {
+      "id": 40,
+      "type": "Literal",
+      "posX": 360.0,
+      "posY": 970.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 41,
+      "type": "Literal",
+      "posX": 520.0,
+      "posY": 970.0,
+      "properties": {
+        "value": "0.0",
+        "type": "float"
+      }
+    },
+    {
+      "id": 42,
+      "type": "Random",
+      "posX": 40.0,
+      "posY": 1050.0,
+      "properties": {}
+    },
+    {
+      "id": 43,
+      "type": "Mod",
+      "posX": 200.0,
+      "posY": 1050.0,
+      "properties": {}
+    },
+    {
+      "id": 44,
+      "type": "Literal",
+      "posX": 360.0,
+      "posY": 1050.0,
+      "properties": {
+        "value": "3",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 45,
+      "type": "Add",
+      "posX": 520.0,
+      "posY": 1050.0,
+      "properties": {}
+    },
+    {
+      "id": 46,
+      "type": "VariableRef",
+      "posX": 680.0,
+      "posY": 1050.0,
+      "properties": {
+        "name": "atk"
+      }
+    },
+    {
+      "id": 47,
+      "type": "Assign",
+      "posX": 40.0,
+      "posY": 1130.0,
+      "properties": {
+        "target": "dmg"
+      }
+    },
+    {
+      "id": 48,
+      "type": "Div",
+      "posX": 200.0,
+      "posY": 1130.0,
+      "properties": {}
+    },
+    {
+      "id": 49,
+      "type": "Literal",
+      "posX": 360.0,
+      "posY": 1130.0,
+      "properties": {
+        "value": "2",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 50,
+      "type": "VariableRef",
+      "posX": 520.0,
+      "posY": 1130.0,
+      "properties": {
+        "name": "dmg"
+      }
+    },
+    {
+      "id": 51,
+      "type": "CompoundAssign",
+      "posX": 680.0,
+      "posY": 1130.0,
+      "properties": {
+        "target": "dmg",
+        "op": "+"
+      }
+    },
+    {
+      "id": 52,
+      "type": "Cast",
+      "posX": 40.0,
+      "posY": 1210.0,
+      "properties": {
+        "toType": "float"
+      }
+    },
+    {
+      "id": 53,
+      "type": "Assign",
+      "posX": 200.0,
+      "posY": 1210.0,
+      "properties": {
+        "target": "bonus"
+      }
+    },
+    {
+      "id": 54,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 1250.0,
+      "properties": {
+        "format": "(atk bonus %.1f)\\n"
+      }
+    },
+    {
+      "id": 55,
+      "type": "VariableRef",
+      "posX": 200.0,
+      "posY": 1250.0,
+      "properties": {
+        "name": "bonus"
+      }
+    },
+    {
+      "id": 56,
+      "type": "If",
+      "posX": 360.0,
+      "posY": 1210.0,
+      "properties": {}
+    },
+    {
+      "id": 57,
+      "type": "Less",
+      "posX": 520.0,
+      "posY": 1210.0,
+      "properties": {}
+    },
+    {
+      "id": 58,
+      "type": "Assign",
+      "posX": 40.0,
+      "posY": 1290.0,
+      "properties": {
+        "target": "dmg"
+      }
+    },
+    {
+      "id": 59,
+      "type": "Neg",
+      "posX": 200.0,
+      "posY": 1290.0,
+      "properties": {}
+    },
+    {
+      "id": 60,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 1290.0,
+      "properties": {
+        "name": "dmg"
+      }
+    },
+    {
+      "id": 61,
+      "type": "Return",
+      "posX": 520.0,
+      "posY": 1290.0,
+      "properties": {}
+    },
+    {
+      "id": 62,
+      "type": "FunctionDef",
+      "posX": 40.0,
+      "posY": 1400.0,
+      "properties": {
+        "name": "do_combat",
+        "returnType": "void",
+        "params": "void"
+      }
+    },
+    {
+      "id": 63,
+      "type": "Comment",
+      "posX": 40.0,
+      "posY": 1460.0,
+      "properties": {
+        "text": "Fight a random enemy until one side falls"
+      }
+    },
+    {
+      "id": 64,
+      "type": "VariableDecl",
+      "posX": 220.0,
+      "posY": 1460.0,
+      "properties": {
+        "name": "enemyHp",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 65,
+      "type": "VariableDecl",
+      "posX": 400.0,
+      "posY": 1460.0,
+      "properties": {
+        "name": "hit",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 66,
+      "type": "Literal",
+      "posX": 580.0,
+      "posY": 1460.0,
+      "properties": {
+        "value": "20",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 67,
+      "type": "Literal",
+      "posX": 740.0,
+      "posY": 1460.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 68,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 1540.0,
+      "properties": {
+        "format": "A monster appears!\\n"
+      }
+    },
+    {
+      "id": 69,
+      "type": "While",
+      "posX": 220.0,
+      "posY": 1540.0,
+      "properties": {}
+    },
+    {
+      "id": 70,
+      "type": "Greater",
+      "posX": 400.0,
+      "posY": 1540.0,
+      "properties": {}
+    },
+    {
+      "id": 71,
+      "type": "VariableRef",
+      "posX": 560.0,
+      "posY": 1540.0,
+      "properties": {
+        "name": "enemyHp"
+      }
+    },
+    {
+      "id": 72,
+      "type": "Greater",
+      "posX": 720.0,
+      "posY": 1540.0,
+      "properties": {}
+    },
+    {
+      "id": 73,
+      "type": "FieldLoad",
+      "posX": 880.0,
+      "posY": 1540.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 74,
+      "type": "And",
+      "posX": 1040.0,
+      "posY": 1540.0,
+      "properties": {}
+    },
+    {
+      "id": 75,
+      "type": "Call",
+      "posX": 40.0,
+      "posY": 1620.0,
+      "properties": {
+        "function": "roll_damage",
+        "storeTo": "hit"
+      }
+    },
+    {
+      "id": 76,
+      "type": "FieldLoad",
+      "posX": 200.0,
+      "posY": 1620.0,
+      "properties": {
+        "object": "hero",
+        "field": "atk",
+        "access": "."
+      }
+    },
+    {
+      "id": 77,
+      "type": "Printf",
+      "posX": 360.0,
+      "posY": 1620.0,
+      "properties": {
+        "format": "You hit for %d!\\n"
+      }
+    },
+    {
+      "id": 78,
+      "type": "VariableRef",
+      "posX": 520.0,
+      "posY": 1620.0,
+      "properties": {
+        "name": "hit"
+      }
+    },
+    {
+      "id": 79,
+      "type": "CompoundAssign",
+      "posX": 680.0,
+      "posY": 1620.0,
+      "properties": {
+        "target": "enemyHp",
+        "op": "-"
+      }
+    },
+    {
+      "id": 80,
+      "type": "If",
+      "posX": 840.0,
+      "posY": 1620.0,
+      "properties": {}
+    },
+    {
+      "id": 81,
+      "type": "Equal",
+      "posX": 1000.0,
+      "posY": 1620.0,
+      "properties": {}
+    },
+    {
+      "id": 82,
+      "type": "Continue",
+      "posX": 1160.0,
+      "posY": 1620.0,
+      "properties": {}
+    },
+    {
+      "id": 83,
+      "type": "If",
+      "posX": 40.0,
+      "posY": 1700.0,
+      "properties": {}
+    },
+    {
+      "id": 84,
+      "type": "Greater",
+      "posX": 200.0,
+      "posY": 1700.0,
+      "properties": {}
+    },
+    {
+      "id": 85,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 1700.0,
+      "properties": {
+        "name": "enemyHp"
+      }
+    },
+    {
+      "id": 86,
+      "type": "Call",
+      "posX": 520.0,
+      "posY": 1700.0,
+      "properties": {
+        "function": "roll_damage",
+        "storeTo": "hit"
+      }
+    },
+    {
+      "id": 87,
+      "type": "Literal",
+      "posX": 680.0,
+      "posY": 1700.0,
+      "properties": {
+        "value": "8",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 88,
+      "type": "Printf",
+      "posX": 840.0,
+      "posY": 1700.0,
+      "properties": {
+        "format": "Monster hits for %d!\\n"
+      }
+    },
+    {
+      "id": 89,
+      "type": "VariableRef",
+      "posX": 1000.0,
+      "posY": 1700.0,
+      "properties": {
+        "name": "hit"
+      }
+    },
+    {
+      "id": 90,
+      "type": "Sub",
+      "posX": 40.0,
+      "posY": 1780.0,
+      "properties": {}
+    },
+    {
+      "id": 91,
+      "type": "FieldLoad",
+      "posX": 200.0,
+      "posY": 1780.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 92,
+      "type": "FieldStore",
+      "posX": 360.0,
+      "posY": 1780.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 93,
+      "type": "Assert",
+      "posX": 520.0,
+      "posY": 1780.0,
+      "properties": {}
+    },
+    {
+      "id": 94,
+      "type": "Literal",
+      "posX": 680.0,
+      "posY": 1780.0,
+      "properties": {
+        "value": "-100",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 95,
+      "type": "Greater",
+      "posX": 840.0,
+      "posY": 1780.0,
+      "properties": {}
+    },
+    {
+      "id": 96,
+      "type": "FieldLoad",
+      "posX": 1000.0,
+      "posY": 1780.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 97,
+      "type": "If",
+      "posX": 40.0,
+      "posY": 1860.0,
+      "properties": {}
+    },
+    {
+      "id": 98,
+      "type": "Greater",
+      "posX": 200.0,
+      "posY": 1860.0,
+      "properties": {}
+    },
+    {
+      "id": 99,
+      "type": "FieldLoad",
+      "posX": 360.0,
+      "posY": 1860.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 100,
+      "type": "Printf",
+      "posX": 520.0,
+      "posY": 1860.0,
+      "properties": {
+        "format": "You won the fight!\\n"
+      }
+    },
+    {
+      "id": 101,
+      "type": "Call",
+      "posX": 680.0,
+      "posY": 1860.0,
+      "properties": {
+        "function": "log_event",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 102,
+      "type": "Literal",
+      "posX": 840.0,
+      "posY": 1860.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 103,
+      "type": "Add",
+      "posX": 40.0,
+      "posY": 1940.0,
+      "properties": {}
+    },
+    {
+      "id": 104,
+      "type": "FieldLoad",
+      "posX": 200.0,
+      "posY": 1940.0,
+      "properties": {
+        "object": "hero",
+        "field": "gold",
+        "access": "."
+      }
+    },
+    {
+      "id": 105,
+      "type": "Literal",
+      "posX": 360.0,
+      "posY": 1940.0,
+      "properties": {
+        "value": "5",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 106,
+      "type": "FieldStore",
+      "posX": 520.0,
+      "posY": 1940.0,
+      "properties": {
+        "object": "hero",
+        "field": "gold",
+        "access": "."
+      }
+    },
+    {
+      "id": 107,
+      "type": "Printf",
+      "posX": 680.0,
+      "posY": 1940.0,
+      "properties": {
+        "format": "You were defeated...\\n"
+      }
+    },
+    {
+      "id": 108,
+      "type": "Call",
+      "posX": 840.0,
+      "posY": 1940.0,
+      "properties": {
+        "function": "log_event",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 109,
+      "type": "Literal",
+      "posX": 1000.0,
+      "posY": 1940.0,
+      "properties": {
+        "value": "2",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 110,
+      "type": "FieldStore",
+      "posX": 40.0,
+      "posY": 2020.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 111,
+      "type": "Literal",
+      "posX": 200.0,
+      "posY": 2020.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 112,
+      "type": "Return",
+      "posX": 360.0,
+      "posY": 2020.0,
+      "properties": {}
+    },
+    {
+      "id": 113,
+      "type": "Add",
+      "posX": 520.0,
+      "posY": 2020.0,
+      "properties": {}
+    },
+    {
+      "id": 114,
+      "type": "FieldLoad",
+      "posX": 680.0,
+      "posY": 2020.0,
+      "properties": {
+        "object": "hero",
+        "field": "room",
+        "access": "."
+      }
+    },
+    {
+      "id": 115,
+      "type": "FieldStore",
+      "posX": 840.0,
+      "posY": 2020.0,
+      "properties": {
+        "object": "hero",
+        "field": "room",
+        "access": "."
+      }
+    },
+    {
+      "id": 117,
+      "type": "FunctionDef",
+      "posX": 40.0,
+      "posY": 2200.0,
+      "properties": {
+        "name": "do_loot",
+        "returnType": "void",
+        "params": "void"
+      }
+    },
+    {
+      "id": 118,
+      "type": "ArrayDecl",
+      "posX": 40.0,
+      "posY": 2270.0,
+      "properties": {
+        "name": "loot",
+        "elemType": "int32_t",
+        "size": "5"
+      }
+    },
+    {
+      "id": 119,
+      "type": "For",
+      "posX": 220.0,
+      "posY": 2270.0,
+      "properties": {
+        "iterator": "li",
+        "start": "0",
+        "end": "5",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 120,
+      "type": "IndexAssign",
+      "posX": 400.0,
+      "posY": 2270.0,
+      "properties": {
+        "array": "loot",
+        "elemType": "int32_t"
+      }
+    },
+    {
+      "id": 121,
+      "type": "VariableRef",
+      "posX": 560.0,
+      "posY": 2270.0,
+      "properties": {
+        "name": "li"
+      }
+    },
+    {
+      "id": 122,
+      "type": "Add",
+      "posX": 720.0,
+      "posY": 2270.0,
+      "properties": {}
+    },
+    {
+      "id": 123,
+      "type": "Literal",
+      "posX": 880.0,
+      "posY": 2270.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 124,
+      "type": "Mul",
+      "posX": 1040.0,
+      "posY": 2270.0,
+      "properties": {}
+    },
+    {
+      "id": 125,
+      "type": "Literal",
+      "posX": 1200.0,
+      "posY": 2270.0,
+      "properties": {
+        "value": "5",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 126,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 2350.0,
+      "properties": {
+        "format": "You find a treasure cache!\\n"
+      }
+    },
+    {
+      "id": 127,
+      "type": "ShuffleArray",
+      "posX": 220.0,
+      "posY": 2350.0,
+      "properties": {
+        "array": "loot"
+      }
+    },
+    {
+      "id": 128,
+      "type": "Literal",
+      "posX": 400.0,
+      "posY": 2350.0,
+      "properties": {
+        "value": "5",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 129,
+      "type": "VariableDecl",
+      "posX": 560.0,
+      "posY": 2350.0,
+      "properties": {
+        "name": "pick",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 130,
+      "type": "IndexLoad",
+      "posX": 720.0,
+      "posY": 2350.0,
+      "properties": {
+        "array": "loot",
+        "elemType": "int32_t"
+      }
+    },
+    {
+      "id": 131,
+      "type": "Literal",
+      "posX": 880.0,
+      "posY": 2350.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 132,
+      "type": "Assign",
+      "posX": 40.0,
+      "posY": 2430.0,
+      "properties": {
+        "target": "pick"
+      }
+    },
+    {
+      "id": 133,
+      "type": "Printf",
+      "posX": 200.0,
+      "posY": 2430.0,
+      "properties": {
+        "format": "Loot gold: %d\\n"
+      }
+    },
+    {
+      "id": 134,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 2430.0,
+      "properties": {
+        "name": "pick"
+      }
+    },
+    {
+      "id": 135,
+      "type": "Add",
+      "posX": 520.0,
+      "posY": 2430.0,
+      "properties": {}
+    },
+    {
+      "id": 136,
+      "type": "FieldLoad",
+      "posX": 680.0,
+      "posY": 2430.0,
+      "properties": {
+        "object": "hero",
+        "field": "gold",
+        "access": "."
+      }
+    },
+    {
+      "id": 137,
+      "type": "FieldStore",
+      "posX": 840.0,
+      "posY": 2430.0,
+      "properties": {
+        "object": "hero",
+        "field": "gold",
+        "access": "."
+      }
+    },
+    {
+      "id": 138,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 2510.0,
+      "properties": {
+        "name": "flavor",
+        "type": "char"
+      }
+    },
+    {
+      "id": 139,
+      "type": "RandomChar",
+      "posX": 200.0,
+      "posY": 2510.0,
+      "properties": {
+        "set": "upper"
+      }
+    },
+    {
+      "id": 140,
+      "type": "Assign",
+      "posX": 360.0,
+      "posY": 2510.0,
+      "properties": {
+        "target": "flavor"
+      }
+    },
+    {
+      "id": 141,
+      "type": "Call",
+      "posX": 520.0,
+      "posY": 2510.0,
+      "properties": {
+        "function": "log_event",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 142,
+      "type": "Literal",
+      "posX": 680.0,
+      "posY": 2510.0,
+      "properties": {
+        "value": "3",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 143,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 2590.0,
+      "properties": {
+        "format": "Flavor rune: %c\\n"
+      }
+    },
+    {
+      "id": 144,
+      "type": "VariableRef",
+      "posX": 200.0,
+      "posY": 2590.0,
+      "properties": {
+        "name": "flavor"
+      }
+    },
+    {
+      "id": 145,
+      "type": "Return",
+      "posX": 360.0,
+      "posY": 2590.0,
+      "properties": {}
+    },
+    {
+      "id": 146,
+      "type": "FunctionDef",
+      "posX": 40.0,
+      "posY": 2600.0,
+      "properties": {
+        "name": "show_past_runs",
+        "returnType": "void",
+        "params": "void"
+      }
+    },
+    {
+      "id": 147,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 2670.0,
+      "properties": {
+        "name": "fp",
+        "type": "FILE*"
+      }
+    },
+    {
+      "id": 148,
+      "type": "ArrayDecl",
+      "posX": 200.0,
+      "posY": 2670.0,
+      "properties": {
+        "name": "line",
+        "elemType": "char",
+        "size": "64"
+      }
+    },
+    {
+      "id": 149,
+      "type": "VariableDecl",
+      "posX": 400.0,
+      "posY": 2670.0,
+      "properties": {
+        "name": "ok",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 150,
+      "type": "Literal",
+      "posX": 560.0,
+      "posY": 2670.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 151,
+      "type": "Literal",
+      "posX": 720.0,
+      "posY": 2670.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 152,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 2750.0,
+      "properties": {
+        "format": "--- Past events (dungeon_log.txt) ---\\n"
+      }
+    },
+    {
+      "id": 153,
+      "type": "FileOpen",
+      "posX": 220.0,
+      "posY": 2750.0,
+      "properties": {
+        "handle": "fp",
+        "path": "dungeon_log.txt",
+        "mode": "r"
+      }
+    },
+    {
+      "id": 154,
+      "type": "If",
+      "posX": 400.0,
+      "posY": 2750.0,
+      "properties": {}
+    },
+    {
+      "id": 155,
+      "type": "Equal",
+      "posX": 560.0,
+      "posY": 2750.0,
+      "properties": {}
+    },
+    {
+      "id": 156,
+      "type": "VariableRef",
+      "posX": 720.0,
+      "posY": 2750.0,
+      "properties": {
+        "name": "fp"
+      }
+    },
+    {
+      "id": 157,
+      "type": "Printf",
+      "posX": 880.0,
+      "posY": 2750.0,
+      "properties": {
+        "format": "No log yet.\\n"
+      }
+    },
+    {
+      "id": 158,
+      "type": "Return",
+      "posX": 1040.0,
+      "posY": 2750.0,
+      "properties": {}
+    },
+    {
+      "id": 159,
+      "type": "Assign",
+      "posX": 40.0,
+      "posY": 2840.0,
+      "properties": {
+        "target": "ok"
+      }
+    },
+    {
+      "id": 160,
+      "type": "While",
+      "posX": 200.0,
+      "posY": 2840.0,
+      "properties": {}
+    },
+    {
+      "id": 161,
+      "type": "Equal",
+      "posX": 360.0,
+      "posY": 2840.0,
+      "properties": {}
+    },
+    {
+      "id": 162,
+      "type": "VariableRef",
+      "posX": 520.0,
+      "posY": 2840.0,
+      "properties": {
+        "name": "ok"
+      }
+    },
+    {
+      "id": 163,
+      "type": "FileGets",
+      "posX": 680.0,
+      "posY": 2840.0,
+      "properties": {
+        "handle": "fp",
+        "target": "line",
+        "size": "64",
+        "status": "ok"
+      }
+    },
+    {
+      "id": 164,
+      "type": "If",
+      "posX": 840.0,
+      "posY": 2840.0,
+      "properties": {}
+    },
+    {
+      "id": 165,
+      "type": "Equal",
+      "posX": 1000.0,
+      "posY": 2840.0,
+      "properties": {}
+    },
+    {
+      "id": 166,
+      "type": "VariableRef",
+      "posX": 1160.0,
+      "posY": 2840.0,
+      "properties": {
+        "name": "ok"
+      }
+    },
+    {
+      "id": 167,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 2920.0,
+      "properties": {
+        "format": "%s"
+      }
+    },
+    {
+      "id": 168,
+      "type": "VariableRef",
+      "posX": 200.0,
+      "posY": 2920.0,
+      "properties": {
+        "name": "line"
+      }
+    },
+    {
+      "id": 169,
+      "type": "FileClose",
+      "posX": 360.0,
+      "posY": 2920.0,
+      "properties": {
+        "handle": "fp"
+      }
+    },
+    {
+      "id": 170,
+      "type": "ArrayDecl",
+      "posX": 520.0,
+      "posY": 2920.0,
+      "properties": {
+        "name": "stamp",
+        "elemType": "uint8_t",
+        "size": "4"
+      }
+    },
+    {
+      "id": 171,
+      "type": "VariableDecl",
+      "posX": 720.0,
+      "posY": 2920.0,
+      "properties": {
+        "name": "fp2",
+        "type": "FILE*"
+      }
+    },
+    {
+      "id": 172,
+      "type": "FileOpen",
+      "posX": 40.0,
+      "posY": 3000.0,
+      "properties": {
+        "handle": "fp2",
+        "path": "dungeon_stamp.bin",
+        "mode": "wb"
+      }
+    },
+    {
+      "id": 173,
+      "type": "IndexAssign",
+      "posX": 200.0,
+      "posY": 3000.0,
+      "properties": {
+        "array": "stamp",
+        "elemType": "uint8_t"
+      }
+    },
+    {
+      "id": 174,
+      "type": "Literal",
+      "posX": 360.0,
+      "posY": 3000.0,
+      "properties": {
+        "value": "42",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 175,
+      "type": "Literal",
+      "posX": 520.0,
+      "posY": 3000.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 176,
+      "type": "FileWrite",
+      "posX": 680.0,
+      "posY": 3000.0,
+      "properties": {
+        "handle": "fp2",
+        "buffer": "stamp",
+        "size": "1",
+        "count": "1"
+      }
+    },
+    {
+      "id": 177,
+      "type": "FileClose",
+      "posX": 840.0,
+      "posY": 3000.0,
+      "properties": {
+        "handle": "fp2"
+      }
+    },
+    {
+      "id": 178,
+      "type": "FileOpen",
+      "posX": 40.0,
+      "posY": 3080.0,
+      "properties": {
+        "handle": "fp2",
+        "path": "dungeon_stamp.bin",
+        "mode": "rb"
+      }
+    },
+    {
+      "id": 179,
+      "type": "FileRead",
+      "posX": 200.0,
+      "posY": 3080.0,
+      "properties": {
+        "handle": "fp2",
+        "buffer": "stamp",
+        "size": "1",
+        "count": "1"
+      }
+    },
+    {
+      "id": 180,
+      "type": "FileClose",
+      "posX": 360.0,
+      "posY": 3080.0,
+      "properties": {
+        "handle": "fp2"
+      }
+    },
+    {
+      "id": 181,
+      "type": "Return",
+      "posX": 520.0,
+      "posY": 3080.0,
+      "properties": {}
+    },
+    {
+      "id": 182,
+      "type": "Start",
+      "posX": 40.0,
+      "posY": 4200.0,
+      "properties": {}
+    },
+    {
+      "id": 183,
+      "type": "Comment",
+      "posX": 200.0,
+      "posY": 4200.0,
+      "properties": {
+        "text": "Dungeon Log \u2014 explore, fight, loot, rest"
+      }
+    },
+    {
+      "id": 184,
+      "type": "FieldStore",
+      "posX": 40.0,
+      "posY": 4280.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 185,
+      "type": "Literal",
+      "posX": 200.0,
+      "posY": 4280.0,
+      "properties": {
+        "value": "30",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 186,
+      "type": "FieldStore",
+      "posX": 360.0,
+      "posY": 4280.0,
+      "properties": {
+        "object": "hero",
+        "field": "maxHp",
+        "access": "."
+      }
+    },
+    {
+      "id": 187,
+      "type": "FieldStore",
+      "posX": 520.0,
+      "posY": 4280.0,
+      "properties": {
+        "object": "hero",
+        "field": "atk",
+        "access": "."
+      }
+    },
+    {
+      "id": 188,
+      "type": "Literal",
+      "posX": 680.0,
+      "posY": 4280.0,
+      "properties": {
+        "value": "6",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 189,
+      "type": "FieldStore",
+      "posX": 840.0,
+      "posY": 4280.0,
+      "properties": {
+        "object": "hero",
+        "field": "gold",
+        "access": "."
+      }
+    },
+    {
+      "id": 190,
+      "type": "Literal",
+      "posX": 1000.0,
+      "posY": 4280.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 191,
+      "type": "FieldStore",
+      "posX": 40.0,
+      "posY": 4360.0,
+      "properties": {
+        "object": "hero",
+        "field": "room",
+        "access": "."
+      }
+    },
+    {
+      "id": 192,
+      "type": "ArrayDecl",
+      "posX": 200.0,
+      "posY": 4360.0,
+      "properties": {
+        "name": "name",
+        "elemType": "char",
+        "size": "32"
+      }
+    },
+    {
+      "id": 193,
+      "type": "ArrayDecl",
+      "posX": 400.0,
+      "posY": 4360.0,
+      "properties": {
+        "name": "title",
+        "elemType": "char",
+        "size": "32"
+      }
+    },
+    {
+      "id": 194,
+      "type": "VariableDecl",
+      "posX": 600.0,
+      "posY": 4360.0,
+      "properties": {
+        "name": "menu",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 195,
+      "type": "VariableDecl",
+      "posX": 760.0,
+      "posY": 4360.0,
+      "properties": {
+        "name": "playing",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 196,
+      "type": "Literal",
+      "posX": 920.0,
+      "posY": 4360.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 197,
+      "type": "ScanfLine",
+      "posX": 40.0,
+      "posY": 4520.0,
+      "properties": {
+        "target": "name",
+        "size": "32",
+        "prompt": "Hero name: "
+      }
+    },
+    {
+      "id": 198,
+      "type": "StrCpy",
+      "posX": 220.0,
+      "posY": 4520.0,
+      "properties": {
+        "dest": "title",
+        "src": "\"Hero\""
+      }
+    },
+    {
+      "id": 199,
+      "type": "StrNCpy",
+      "posX": 400.0,
+      "posY": 4520.0,
+      "properties": {
+        "dest": "title",
+        "src": "name",
+        "count": "16"
+      }
+    },
+    {
+      "id": 200,
+      "type": "StrLen",
+      "posX": 560.0,
+      "posY": 4520.0,
+      "properties": {
+        "buffer": "name"
+      }
+    },
+    {
+      "id": 201,
+      "type": "VariableDecl",
+      "posX": 720.0,
+      "posY": 4520.0,
+      "properties": {
+        "name": "nameLen",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 202,
+      "type": "If",
+      "posX": 40.0,
+      "posY": 4600.0,
+      "properties": {}
+    },
+    {
+      "id": 203,
+      "type": "Equal",
+      "posX": 200.0,
+      "posY": 4600.0,
+      "properties": {}
+    },
+    {
+      "id": 204,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 4600.0,
+      "properties": {
+        "name": "nameLen"
+      }
+    },
+    {
+      "id": 205,
+      "type": "StrCpy",
+      "posX": 520.0,
+      "posY": 4600.0,
+      "properties": {
+        "dest": "name",
+        "src": "\"Wanderer\""
+      }
+    },
+    {
+      "id": 206,
+      "type": "Printf",
+      "posX": 680.0,
+      "posY": 4600.0,
+      "properties": {
+        "format": "Welcome, adventurer!\\n"
+      }
+    },
+    {
+      "id": 207,
+      "type": "WaitEnter",
+      "posX": 840.0,
+      "posY": 4600.0,
+      "properties": {
+        "prompt": "Press Enter to begin...\\n"
+      }
+    },
+    {
+      "id": 208,
+      "type": "Call",
+      "posX": 40.0,
+      "posY": 4680.0,
+      "properties": {
+        "function": "show_past_runs",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 209,
+      "type": "VariableDecl",
+      "posX": 220.0,
+      "posY": 4680.0,
+      "properties": {
+        "name": "now",
+        "type": "int64_t"
+      }
+    },
+    {
+      "id": 210,
+      "type": "TimeNow",
+      "posX": 400.0,
+      "posY": 4680.0,
+      "properties": {}
+    },
+    {
+      "id": 211,
+      "type": "Assign",
+      "posX": 560.0,
+      "posY": 4680.0,
+      "properties": {
+        "target": "now"
+      }
+    },
+    {
+      "id": 212,
+      "type": "Printf",
+      "posX": 720.0,
+      "posY": 4680.0,
+      "properties": {
+        "format": "Session time: %lld\\n"
+      }
+    },
+    {
+      "id": 213,
+      "type": "VariableRef",
+      "posX": 880.0,
+      "posY": 4680.0,
+      "properties": {
+        "name": "now"
+      }
+    },
+    {
+      "id": 214,
+      "type": "While",
+      "posX": 40.0,
+      "posY": 4760.0,
+      "properties": {}
+    },
+    {
+      "id": 215,
+      "type": "Equal",
+      "posX": 200.0,
+      "posY": 4760.0,
+      "properties": {}
+    },
+    {
+      "id": 216,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 4760.0,
+      "properties": {
+        "name": "playing"
+      }
+    },
+    {
+      "id": 217,
+      "type": "Printf",
+      "posX": 520.0,
+      "posY": 4760.0,
+      "properties": {
+        "format": "\\n[1] Explore  [2] Rest  [3] Status  [4] Quit\\n"
+      }
+    },
+    {
+      "id": 218,
+      "type": "ScanfInt",
+      "posX": 680.0,
+      "posY": 4760.0,
+      "properties": {
+        "target": "menu"
+      }
+    },
+    {
+      "id": 219,
+      "type": "Switch",
+      "posX": 840.0,
+      "posY": 4760.0,
+      "properties": {}
+    },
+    {
+      "id": 220,
+      "type": "VariableRef",
+      "posX": 1000.0,
+      "posY": 4760.0,
+      "properties": {
+        "name": "menu"
+      }
+    },
+    {
+      "id": 221,
+      "type": "Case",
+      "posX": 40.0,
+      "posY": 4840.0,
+      "properties": {
+        "value": "1"
+      }
+    },
+    {
+      "id": 222,
+      "type": "Case",
+      "posX": 200.0,
+      "posY": 4840.0,
+      "properties": {
+        "value": "2"
+      }
+    },
+    {
+      "id": 223,
+      "type": "Case",
+      "posX": 360.0,
+      "posY": 4840.0,
+      "properties": {
+        "value": "3"
+      }
+    },
+    {
+      "id": 224,
+      "type": "Case",
+      "posX": 520.0,
+      "posY": 4840.0,
+      "properties": {
+        "value": "4"
+      }
+    },
+    {
+      "id": 225,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 4920.0,
+      "properties": {
+        "format": "You explore deeper...\\n"
+      }
+    },
+    {
+      "id": 226,
+      "type": "VariableDecl",
+      "posX": 220.0,
+      "posY": 4920.0,
+      "properties": {
+        "name": "roll",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 227,
+      "type": "Assign",
+      "posX": 400.0,
+      "posY": 4920.0,
+      "properties": {
+        "target": "roll"
+      }
+    },
+    {
+      "id": 228,
+      "type": "Random",
+      "posX": 560.0,
+      "posY": 4920.0,
+      "properties": {}
+    },
+    {
+      "id": 229,
+      "type": "Mod",
+      "posX": 720.0,
+      "posY": 4920.0,
+      "properties": {}
+    },
+    {
+      "id": 230,
+      "type": "Literal",
+      "posX": 880.0,
+      "posY": 4920.0,
+      "properties": {
+        "value": "3",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 231,
+      "type": "If",
+      "posX": 40.0,
+      "posY": 5000.0,
+      "properties": {}
+    },
+    {
+      "id": 232,
+      "type": "Equal",
+      "posX": 200.0,
+      "posY": 5000.0,
+      "properties": {}
+    },
+    {
+      "id": 233,
+      "type": "VariableRef",
+      "posX": 360.0,
+      "posY": 5000.0,
+      "properties": {
+        "name": "roll"
+      }
+    },
+    {
+      "id": 234,
+      "type": "Call",
+      "posX": 520.0,
+      "posY": 5000.0,
+      "properties": {
+        "function": "do_combat",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 235,
+      "type": "ElseIf",
+      "posX": 680.0,
+      "posY": 5000.0,
+      "properties": {}
+    },
+    {
+      "id": 236,
+      "type": "Equal",
+      "posX": 840.0,
+      "posY": 5000.0,
+      "properties": {}
+    },
+    {
+      "id": 237,
+      "type": "Literal",
+      "posX": 1000.0,
+      "posY": 5000.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 238,
+      "type": "Call",
+      "posX": 40.0,
+      "posY": 5080.0,
+      "properties": {
+        "function": "do_loot",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 239,
+      "type": "Printf",
+      "posX": 200.0,
+      "posY": 5080.0,
+      "properties": {
+        "format": "The room is empty.\\n"
+      }
+    },
+    {
+      "id": 240,
+      "type": "Call",
+      "posX": 360.0,
+      "posY": 5080.0,
+      "properties": {
+        "function": "log_event",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 241,
+      "type": "Literal",
+      "posX": 520.0,
+      "posY": 5080.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 242,
+      "type": "Printf",
+      "posX": 40.0,
+      "posY": 5160.0,
+      "properties": {
+        "format": "You rest...\\n"
+      }
+    },
+    {
+      "id": 243,
+      "type": "Sleep",
+      "posX": 200.0,
+      "posY": 5160.0,
+      "properties": {
+        "seconds": "1"
+      }
+    },
+    {
+      "id": 244,
+      "type": "ScanfFloat",
+      "posX": 360.0,
+      "posY": 5160.0,
+      "properties": {
+        "target": "healBonus"
+      }
+    },
+    {
+      "id": 245,
+      "type": "VariableDecl",
+      "posX": 520.0,
+      "posY": 5160.0,
+      "properties": {
+        "name": "healBonus",
+        "type": "float"
+      }
+    },
+    {
+      "id": 246,
+      "type": "Cast",
+      "posX": 680.0,
+      "posY": 5160.0,
+      "properties": {
+        "toType": "int32_t"
+      }
+    },
+    {
+      "id": 247,
+      "type": "VariableRef",
+      "posX": 840.0,
+      "posY": 5160.0,
+      "properties": {
+        "name": "healBonus"
+      }
+    },
+    {
+      "id": 248,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 5240.0,
+      "properties": {
+        "name": "heal",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 249,
+      "type": "Assign",
+      "posX": 200.0,
+      "posY": 5240.0,
+      "properties": {
+        "target": "heal"
+      }
+    },
+    {
+      "id": 250,
+      "type": "Add",
+      "posX": 360.0,
+      "posY": 5240.0,
+      "properties": {}
+    },
+    {
+      "id": 251,
+      "type": "Literal",
+      "posX": 520.0,
+      "posY": 5240.0,
+      "properties": {
+        "value": "5",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 252,
+      "type": "FieldLoad",
+      "posX": 680.0,
+      "posY": 5240.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 253,
+      "type": "Add",
+      "posX": 840.0,
+      "posY": 5240.0,
+      "properties": {}
+    },
+    {
+      "id": 254,
+      "type": "VariableRef",
+      "posX": 1000.0,
+      "posY": 5240.0,
+      "properties": {
+        "name": "heal"
+      }
+    },
+    {
+      "id": 255,
+      "type": "FieldStore",
+      "posX": 40.0,
+      "posY": 5320.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 256,
+      "type": "If",
+      "posX": 200.0,
+      "posY": 5320.0,
+      "properties": {}
+    },
+    {
+      "id": 257,
+      "type": "Greater",
+      "posX": 360.0,
+      "posY": 5320.0,
+      "properties": {}
+    },
+    {
+      "id": 258,
+      "type": "FieldLoad",
+      "posX": 520.0,
+      "posY": 5320.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 259,
+      "type": "FieldLoad",
+      "posX": 680.0,
+      "posY": 5320.0,
+      "properties": {
+        "object": "hero",
+        "field": "maxHp",
+        "access": "."
+      }
+    },
+    {
+      "id": 260,
+      "type": "FieldStore",
+      "posX": 840.0,
+      "posY": 5320.0,
+      "properties": {
+        "object": "hero",
+        "field": "hp",
+        "access": "."
+      }
+    },
+    {
+      "id": 261,
+      "type": "Call",
+      "posX": 40.0,
+      "posY": 5400.0,
+      "properties": {
+        "function": "log_event",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 262,
+      "type": "Literal",
+      "posX": 200.0,
+      "posY": 5400.0,
+      "properties": {
+        "value": "4",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 263,
+      "type": "Call",
+      "posX": 360.0,
+      "posY": 5400.0,
+      "properties": {
+        "function": "print_status",
+        "storeTo": ""
+      }
+    },
+    {
+      "id": 264,
+      "type": "Printf",
+      "posX": 520.0,
+      "posY": 5400.0,
+      "properties": {
+        "format": "Name buffer ready.\\n"
+      }
+    },
+    {
+      "id": 265,
+      "type": "StrCmp",
+      "posX": 680.0,
+      "posY": 5400.0,
+      "properties": {
+        "left": "name",
+        "right": "\"Wanderer\""
+      }
+    },
+    {
+      "id": 266,
+      "type": "VariableDecl",
+      "posX": 840.0,
+      "posY": 5400.0,
+      "properties": {
+        "name": "cmp",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 267,
+      "type": "Printf",
+      "posX": 1000.0,
+      "posY": 5400.0,
+      "properties": {
+        "format": "Name vs Wanderer: %d\\n"
+      }
+    },
+    {
+      "id": 268,
+      "type": "VariableRef",
+      "posX": 1160.0,
+      "posY": 5400.0,
+      "properties": {
+        "name": "cmp"
+      }
+    },
+    {
+      "id": 269,
+      "type": "VariableDecl",
+      "posX": 40.0,
+      "posY": 5440.0,
+      "properties": {
+        "name": "tick",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 270,
+      "type": "Assign",
+      "posX": 200.0,
+      "posY": 5440.0,
+      "properties": {
+        "target": "tick"
+      }
+    },
+    {
+      "id": 271,
+      "type": "Literal",
+      "posX": 360.0,
+      "posY": 5440.0,
+      "properties": {
+        "value": "0",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 272,
+      "type": "Inc",
+      "posX": 520.0,
+      "posY": 5440.0,
+      "properties": {
+        "target": "tick"
+      }
+    },
+    {
+      "id": 273,
+      "type": "Dec",
+      "posX": 680.0,
+      "posY": 5440.0,
+      "properties": {
+        "target": "tick"
+      }
+    },
+    {
+      "id": 274,
+      "type": "VariableDecl",
+      "posX": 840.0,
+      "posY": 5440.0,
+      "properties": {
+        "name": "flag",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 275,
+      "type": "Assign",
+      "posX": 1000.0,
+      "posY": 5440.0,
+      "properties": {
+        "target": "flag"
+      }
+    },
+    {
+      "id": 276,
+      "type": "LessEqual",
+      "posX": 40.0,
+      "posY": 5460.0,
+      "properties": {}
+    },
+    {
+      "id": 277,
+      "type": "GreaterEqual",
+      "posX": 200.0,
+      "posY": 5460.0,
+      "properties": {}
+    },
+    {
+      "id": 278,
+      "type": "Or",
+      "posX": 360.0,
+      "posY": 5460.0,
+      "properties": {}
+    },
+    {
+      "id": 279,
+      "type": "Not",
+      "posX": 520.0,
+      "posY": 5460.0,
+      "properties": {}
+    },
+    {
+      "id": 280,
+      "type": "VariableRef",
+      "posX": 680.0,
+      "posY": 5460.0,
+      "properties": {
+        "name": "tick"
+      }
+    },
+    {
+      "id": 281,
+      "type": "Literal",
+      "posX": 840.0,
+      "posY": 5460.0,
+      "properties": {
+        "value": "1",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 282,
+      "type": "If",
+      "posX": 40.0,
+      "posY": 5470.0,
+      "properties": {}
+    },
+    {
+      "id": 283,
+      "type": "For",
+      "posX": 200.0,
+      "posY": 5470.0,
+      "properties": {
+        "iterator": "bi",
+        "start": "0",
+        "end": "3",
+        "type": "int32_t"
+      }
+    },
+    {
+      "id": 284,
+      "type": "Break",
+      "posX": 360.0,
+      "posY": 5470.0,
+      "properties": {}
+    },
+    {
+      "id": 285,
+      "type": "Assign",
+      "posX": 40.0,
+      "posY": 5480.0,
+      "properties": {
+        "target": "playing"
+      }
+    },
+    {
+      "id": 286,
+      "type": "Printf",
+      "posX": 200.0,
+      "posY": 5480.0,
+      "properties": {
+        "format": "Farewell!\\n"
+      }
+    },
+    {
+      "id": 287,
+      "type": "Printf",
+      "posX": 360.0,
+      "posY": 5480.0,
+      "properties": {
+        "format": "Unknown choice.\\n"
+      }
+    },
+    {
+      "id": 288,
+      "type": "VariableDecl",
+      "posX": 520.0,
+      "posY": 5480.0,
+      "properties": {
+        "name": "again",
+        "type": "char"
+      }
+    },
+    {
+      "id": 289,
+      "type": "ScanfChar",
+      "posX": 680.0,
+      "posY": 5480.0,
+      "properties": {
+        "target": "again"
+      }
+    },
+    {
+      "id": 290,
+      "type": "End",
+      "posX": 40.0,
+      "posY": 5560.0,
+      "properties": {}
+    },
+    {
+      "id": 291,
+      "type": "VariableRef",
+      "posX": 40.0,
+      "posY": 5475.0,
+      "properties": {
+        "name": "flag"
+      }
+    },
+    {
+      "id": 292,
+      "type": "Literal",
+      "posX": 40.0,
+      "posY": 5700.0,
+      "properties": {
+        "value": "0.0",
+        "type": "float"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": 1,
+      "fromNodeId": 3,
+      "fromPort": "Body",
+      "toNodeId": 4,
+      "toPort": "In"
+    },
+    {
+      "id": 2,
+      "fromNodeId": 4,
+      "fromPort": "Next",
+      "toNodeId": 5,
+      "toPort": "In"
+    },
+    {
+      "id": 3,
+      "fromNodeId": 5,
+      "fromPort": "Next",
+      "toNodeId": 8,
+      "toPort": "In"
+    },
+    {
+      "id": 4,
+      "fromNodeId": 8,
+      "fromPort": "Next",
+      "toNodeId": 12,
+      "toPort": "In"
+    },
+    {
+      "id": 5,
+      "fromNodeId": 6,
+      "fromPort": "Value",
+      "toNodeId": 5,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 6,
+      "fromNodeId": 7,
+      "fromPort": "Value",
+      "toNodeId": 5,
+      "toPort": "Arg1"
+    },
+    {
+      "id": 7,
+      "fromNodeId": 9,
+      "fromPort": "Value",
+      "toNodeId": 8,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 8,
+      "fromNodeId": 10,
+      "fromPort": "Value",
+      "toNodeId": 8,
+      "toPort": "Arg1"
+    },
+    {
+      "id": 9,
+      "fromNodeId": 11,
+      "fromPort": "Value",
+      "toNodeId": 8,
+      "toPort": "Arg2"
+    },
+    {
+      "id": 10,
+      "fromNodeId": 13,
+      "fromPort": "Body",
+      "toNodeId": 14,
+      "toPort": "In"
+    },
+    {
+      "id": 11,
+      "fromNodeId": 21,
+      "fromPort": "Value",
+      "toNodeId": 14,
+      "toPort": "Init"
+    },
+    {
+      "id": 12,
+      "fromNodeId": 21,
+      "fromPort": "Value",
+      "toNodeId": 15,
+      "toPort": "Init"
+    },
+    {
+      "id": 13,
+      "fromNodeId": 21,
+      "fromPort": "Value",
+      "toNodeId": 16,
+      "toPort": "Init"
+    },
+    {
+      "id": 14,
+      "fromNodeId": 21,
+      "fromPort": "Value",
+      "toNodeId": 17,
+      "toPort": "Init"
+    },
+    {
+      "id": 15,
+      "fromNodeId": 21,
+      "fromPort": "Value",
+      "toNodeId": 18,
+      "toPort": "Init"
+    },
+    {
+      "id": 16,
+      "fromNodeId": 21,
+      "fromPort": "Value",
+      "toNodeId": 19,
+      "toPort": "Init"
+    },
+    {
+      "id": 17,
+      "fromNodeId": 14,
+      "fromPort": "Next",
+      "toNodeId": 15,
+      "toPort": "In"
+    },
+    {
+      "id": 18,
+      "fromNodeId": 15,
+      "fromPort": "Next",
+      "toNodeId": 16,
+      "toPort": "In"
+    },
+    {
+      "id": 19,
+      "fromNodeId": 16,
+      "fromPort": "Next",
+      "toNodeId": 17,
+      "toPort": "In"
+    },
+    {
+      "id": 20,
+      "fromNodeId": 17,
+      "fromPort": "Next",
+      "toNodeId": 18,
+      "toPort": "In"
+    },
+    {
+      "id": 21,
+      "fromNodeId": 18,
+      "fromPort": "Next",
+      "toNodeId": 19,
+      "toPort": "In"
+    },
+    {
+      "id": 22,
+      "fromNodeId": 19,
+      "fromPort": "Next",
+      "toNodeId": 20,
+      "toPort": "In"
+    },
+    {
+      "id": 23,
+      "fromNodeId": 20,
+      "fromPort": "Next",
+      "toNodeId": 22,
+      "toPort": "In"
+    },
+    {
+      "id": 24,
+      "fromNodeId": 22,
+      "fromPort": "Next",
+      "toNodeId": 23,
+      "toPort": "In"
+    },
+    {
+      "id": 25,
+      "fromNodeId": 23,
+      "fromPort": "Next",
+      "toNodeId": 24,
+      "toPort": "In"
+    },
+    {
+      "id": 26,
+      "fromNodeId": 26,
+      "fromPort": "Value",
+      "toNodeId": 25,
+      "toPort": "Left"
+    },
+    {
+      "id": 27,
+      "fromNodeId": 21,
+      "fromPort": "Value",
+      "toNodeId": 25,
+      "toPort": "Right"
+    },
+    {
+      "id": 28,
+      "fromNodeId": 25,
+      "fromPort": "Result",
+      "toNodeId": 24,
+      "toPort": "Cond"
+    },
+    {
+      "id": 29,
+      "fromNodeId": 24,
+      "fromPort": "Then",
+      "toNodeId": 27,
+      "toPort": "In"
+    },
+    {
+      "id": 30,
+      "fromNodeId": 28,
+      "fromPort": "Value",
+      "toNodeId": 27,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 31,
+      "fromNodeId": 29,
+      "fromPort": "Value",
+      "toNodeId": 27,
+      "toPort": "Arg1"
+    },
+    {
+      "id": 32,
+      "fromNodeId": 30,
+      "fromPort": "Value",
+      "toNodeId": 27,
+      "toPort": "Arg2"
+    },
+    {
+      "id": 33,
+      "fromNodeId": 31,
+      "fromPort": "Value",
+      "toNodeId": 27,
+      "toPort": "Arg3"
+    },
+    {
+      "id": 34,
+      "fromNodeId": 32,
+      "fromPort": "Value",
+      "toNodeId": 27,
+      "toPort": "Arg4"
+    },
+    {
+      "id": 35,
+      "fromNodeId": 33,
+      "fromPort": "Value",
+      "toNodeId": 27,
+      "toPort": "Arg5"
+    },
+    {
+      "id": 36,
+      "fromNodeId": 34,
+      "fromPort": "Value",
+      "toNodeId": 27,
+      "toPort": "Arg6"
+    },
+    {
+      "id": 37,
+      "fromNodeId": 27,
+      "fromPort": "Next",
+      "toNodeId": 35,
+      "toPort": "In"
+    },
+    {
+      "id": 38,
+      "fromNodeId": 35,
+      "fromPort": "Next",
+      "toNodeId": 36,
+      "toPort": "In"
+    },
+    {
+      "id": 39,
+      "fromNodeId": 24,
+      "fromPort": "Next",
+      "toNodeId": 36,
+      "toPort": "In"
+    },
+    {
+      "id": 40,
+      "fromNodeId": 37,
+      "fromPort": "Body",
+      "toNodeId": 38,
+      "toPort": "In"
+    },
+    {
+      "id": 41,
+      "fromNodeId": 40,
+      "fromPort": "Value",
+      "toNodeId": 38,
+      "toPort": "Init"
+    },
+    {
+      "id": 42,
+      "fromNodeId": 38,
+      "fromPort": "Next",
+      "toNodeId": 39,
+      "toPort": "In"
+    },
+    {
+      "id": 43,
+      "fromNodeId": 41,
+      "fromPort": "Value",
+      "toNodeId": 39,
+      "toPort": "Init"
+    },
+    {
+      "id": 44,
+      "fromNodeId": 39,
+      "fromPort": "Next",
+      "toNodeId": 47,
+      "toPort": "In"
+    },
+    {
+      "id": 45,
+      "fromNodeId": 42,
+      "fromPort": "Value",
+      "toNodeId": 43,
+      "toPort": "Left"
+    },
+    {
+      "id": 46,
+      "fromNodeId": 44,
+      "fromPort": "Value",
+      "toNodeId": 43,
+      "toPort": "Right"
+    },
+    {
+      "id": 47,
+      "fromNodeId": 46,
+      "fromPort": "Value",
+      "toNodeId": 45,
+      "toPort": "Left"
+    },
+    {
+      "id": 48,
+      "fromNodeId": 43,
+      "fromPort": "Result",
+      "toNodeId": 45,
+      "toPort": "Right"
+    },
+    {
+      "id": 49,
+      "fromNodeId": 45,
+      "fromPort": "Result",
+      "toNodeId": 47,
+      "toPort": "Value"
+    },
+    {
+      "id": 50,
+      "fromNodeId": 47,
+      "fromPort": "Next",
+      "toNodeId": 51,
+      "toPort": "In"
+    },
+    {
+      "id": 51,
+      "fromNodeId": 50,
+      "fromPort": "Value",
+      "toNodeId": 48,
+      "toPort": "Left"
+    },
+    {
+      "id": 52,
+      "fromNodeId": 49,
+      "fromPort": "Value",
+      "toNodeId": 48,
+      "toPort": "Right"
+    },
+    {
+      "id": 53,
+      "fromNodeId": 48,
+      "fromPort": "Result",
+      "toNodeId": 51,
+      "toPort": "Value"
+    },
+    {
+      "id": 54,
+      "fromNodeId": 51,
+      "fromPort": "Next",
+      "toNodeId": 53,
+      "toPort": "In"
+    },
+    {
+      "id": 55,
+      "fromNodeId": 50,
+      "fromPort": "Value",
+      "toNodeId": 52,
+      "toPort": "Value"
+    },
+    {
+      "id": 56,
+      "fromNodeId": 52,
+      "fromPort": "Result",
+      "toNodeId": 53,
+      "toPort": "Value"
+    },
+    {
+      "id": 57,
+      "fromNodeId": 53,
+      "fromPort": "Next",
+      "toNodeId": 54,
+      "toPort": "In"
+    },
+    {
+      "id": 58,
+      "fromNodeId": 55,
+      "fromPort": "Value",
+      "toNodeId": 54,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 59,
+      "fromNodeId": 54,
+      "fromPort": "Next",
+      "toNodeId": 56,
+      "toPort": "In"
+    },
+    {
+      "id": 60,
+      "fromNodeId": 60,
+      "fromPort": "Value",
+      "toNodeId": 57,
+      "toPort": "Left"
+    },
+    {
+      "id": 61,
+      "fromNodeId": 40,
+      "fromPort": "Value",
+      "toNodeId": 57,
+      "toPort": "Right"
+    },
+    {
+      "id": 62,
+      "fromNodeId": 57,
+      "fromPort": "Result",
+      "toNodeId": 56,
+      "toPort": "Cond"
+    },
+    {
+      "id": 63,
+      "fromNodeId": 56,
+      "fromPort": "Then",
+      "toNodeId": 58,
+      "toPort": "In"
+    },
+    {
+      "id": 64,
+      "fromNodeId": 60,
+      "fromPort": "Value",
+      "toNodeId": 59,
+      "toPort": "Value"
+    },
+    {
+      "id": 65,
+      "fromNodeId": 59,
+      "fromPort": "Result",
+      "toNodeId": 58,
+      "toPort": "Value"
+    },
+    {
+      "id": 66,
+      "fromNodeId": 56,
+      "fromPort": "Next",
+      "toNodeId": 61,
+      "toPort": "In"
+    },
+    {
+      "id": 67,
+      "fromNodeId": 60,
+      "fromPort": "Value",
+      "toNodeId": 61,
+      "toPort": "Value"
+    },
+    {
+      "id": 68,
+      "fromNodeId": 62,
+      "fromPort": "Body",
+      "toNodeId": 63,
+      "toPort": "In"
+    },
+    {
+      "id": 69,
+      "fromNodeId": 63,
+      "fromPort": "Next",
+      "toNodeId": 64,
+      "toPort": "In"
+    },
+    {
+      "id": 70,
+      "fromNodeId": 66,
+      "fromPort": "Value",
+      "toNodeId": 64,
+      "toPort": "Init"
+    },
+    {
+      "id": 71,
+      "fromNodeId": 64,
+      "fromPort": "Next",
+      "toNodeId": 65,
+      "toPort": "In"
+    },
+    {
+      "id": 72,
+      "fromNodeId": 67,
+      "fromPort": "Value",
+      "toNodeId": 65,
+      "toPort": "Init"
+    },
+    {
+      "id": 73,
+      "fromNodeId": 65,
+      "fromPort": "Next",
+      "toNodeId": 68,
+      "toPort": "In"
+    },
+    {
+      "id": 74,
+      "fromNodeId": 68,
+      "fromPort": "Next",
+      "toNodeId": 69,
+      "toPort": "In"
+    },
+    {
+      "id": 75,
+      "fromNodeId": 71,
+      "fromPort": "Value",
+      "toNodeId": 70,
+      "toPort": "Left"
+    },
+    {
+      "id": 76,
+      "fromNodeId": 67,
+      "fromPort": "Value",
+      "toNodeId": 70,
+      "toPort": "Right"
+    },
+    {
+      "id": 77,
+      "fromNodeId": 73,
+      "fromPort": "Value",
+      "toNodeId": 72,
+      "toPort": "Left"
+    },
+    {
+      "id": 78,
+      "fromNodeId": 67,
+      "fromPort": "Value",
+      "toNodeId": 72,
+      "toPort": "Right"
+    },
+    {
+      "id": 79,
+      "fromNodeId": 70,
+      "fromPort": "Result",
+      "toNodeId": 74,
+      "toPort": "Left"
+    },
+    {
+      "id": 80,
+      "fromNodeId": 72,
+      "fromPort": "Result",
+      "toNodeId": 74,
+      "toPort": "Right"
+    },
+    {
+      "id": 81,
+      "fromNodeId": 74,
+      "fromPort": "Result",
+      "toNodeId": 69,
+      "toPort": "Cond"
+    },
+    {
+      "id": 82,
+      "fromNodeId": 69,
+      "fromPort": "Body",
+      "toNodeId": 75,
+      "toPort": "In"
+    },
+    {
+      "id": 83,
+      "fromNodeId": 76,
+      "fromPort": "Value",
+      "toNodeId": 75,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 84,
+      "fromNodeId": 75,
+      "fromPort": "Next",
+      "toNodeId": 77,
+      "toPort": "In"
+    },
+    {
+      "id": 85,
+      "fromNodeId": 78,
+      "fromPort": "Value",
+      "toNodeId": 77,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 86,
+      "fromNodeId": 77,
+      "fromPort": "Next",
+      "toNodeId": 79,
+      "toPort": "In"
+    },
+    {
+      "id": 87,
+      "fromNodeId": 78,
+      "fromPort": "Value",
+      "toNodeId": 79,
+      "toPort": "Value"
+    },
+    {
+      "id": 88,
+      "fromNodeId": 79,
+      "fromPort": "Next",
+      "toNodeId": 80,
+      "toPort": "In"
+    },
+    {
+      "id": 89,
+      "fromNodeId": 78,
+      "fromPort": "Value",
+      "toNodeId": 81,
+      "toPort": "Left"
+    },
+    {
+      "id": 90,
+      "fromNodeId": 67,
+      "fromPort": "Value",
+      "toNodeId": 81,
+      "toPort": "Right"
+    },
+    {
+      "id": 91,
+      "fromNodeId": 81,
+      "fromPort": "Result",
+      "toNodeId": 80,
+      "toPort": "Cond"
+    },
+    {
+      "id": 92,
+      "fromNodeId": 80,
+      "fromPort": "Then",
+      "toNodeId": 82,
+      "toPort": "In"
+    },
+    {
+      "id": 93,
+      "fromNodeId": 80,
+      "fromPort": "Else",
+      "toNodeId": 83,
+      "toPort": "In"
+    },
+    {
+      "id": 94,
+      "fromNodeId": 85,
+      "fromPort": "Value",
+      "toNodeId": 84,
+      "toPort": "Left"
+    },
+    {
+      "id": 95,
+      "fromNodeId": 67,
+      "fromPort": "Value",
+      "toNodeId": 84,
+      "toPort": "Right"
+    },
+    {
+      "id": 96,
+      "fromNodeId": 84,
+      "fromPort": "Result",
+      "toNodeId": 83,
+      "toPort": "Cond"
+    },
+    {
+      "id": 97,
+      "fromNodeId": 83,
+      "fromPort": "Then",
+      "toNodeId": 86,
+      "toPort": "In"
+    },
+    {
+      "id": 98,
+      "fromNodeId": 87,
+      "fromPort": "Value",
+      "toNodeId": 86,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 99,
+      "fromNodeId": 86,
+      "fromPort": "Next",
+      "toNodeId": 88,
+      "toPort": "In"
+    },
+    {
+      "id": 100,
+      "fromNodeId": 89,
+      "fromPort": "Value",
+      "toNodeId": 88,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 101,
+      "fromNodeId": 88,
+      "fromPort": "Next",
+      "toNodeId": 92,
+      "toPort": "In"
+    },
+    {
+      "id": 102,
+      "fromNodeId": 91,
+      "fromPort": "Value",
+      "toNodeId": 90,
+      "toPort": "Left"
+    },
+    {
+      "id": 103,
+      "fromNodeId": 89,
+      "fromPort": "Value",
+      "toNodeId": 90,
+      "toPort": "Right"
+    },
+    {
+      "id": 104,
+      "fromNodeId": 90,
+      "fromPort": "Result",
+      "toNodeId": 92,
+      "toPort": "Value"
+    },
+    {
+      "id": 105,
+      "fromNodeId": 92,
+      "fromPort": "Next",
+      "toNodeId": 93,
+      "toPort": "In"
+    },
+    {
+      "id": 106,
+      "fromNodeId": 96,
+      "fromPort": "Value",
+      "toNodeId": 95,
+      "toPort": "Left"
+    },
+    {
+      "id": 107,
+      "fromNodeId": 94,
+      "fromPort": "Value",
+      "toNodeId": 95,
+      "toPort": "Right"
+    },
+    {
+      "id": 108,
+      "fromNodeId": 95,
+      "fromPort": "Result",
+      "toNodeId": 93,
+      "toPort": "Cond"
+    },
+    {
+      "id": 109,
+      "fromNodeId": 69,
+      "fromPort": "Exit",
+      "toNodeId": 97,
+      "toPort": "In"
+    },
+    {
+      "id": 110,
+      "fromNodeId": 99,
+      "fromPort": "Value",
+      "toNodeId": 98,
+      "toPort": "Left"
+    },
+    {
+      "id": 111,
+      "fromNodeId": 67,
+      "fromPort": "Value",
+      "toNodeId": 98,
+      "toPort": "Right"
+    },
+    {
+      "id": 112,
+      "fromNodeId": 98,
+      "fromPort": "Result",
+      "toNodeId": 97,
+      "toPort": "Cond"
+    },
+    {
+      "id": 113,
+      "fromNodeId": 97,
+      "fromPort": "Then",
+      "toNodeId": 100,
+      "toPort": "In"
+    },
+    {
+      "id": 114,
+      "fromNodeId": 100,
+      "fromPort": "Next",
+      "toNodeId": 101,
+      "toPort": "In"
+    },
+    {
+      "id": 115,
+      "fromNodeId": 102,
+      "fromPort": "Value",
+      "toNodeId": 101,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 116,
+      "fromNodeId": 101,
+      "fromPort": "Next",
+      "toNodeId": 106,
+      "toPort": "In"
+    },
+    {
+      "id": 117,
+      "fromNodeId": 104,
+      "fromPort": "Value",
+      "toNodeId": 103,
+      "toPort": "Left"
+    },
+    {
+      "id": 118,
+      "fromNodeId": 105,
+      "fromPort": "Value",
+      "toNodeId": 103,
+      "toPort": "Right"
+    },
+    {
+      "id": 119,
+      "fromNodeId": 103,
+      "fromPort": "Result",
+      "toNodeId": 106,
+      "toPort": "Value"
+    },
+    {
+      "id": 120,
+      "fromNodeId": 106,
+      "fromPort": "Next",
+      "toNodeId": 115,
+      "toPort": "In"
+    },
+    {
+      "id": 121,
+      "fromNodeId": 114,
+      "fromPort": "Value",
+      "toNodeId": 113,
+      "toPort": "Left"
+    },
+    {
+      "id": 122,
+      "fromNodeId": 102,
+      "fromPort": "Value",
+      "toNodeId": 113,
+      "toPort": "Right"
+    },
+    {
+      "id": 123,
+      "fromNodeId": 113,
+      "fromPort": "Result",
+      "toNodeId": 115,
+      "toPort": "Value"
+    },
+    {
+      "id": 124,
+      "fromNodeId": 97,
+      "fromPort": "Else",
+      "toNodeId": 107,
+      "toPort": "In"
+    },
+    {
+      "id": 125,
+      "fromNodeId": 107,
+      "fromPort": "Next",
+      "toNodeId": 108,
+      "toPort": "In"
+    },
+    {
+      "id": 126,
+      "fromNodeId": 109,
+      "fromPort": "Value",
+      "toNodeId": 108,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 127,
+      "fromNodeId": 108,
+      "fromPort": "Next",
+      "toNodeId": 110,
+      "toPort": "In"
+    },
+    {
+      "id": 128,
+      "fromNodeId": 111,
+      "fromPort": "Value",
+      "toNodeId": 110,
+      "toPort": "Value"
+    },
+    {
+      "id": 129,
+      "fromNodeId": 97,
+      "fromPort": "Next",
+      "toNodeId": 112,
+      "toPort": "In"
+    },
+    {
+      "id": 130,
+      "fromNodeId": 117,
+      "fromPort": "Body",
+      "toNodeId": 118,
+      "toPort": "In"
+    },
+    {
+      "id": 131,
+      "fromNodeId": 118,
+      "fromPort": "Next",
+      "toNodeId": 119,
+      "toPort": "In"
+    },
+    {
+      "id": 132,
+      "fromNodeId": 119,
+      "fromPort": "Body",
+      "toNodeId": 120,
+      "toPort": "In"
+    },
+    {
+      "id": 133,
+      "fromNodeId": 121,
+      "fromPort": "Value",
+      "toNodeId": 120,
+      "toPort": "Index"
+    },
+    {
+      "id": 134,
+      "fromNodeId": 121,
+      "fromPort": "Value",
+      "toNodeId": 122,
+      "toPort": "Left"
+    },
+    {
+      "id": 135,
+      "fromNodeId": 123,
+      "fromPort": "Value",
+      "toNodeId": 122,
+      "toPort": "Right"
+    },
+    {
+      "id": 136,
+      "fromNodeId": 122,
+      "fromPort": "Result",
+      "toNodeId": 124,
+      "toPort": "Left"
+    },
+    {
+      "id": 137,
+      "fromNodeId": 125,
+      "fromPort": "Value",
+      "toNodeId": 124,
+      "toPort": "Right"
+    },
+    {
+      "id": 138,
+      "fromNodeId": 124,
+      "fromPort": "Result",
+      "toNodeId": 120,
+      "toPort": "Value"
+    },
+    {
+      "id": 139,
+      "fromNodeId": 119,
+      "fromPort": "Exit",
+      "toNodeId": 126,
+      "toPort": "In"
+    },
+    {
+      "id": 140,
+      "fromNodeId": 126,
+      "fromPort": "Next",
+      "toNodeId": 127,
+      "toPort": "In"
+    },
+    {
+      "id": 141,
+      "fromNodeId": 128,
+      "fromPort": "Value",
+      "toNodeId": 127,
+      "toPort": "Length"
+    },
+    {
+      "id": 142,
+      "fromNodeId": 127,
+      "fromPort": "Next",
+      "toNodeId": 129,
+      "toPort": "In"
+    },
+    {
+      "id": 143,
+      "fromNodeId": 131,
+      "fromPort": "Value",
+      "toNodeId": 129,
+      "toPort": "Init"
+    },
+    {
+      "id": 144,
+      "fromNodeId": 129,
+      "fromPort": "Next",
+      "toNodeId": 132,
+      "toPort": "In"
+    },
+    {
+      "id": 145,
+      "fromNodeId": 131,
+      "fromPort": "Value",
+      "toNodeId": 130,
+      "toPort": "Index"
+    },
+    {
+      "id": 146,
+      "fromNodeId": 130,
+      "fromPort": "Value",
+      "toNodeId": 132,
+      "toPort": "Value"
+    },
+    {
+      "id": 147,
+      "fromNodeId": 132,
+      "fromPort": "Next",
+      "toNodeId": 133,
+      "toPort": "In"
+    },
+    {
+      "id": 148,
+      "fromNodeId": 134,
+      "fromPort": "Value",
+      "toNodeId": 133,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 149,
+      "fromNodeId": 133,
+      "fromPort": "Next",
+      "toNodeId": 137,
+      "toPort": "In"
+    },
+    {
+      "id": 150,
+      "fromNodeId": 136,
+      "fromPort": "Value",
+      "toNodeId": 135,
+      "toPort": "Left"
+    },
+    {
+      "id": 151,
+      "fromNodeId": 134,
+      "fromPort": "Value",
+      "toNodeId": 135,
+      "toPort": "Right"
+    },
+    {
+      "id": 152,
+      "fromNodeId": 135,
+      "fromPort": "Result",
+      "toNodeId": 137,
+      "toPort": "Value"
+    },
+    {
+      "id": 153,
+      "fromNodeId": 137,
+      "fromPort": "Next",
+      "toNodeId": 138,
+      "toPort": "In"
+    },
+    {
+      "id": 154,
+      "fromNodeId": 131,
+      "fromPort": "Value",
+      "toNodeId": 138,
+      "toPort": "Init"
+    },
+    {
+      "id": 155,
+      "fromNodeId": 138,
+      "fromPort": "Next",
+      "toNodeId": 140,
+      "toPort": "In"
+    },
+    {
+      "id": 156,
+      "fromNodeId": 139,
+      "fromPort": "Value",
+      "toNodeId": 140,
+      "toPort": "Value"
+    },
+    {
+      "id": 157,
+      "fromNodeId": 140,
+      "fromPort": "Next",
+      "toNodeId": 141,
+      "toPort": "In"
+    },
+    {
+      "id": 158,
+      "fromNodeId": 142,
+      "fromPort": "Value",
+      "toNodeId": 141,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 159,
+      "fromNodeId": 141,
+      "fromPort": "Next",
+      "toNodeId": 143,
+      "toPort": "In"
+    },
+    {
+      "id": 160,
+      "fromNodeId": 144,
+      "fromPort": "Value",
+      "toNodeId": 143,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 161,
+      "fromNodeId": 143,
+      "fromPort": "Next",
+      "toNodeId": 145,
+      "toPort": "In"
+    },
+    {
+      "id": 162,
+      "fromNodeId": 146,
+      "fromPort": "Body",
+      "toNodeId": 147,
+      "toPort": "In"
+    },
+    {
+      "id": 163,
+      "fromNodeId": 147,
+      "fromPort": "Next",
+      "toNodeId": 148,
+      "toPort": "In"
+    },
+    {
+      "id": 164,
+      "fromNodeId": 148,
+      "fromPort": "Next",
+      "toNodeId": 149,
+      "toPort": "In"
+    },
+    {
+      "id": 165,
+      "fromNodeId": 150,
+      "fromPort": "Value",
+      "toNodeId": 149,
+      "toPort": "Init"
+    },
+    {
+      "id": 166,
+      "fromNodeId": 149,
+      "fromPort": "Next",
+      "toNodeId": 152,
+      "toPort": "In"
+    },
+    {
+      "id": 167,
+      "fromNodeId": 152,
+      "fromPort": "Next",
+      "toNodeId": 153,
+      "toPort": "In"
+    },
+    {
+      "id": 168,
+      "fromNodeId": 153,
+      "fromPort": "Next",
+      "toNodeId": 154,
+      "toPort": "In"
+    },
+    {
+      "id": 169,
+      "fromNodeId": 156,
+      "fromPort": "Value",
+      "toNodeId": 155,
+      "toPort": "Left"
+    },
+    {
+      "id": 170,
+      "fromNodeId": 150,
+      "fromPort": "Value",
+      "toNodeId": 155,
+      "toPort": "Right"
+    },
+    {
+      "id": 171,
+      "fromNodeId": 155,
+      "fromPort": "Result",
+      "toNodeId": 154,
+      "toPort": "Cond"
+    },
+    {
+      "id": 172,
+      "fromNodeId": 154,
+      "fromPort": "Then",
+      "toNodeId": 157,
+      "toPort": "In"
+    },
+    {
+      "id": 173,
+      "fromNodeId": 157,
+      "fromPort": "Next",
+      "toNodeId": 158,
+      "toPort": "In"
+    },
+    {
+      "id": 174,
+      "fromNodeId": 154,
+      "fromPort": "Else",
+      "toNodeId": 159,
+      "toPort": "In"
+    },
+    {
+      "id": 175,
+      "fromNodeId": 151,
+      "fromPort": "Value",
+      "toNodeId": 159,
+      "toPort": "Value"
+    },
+    {
+      "id": 176,
+      "fromNodeId": 159,
+      "fromPort": "Next",
+      "toNodeId": 160,
+      "toPort": "In"
+    },
+    {
+      "id": 177,
+      "fromNodeId": 162,
+      "fromPort": "Value",
+      "toNodeId": 161,
+      "toPort": "Left"
+    },
+    {
+      "id": 178,
+      "fromNodeId": 151,
+      "fromPort": "Value",
+      "toNodeId": 161,
+      "toPort": "Right"
+    },
+    {
+      "id": 179,
+      "fromNodeId": 161,
+      "fromPort": "Result",
+      "toNodeId": 160,
+      "toPort": "Cond"
+    },
+    {
+      "id": 180,
+      "fromNodeId": 160,
+      "fromPort": "Body",
+      "toNodeId": 163,
+      "toPort": "In"
+    },
+    {
+      "id": 181,
+      "fromNodeId": 163,
+      "fromPort": "Next",
+      "toNodeId": 164,
+      "toPort": "In"
+    },
+    {
+      "id": 182,
+      "fromNodeId": 166,
+      "fromPort": "Value",
+      "toNodeId": 165,
+      "toPort": "Left"
+    },
+    {
+      "id": 183,
+      "fromNodeId": 151,
+      "fromPort": "Value",
+      "toNodeId": 165,
+      "toPort": "Right"
+    },
+    {
+      "id": 184,
+      "fromNodeId": 165,
+      "fromPort": "Result",
+      "toNodeId": 164,
+      "toPort": "Cond"
+    },
+    {
+      "id": 185,
+      "fromNodeId": 164,
+      "fromPort": "Then",
+      "toNodeId": 167,
+      "toPort": "In"
+    },
+    {
+      "id": 186,
+      "fromNodeId": 168,
+      "fromPort": "Value",
+      "toNodeId": 167,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 187,
+      "fromNodeId": 160,
+      "fromPort": "Exit",
+      "toNodeId": 169,
+      "toPort": "In"
+    },
+    {
+      "id": 188,
+      "fromNodeId": 169,
+      "fromPort": "Next",
+      "toNodeId": 170,
+      "toPort": "In"
+    },
+    {
+      "id": 189,
+      "fromNodeId": 170,
+      "fromPort": "Next",
+      "toNodeId": 171,
+      "toPort": "In"
+    },
+    {
+      "id": 190,
+      "fromNodeId": 171,
+      "fromPort": "Next",
+      "toNodeId": 172,
+      "toPort": "In"
+    },
+    {
+      "id": 191,
+      "fromNodeId": 172,
+      "fromPort": "Next",
+      "toNodeId": 173,
+      "toPort": "In"
+    },
+    {
+      "id": 192,
+      "fromNodeId": 175,
+      "fromPort": "Value",
+      "toNodeId": 173,
+      "toPort": "Index"
+    },
+    {
+      "id": 193,
+      "fromNodeId": 174,
+      "fromPort": "Value",
+      "toNodeId": 173,
+      "toPort": "Value"
+    },
+    {
+      "id": 194,
+      "fromNodeId": 173,
+      "fromPort": "Next",
+      "toNodeId": 176,
+      "toPort": "In"
+    },
+    {
+      "id": 195,
+      "fromNodeId": 176,
+      "fromPort": "Next",
+      "toNodeId": 177,
+      "toPort": "In"
+    },
+    {
+      "id": 196,
+      "fromNodeId": 177,
+      "fromPort": "Next",
+      "toNodeId": 178,
+      "toPort": "In"
+    },
+    {
+      "id": 197,
+      "fromNodeId": 178,
+      "fromPort": "Next",
+      "toNodeId": 179,
+      "toPort": "In"
+    },
+    {
+      "id": 198,
+      "fromNodeId": 179,
+      "fromPort": "Next",
+      "toNodeId": 180,
+      "toPort": "In"
+    },
+    {
+      "id": 199,
+      "fromNodeId": 180,
+      "fromPort": "Next",
+      "toNodeId": 181,
+      "toPort": "In"
+    },
+    {
+      "id": 200,
+      "fromNodeId": 154,
+      "fromPort": "Next",
+      "toNodeId": 181,
+      "toPort": "In"
+    },
+    {
+      "id": 201,
+      "fromNodeId": 182,
+      "fromPort": "Next",
+      "toNodeId": 183,
+      "toPort": "In"
+    },
+    {
+      "id": 202,
+      "fromNodeId": 183,
+      "fromPort": "Next",
+      "toNodeId": 184,
+      "toPort": "In"
+    },
+    {
+      "id": 203,
+      "fromNodeId": 185,
+      "fromPort": "Value",
+      "toNodeId": 184,
+      "toPort": "Value"
+    },
+    {
+      "id": 204,
+      "fromNodeId": 184,
+      "fromPort": "Next",
+      "toNodeId": 186,
+      "toPort": "In"
+    },
+    {
+      "id": 205,
+      "fromNodeId": 185,
+      "fromPort": "Value",
+      "toNodeId": 186,
+      "toPort": "Value"
+    },
+    {
+      "id": 206,
+      "fromNodeId": 186,
+      "fromPort": "Next",
+      "toNodeId": 187,
+      "toPort": "In"
+    },
+    {
+      "id": 207,
+      "fromNodeId": 188,
+      "fromPort": "Value",
+      "toNodeId": 187,
+      "toPort": "Value"
+    },
+    {
+      "id": 208,
+      "fromNodeId": 187,
+      "fromPort": "Next",
+      "toNodeId": 189,
+      "toPort": "In"
+    },
+    {
+      "id": 209,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 189,
+      "toPort": "Value"
+    },
+    {
+      "id": 210,
+      "fromNodeId": 189,
+      "fromPort": "Next",
+      "toNodeId": 191,
+      "toPort": "In"
+    },
+    {
+      "id": 211,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 191,
+      "toPort": "Value"
+    },
+    {
+      "id": 212,
+      "fromNodeId": 191,
+      "fromPort": "Next",
+      "toNodeId": 192,
+      "toPort": "In"
+    },
+    {
+      "id": 213,
+      "fromNodeId": 192,
+      "fromPort": "Next",
+      "toNodeId": 193,
+      "toPort": "In"
+    },
+    {
+      "id": 214,
+      "fromNodeId": 193,
+      "fromPort": "Next",
+      "toNodeId": 194,
+      "toPort": "In"
+    },
+    {
+      "id": 215,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 194,
+      "toPort": "Init"
+    },
+    {
+      "id": 216,
+      "fromNodeId": 194,
+      "fromPort": "Next",
+      "toNodeId": 195,
+      "toPort": "In"
+    },
+    {
+      "id": 217,
+      "fromNodeId": 196,
+      "fromPort": "Value",
+      "toNodeId": 195,
+      "toPort": "Init"
+    },
+    {
+      "id": 218,
+      "fromNodeId": 195,
+      "fromPort": "Next",
+      "toNodeId": 197,
+      "toPort": "In"
+    },
+    {
+      "id": 219,
+      "fromNodeId": 197,
+      "fromPort": "Next",
+      "toNodeId": 198,
+      "toPort": "In"
+    },
+    {
+      "id": 220,
+      "fromNodeId": 198,
+      "fromPort": "Next",
+      "toNodeId": 199,
+      "toPort": "In"
+    },
+    {
+      "id": 221,
+      "fromNodeId": 199,
+      "fromPort": "Next",
+      "toNodeId": 201,
+      "toPort": "In"
+    },
+    {
+      "id": 222,
+      "fromNodeId": 200,
+      "fromPort": "Value",
+      "toNodeId": 201,
+      "toPort": "Init"
+    },
+    {
+      "id": 223,
+      "fromNodeId": 201,
+      "fromPort": "Next",
+      "toNodeId": 202,
+      "toPort": "In"
+    },
+    {
+      "id": 224,
+      "fromNodeId": 204,
+      "fromPort": "Value",
+      "toNodeId": 203,
+      "toPort": "Left"
+    },
+    {
+      "id": 225,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 203,
+      "toPort": "Right"
+    },
+    {
+      "id": 226,
+      "fromNodeId": 203,
+      "fromPort": "Result",
+      "toNodeId": 202,
+      "toPort": "Cond"
+    },
+    {
+      "id": 227,
+      "fromNodeId": 202,
+      "fromPort": "Then",
+      "toNodeId": 205,
+      "toPort": "In"
+    },
+    {
+      "id": 228,
+      "fromNodeId": 202,
+      "fromPort": "Next",
+      "toNodeId": 206,
+      "toPort": "In"
+    },
+    {
+      "id": 229,
+      "fromNodeId": 206,
+      "fromPort": "Next",
+      "toNodeId": 207,
+      "toPort": "In"
+    },
+    {
+      "id": 230,
+      "fromNodeId": 207,
+      "fromPort": "Next",
+      "toNodeId": 208,
+      "toPort": "In"
+    },
+    {
+      "id": 231,
+      "fromNodeId": 208,
+      "fromPort": "Next",
+      "toNodeId": 209,
+      "toPort": "In"
+    },
+    {
+      "id": 232,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 209,
+      "toPort": "Init"
+    },
+    {
+      "id": 233,
+      "fromNodeId": 209,
+      "fromPort": "Next",
+      "toNodeId": 211,
+      "toPort": "In"
+    },
+    {
+      "id": 234,
+      "fromNodeId": 210,
+      "fromPort": "Value",
+      "toNodeId": 211,
+      "toPort": "Value"
+    },
+    {
+      "id": 235,
+      "fromNodeId": 211,
+      "fromPort": "Next",
+      "toNodeId": 212,
+      "toPort": "In"
+    },
+    {
+      "id": 236,
+      "fromNodeId": 213,
+      "fromPort": "Value",
+      "toNodeId": 212,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 237,
+      "fromNodeId": 212,
+      "fromPort": "Next",
+      "toNodeId": 214,
+      "toPort": "In"
+    },
+    {
+      "id": 238,
+      "fromNodeId": 216,
+      "fromPort": "Value",
+      "toNodeId": 215,
+      "toPort": "Left"
+    },
+    {
+      "id": 239,
+      "fromNodeId": 196,
+      "fromPort": "Value",
+      "toNodeId": 215,
+      "toPort": "Right"
+    },
+    {
+      "id": 240,
+      "fromNodeId": 215,
+      "fromPort": "Result",
+      "toNodeId": 214,
+      "toPort": "Cond"
+    },
+    {
+      "id": 241,
+      "fromNodeId": 214,
+      "fromPort": "Body",
+      "toNodeId": 217,
+      "toPort": "In"
+    },
+    {
+      "id": 242,
+      "fromNodeId": 217,
+      "fromPort": "Next",
+      "toNodeId": 218,
+      "toPort": "In"
+    },
+    {
+      "id": 243,
+      "fromNodeId": 218,
+      "fromPort": "Next",
+      "toNodeId": 219,
+      "toPort": "In"
+    },
+    {
+      "id": 244,
+      "fromNodeId": 220,
+      "fromPort": "Value",
+      "toNodeId": 219,
+      "toPort": "Value"
+    },
+    {
+      "id": 245,
+      "fromNodeId": 219,
+      "fromPort": "Cases",
+      "toNodeId": 221,
+      "toPort": "In"
+    },
+    {
+      "id": 246,
+      "fromNodeId": 221,
+      "fromPort": "NextCase",
+      "toNodeId": 222,
+      "toPort": "In"
+    },
+    {
+      "id": 247,
+      "fromNodeId": 222,
+      "fromPort": "NextCase",
+      "toNodeId": 223,
+      "toPort": "In"
+    },
+    {
+      "id": 248,
+      "fromNodeId": 223,
+      "fromPort": "NextCase",
+      "toNodeId": 224,
+      "toPort": "In"
+    },
+    {
+      "id": 249,
+      "fromNodeId": 221,
+      "fromPort": "Body",
+      "toNodeId": 225,
+      "toPort": "In"
+    },
+    {
+      "id": 250,
+      "fromNodeId": 225,
+      "fromPort": "Next",
+      "toNodeId": 226,
+      "toPort": "In"
+    },
+    {
+      "id": 251,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 226,
+      "toPort": "Init"
+    },
+    {
+      "id": 252,
+      "fromNodeId": 226,
+      "fromPort": "Next",
+      "toNodeId": 227,
+      "toPort": "In"
+    },
+    {
+      "id": 253,
+      "fromNodeId": 228,
+      "fromPort": "Value",
+      "toNodeId": 229,
+      "toPort": "Left"
+    },
+    {
+      "id": 254,
+      "fromNodeId": 230,
+      "fromPort": "Value",
+      "toNodeId": 229,
+      "toPort": "Right"
+    },
+    {
+      "id": 255,
+      "fromNodeId": 229,
+      "fromPort": "Result",
+      "toNodeId": 227,
+      "toPort": "Value"
+    },
+    {
+      "id": 256,
+      "fromNodeId": 227,
+      "fromPort": "Next",
+      "toNodeId": 231,
+      "toPort": "In"
+    },
+    {
+      "id": 257,
+      "fromNodeId": 233,
+      "fromPort": "Value",
+      "toNodeId": 232,
+      "toPort": "Left"
+    },
+    {
+      "id": 258,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 232,
+      "toPort": "Right"
+    },
+    {
+      "id": 259,
+      "fromNodeId": 232,
+      "fromPort": "Result",
+      "toNodeId": 231,
+      "toPort": "Cond"
+    },
+    {
+      "id": 260,
+      "fromNodeId": 231,
+      "fromPort": "Then",
+      "toNodeId": 234,
+      "toPort": "In"
+    },
+    {
+      "id": 261,
+      "fromNodeId": 231,
+      "fromPort": "Else",
+      "toNodeId": 235,
+      "toPort": "In"
+    },
+    {
+      "id": 262,
+      "fromNodeId": 233,
+      "fromPort": "Value",
+      "toNodeId": 236,
+      "toPort": "Left"
+    },
+    {
+      "id": 263,
+      "fromNodeId": 237,
+      "fromPort": "Value",
+      "toNodeId": 236,
+      "toPort": "Right"
+    },
+    {
+      "id": 264,
+      "fromNodeId": 236,
+      "fromPort": "Result",
+      "toNodeId": 235,
+      "toPort": "Cond"
+    },
+    {
+      "id": 265,
+      "fromNodeId": 235,
+      "fromPort": "Then",
+      "toNodeId": 238,
+      "toPort": "In"
+    },
+    {
+      "id": 266,
+      "fromNodeId": 235,
+      "fromPort": "Else",
+      "toNodeId": 239,
+      "toPort": "In"
+    },
+    {
+      "id": 267,
+      "fromNodeId": 239,
+      "fromPort": "Next",
+      "toNodeId": 240,
+      "toPort": "In"
+    },
+    {
+      "id": 268,
+      "fromNodeId": 241,
+      "fromPort": "Value",
+      "toNodeId": 240,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 269,
+      "fromNodeId": 222,
+      "fromPort": "Body",
+      "toNodeId": 245,
+      "toPort": "In"
+    },
+    {
+      "id": 271,
+      "fromNodeId": 245,
+      "fromPort": "Next",
+      "toNodeId": 242,
+      "toPort": "In"
+    },
+    {
+      "id": 272,
+      "fromNodeId": 242,
+      "fromPort": "Next",
+      "toNodeId": 243,
+      "toPort": "In"
+    },
+    {
+      "id": 273,
+      "fromNodeId": 243,
+      "fromPort": "Next",
+      "toNodeId": 244,
+      "toPort": "In"
+    },
+    {
+      "id": 274,
+      "fromNodeId": 244,
+      "fromPort": "Next",
+      "toNodeId": 248,
+      "toPort": "In"
+    },
+    {
+      "id": 275,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 248,
+      "toPort": "Init"
+    },
+    {
+      "id": 276,
+      "fromNodeId": 248,
+      "fromPort": "Next",
+      "toNodeId": 249,
+      "toPort": "In"
+    },
+    {
+      "id": 277,
+      "fromNodeId": 247,
+      "fromPort": "Value",
+      "toNodeId": 246,
+      "toPort": "Value"
+    },
+    {
+      "id": 278,
+      "fromNodeId": 246,
+      "fromPort": "Result",
+      "toNodeId": 250,
+      "toPort": "Left"
+    },
+    {
+      "id": 279,
+      "fromNodeId": 251,
+      "fromPort": "Value",
+      "toNodeId": 250,
+      "toPort": "Right"
+    },
+    {
+      "id": 280,
+      "fromNodeId": 250,
+      "fromPort": "Result",
+      "toNodeId": 249,
+      "toPort": "Value"
+    },
+    {
+      "id": 281,
+      "fromNodeId": 249,
+      "fromPort": "Next",
+      "toNodeId": 255,
+      "toPort": "In"
+    },
+    {
+      "id": 282,
+      "fromNodeId": 252,
+      "fromPort": "Value",
+      "toNodeId": 253,
+      "toPort": "Left"
+    },
+    {
+      "id": 283,
+      "fromNodeId": 254,
+      "fromPort": "Value",
+      "toNodeId": 253,
+      "toPort": "Right"
+    },
+    {
+      "id": 284,
+      "fromNodeId": 253,
+      "fromPort": "Result",
+      "toNodeId": 255,
+      "toPort": "Value"
+    },
+    {
+      "id": 285,
+      "fromNodeId": 255,
+      "fromPort": "Next",
+      "toNodeId": 256,
+      "toPort": "In"
+    },
+    {
+      "id": 286,
+      "fromNodeId": 258,
+      "fromPort": "Value",
+      "toNodeId": 257,
+      "toPort": "Left"
+    },
+    {
+      "id": 287,
+      "fromNodeId": 259,
+      "fromPort": "Value",
+      "toNodeId": 257,
+      "toPort": "Right"
+    },
+    {
+      "id": 288,
+      "fromNodeId": 257,
+      "fromPort": "Result",
+      "toNodeId": 256,
+      "toPort": "Cond"
+    },
+    {
+      "id": 289,
+      "fromNodeId": 256,
+      "fromPort": "Then",
+      "toNodeId": 260,
+      "toPort": "In"
+    },
+    {
+      "id": 290,
+      "fromNodeId": 259,
+      "fromPort": "Value",
+      "toNodeId": 260,
+      "toPort": "Value"
+    },
+    {
+      "id": 291,
+      "fromNodeId": 256,
+      "fromPort": "Next",
+      "toNodeId": 261,
+      "toPort": "In"
+    },
+    {
+      "id": 292,
+      "fromNodeId": 262,
+      "fromPort": "Value",
+      "toNodeId": 261,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 293,
+      "fromNodeId": 223,
+      "fromPort": "Body",
+      "toNodeId": 263,
+      "toPort": "In"
+    },
+    {
+      "id": 294,
+      "fromNodeId": 263,
+      "fromPort": "Next",
+      "toNodeId": 264,
+      "toPort": "In"
+    },
+    {
+      "id": 295,
+      "fromNodeId": 264,
+      "fromPort": "Next",
+      "toNodeId": 266,
+      "toPort": "In"
+    },
+    {
+      "id": 296,
+      "fromNodeId": 265,
+      "fromPort": "Value",
+      "toNodeId": 266,
+      "toPort": "Init"
+    },
+    {
+      "id": 297,
+      "fromNodeId": 266,
+      "fromPort": "Next",
+      "toNodeId": 267,
+      "toPort": "In"
+    },
+    {
+      "id": 298,
+      "fromNodeId": 268,
+      "fromPort": "Value",
+      "toNodeId": 267,
+      "toPort": "Arg0"
+    },
+    {
+      "id": 299,
+      "fromNodeId": 267,
+      "fromPort": "Next",
+      "toNodeId": 269,
+      "toPort": "In"
+    },
+    {
+      "id": 300,
+      "fromNodeId": 271,
+      "fromPort": "Value",
+      "toNodeId": 269,
+      "toPort": "Init"
+    },
+    {
+      "id": 301,
+      "fromNodeId": 269,
+      "fromPort": "Next",
+      "toNodeId": 270,
+      "toPort": "In"
+    },
+    {
+      "id": 302,
+      "fromNodeId": 271,
+      "fromPort": "Value",
+      "toNodeId": 270,
+      "toPort": "Value"
+    },
+    {
+      "id": 303,
+      "fromNodeId": 270,
+      "fromPort": "Next",
+      "toNodeId": 272,
+      "toPort": "In"
+    },
+    {
+      "id": 304,
+      "fromNodeId": 272,
+      "fromPort": "Next",
+      "toNodeId": 273,
+      "toPort": "In"
+    },
+    {
+      "id": 305,
+      "fromNodeId": 273,
+      "fromPort": "Next",
+      "toNodeId": 274,
+      "toPort": "In"
+    },
+    {
+      "id": 306,
+      "fromNodeId": 271,
+      "fromPort": "Value",
+      "toNodeId": 274,
+      "toPort": "Init"
+    },
+    {
+      "id": 307,
+      "fromNodeId": 274,
+      "fromPort": "Next",
+      "toNodeId": 275,
+      "toPort": "In"
+    },
+    {
+      "id": 308,
+      "fromNodeId": 280,
+      "fromPort": "Value",
+      "toNodeId": 276,
+      "toPort": "Left"
+    },
+    {
+      "id": 309,
+      "fromNodeId": 271,
+      "fromPort": "Value",
+      "toNodeId": 276,
+      "toPort": "Right"
+    },
+    {
+      "id": 310,
+      "fromNodeId": 280,
+      "fromPort": "Value",
+      "toNodeId": 277,
+      "toPort": "Left"
+    },
+    {
+      "id": 311,
+      "fromNodeId": 281,
+      "fromPort": "Value",
+      "toNodeId": 277,
+      "toPort": "Right"
+    },
+    {
+      "id": 312,
+      "fromNodeId": 277,
+      "fromPort": "Result",
+      "toNodeId": 279,
+      "toPort": "Value"
+    },
+    {
+      "id": 313,
+      "fromNodeId": 276,
+      "fromPort": "Result",
+      "toNodeId": 278,
+      "toPort": "Left"
+    },
+    {
+      "id": 314,
+      "fromNodeId": 279,
+      "fromPort": "Result",
+      "toNodeId": 278,
+      "toPort": "Right"
+    },
+    {
+      "id": 315,
+      "fromNodeId": 278,
+      "fromPort": "Result",
+      "toNodeId": 275,
+      "toPort": "Value"
+    },
+    {
+      "id": 316,
+      "fromNodeId": 275,
+      "fromPort": "Next",
+      "toNodeId": 282,
+      "toPort": "In"
+    },
+    {
+      "id": 317,
+      "fromNodeId": 291,
+      "fromPort": "Value",
+      "toNodeId": 282,
+      "toPort": "Cond"
+    },
+    {
+      "id": 318,
+      "fromNodeId": 282,
+      "fromPort": "Then",
+      "toNodeId": 283,
+      "toPort": "In"
+    },
+    {
+      "id": 319,
+      "fromNodeId": 283,
+      "fromPort": "Body",
+      "toNodeId": 284,
+      "toPort": "In"
+    },
+    {
+      "id": 320,
+      "fromNodeId": 224,
+      "fromPort": "Body",
+      "toNodeId": 285,
+      "toPort": "In"
+    },
+    {
+      "id": 321,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 285,
+      "toPort": "Value"
+    },
+    {
+      "id": 322,
+      "fromNodeId": 285,
+      "fromPort": "Next",
+      "toNodeId": 286,
+      "toPort": "In"
+    },
+    {
+      "id": 323,
+      "fromNodeId": 286,
+      "fromPort": "Next",
+      "toNodeId": 288,
+      "toPort": "In"
+    },
+    {
+      "id": 324,
+      "fromNodeId": 190,
+      "fromPort": "Value",
+      "toNodeId": 288,
+      "toPort": "Init"
+    },
+    {
+      "id": 325,
+      "fromNodeId": 288,
+      "fromPort": "Next",
+      "toNodeId": 289,
+      "toPort": "In"
+    },
+    {
+      "id": 326,
+      "fromNodeId": 219,
+      "fromPort": "Default",
+      "toNodeId": 287,
+      "toPort": "In"
+    },
+    {
+      "id": 327,
+      "fromNodeId": 214,
+      "fromPort": "Exit",
+      "toNodeId": 290,
+      "toPort": "In"
+    },
+    {
+      "id": 328,
+      "fromNodeId": 292,
+      "fromPort": "Value",
+      "toNodeId": 245,
+      "toPort": "Init"
+    }
+  ]
+}

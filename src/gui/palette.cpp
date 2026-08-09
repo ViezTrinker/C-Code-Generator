@@ -127,7 +127,8 @@ namespace Cgen
 
       constexpr BlockType MemoryTypes[] = {
          BlockType::Malloc,
-         BlockType::Free
+         BlockType::Free,
+         BlockType::AddressOf
       };
 
       constexpr BlockType TimeRandomTypes[] = {

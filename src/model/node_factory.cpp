@@ -63,7 +63,10 @@ namespace Cgen
           "Declares a file-scope variable. Properties: name, type. Optional Init input.",
           false},
          {BlockType::VariableRef, "VariableRef", "Var Ref",
-          "Reads a variable by name as an expression. Property: name.",
+          "Reads a variable by name as an expression. Properties: name, type.",
+          true},
+         {BlockType::AddressOf, "AddressOf", "Address Of",
+          "Takes the address of a named object. Properties: name, type (pointer, e.g. Hero*).",
           true},
          {BlockType::Assign, "Assign", "Assign",
           "Assigns Value into target. Property: target (variable name).",
@@ -439,6 +442,11 @@ namespace Cgen
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
             node.properties["name"] = "value";
             node.properties["type"] = "int32_t";
+            break;
+         case BlockType::AddressOf:
+            node.ports.push_back(MakeDataOut("Value", PrimitiveType::Void, true));
+            node.properties["name"] = "value";
+            node.properties["type"] = "int32_t*";
             break;
          case BlockType::Assign:
             node.ports.push_back(MakeControlIn("In"));
@@ -817,12 +825,19 @@ namespace Cgen
          ApplyTypeToPort(FindPortMutable(pNode, "Init"), typeText);
          return;
       }
-      if (pNode->type == BlockType::VariableRef)
+      if ((pNode->type == BlockType::VariableRef) ||
+          (pNode->type == BlockType::AddressOf))
       {
+         std::string_view typeText = "int32_t";
+         if (pNode->type == BlockType::AddressOf)
+         {
+            typeText = "void*";
+         }
          const auto typeIterator = pNode->properties.find("type");
-         const std::string_view typeText =
-            (typeIterator != pNode->properties.end()) ? typeIterator->second
-                                                      : std::string_view("int32_t");
+         if (typeIterator != pNode->properties.end())
+         {
+            typeText = typeIterator->second;
+         }
          ApplyTypeToPort(FindPortMutable(pNode, "Value"), typeText);
          return;
       }
@@ -869,12 +884,12 @@ namespace Cgen
       }
       if (pNode->type == BlockType::StructLiteral)
       {
-         Port* pValue = FindPortMutable(pNode, "Value");
-         if (pValue != nullptr)
-         {
-            pValue->dataType.base = PrimitiveType::Void;
-            pValue->dataType.isPointer = false;
-         }
+         const auto typeIterator = pNode->properties.find("type");
+         const std::string_view typeText =
+            (typeIterator != pNode->properties.end()) ? typeIterator->second
+                                                      : std::string_view("Point");
+         ApplyTypeToPort(FindPortMutable(pNode, "Value"), typeText);
+         return;
       }
    }
 

@@ -8,6 +8,8 @@
 
 #include "codegen/c_codegen.h"
 #include "model/graph_document.h"
+#include "model/graph_validator.h"
+#include "model/node.h"
 
 TEST(CCodegenTest, EmitsIncludesAndMain)
 {
@@ -573,6 +575,44 @@ TEST(CCodegenTest, EmitsMallocIntoTypedPointerDecl)
    EXPECT_NE(output.source.find("uint8_t* pBuf = ((uint8_t*)malloc((size_t)(16)));"),
              std::string::npos);
    EXPECT_NE(output.source.find("free(pBuf);"), std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsAddressOfIntoCallArg)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId decl =
+      document.AddNode(Cgen::BlockType::VariableDecl, 40.0f, 40.0f);
+   document.FindNodeMutable(decl)->properties["name"] = "hero";
+   document.FindNodeMutable(decl)->properties["type"] = "Hero";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(decl));
+   const Cgen::NodeId addr =
+      document.AddNode(Cgen::BlockType::AddressOf, 200.0f, 120.0f);
+   document.FindNodeMutable(addr)->properties["name"] = "hero";
+   document.FindNodeMutable(addr)->properties["type"] = "Hero*";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(addr));
+   const Cgen::NodeId callId =
+      document.AddNode(Cgen::BlockType::Call, 200.0f, 40.0f);
+   document.FindNodeMutable(callId)->properties["function"] = "do_combat";
+   document.FindNodeMutable(callId)->properties["storeTo"] = "";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", decl, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(decl, "Next", callId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(addr, "Value", callId, "Arg0", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(callId, "Next", endId, "In", nullptr)));
+
+   const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+   for (size_t index = 0; index < report.issues.size(); ++index)
+   {
+      EXPECT_NE(report.issues[index].severity, Cgen::ValidationSeverity::Error)
+         << report.issues[index].message;
+   }
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("do_combat((&hero));"), std::string::npos);
 }
 
 TEST(CCodegenTest, EmitsNestedFieldPath)

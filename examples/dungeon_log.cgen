@@ -2159,12 +2159,12 @@ CGEN 1
     },
     {
       "id": 233,
-      "type": "Literal",
+      "type": "AddressOf",
       "posX": 680.0,
       "posY": 5000.0,
       "properties": {
-        "value": "&hero",
-        "type": "int32_t"
+        "name": "hero",
+        "type": "Hero*"
       }
     },
     {
@@ -2203,12 +2203,12 @@ CGEN 1
     },
     {
       "id": 238,
-      "type": "Literal",
+      "type": "AddressOf",
       "posX": 200.0,
       "posY": 5080.0,
       "properties": {
-        "value": "&hero",
-        "type": "int32_t"
+        "name": "hero",
+        "type": "Hero*"
       }
     },
     {

@@ -30,6 +30,44 @@ TEST(CTypeTest, ParsesPointerTypes)
    EXPECT_EQ(Cgen::CTypeToString(parsed), "uint8_t*");
 }
 
+TEST(CTypeTest, ParsesNamedStructAndFileTypes)
+{
+   Cgen::CType hero {};
+   ASSERT_TRUE(Cgen::CTypeFromString("Hero", &hero));
+   EXPECT_EQ(hero.base, Cgen::PrimitiveType::Named);
+   EXPECT_FALSE(hero.isPointer);
+   EXPECT_EQ(hero.namedSpelling, "Hero");
+   EXPECT_EQ(Cgen::CTypeToString(hero), "Hero");
+
+   Cgen::CType filePtr {};
+   ASSERT_TRUE(Cgen::CTypeFromString("FILE*", &filePtr));
+   EXPECT_EQ(filePtr.base, Cgen::PrimitiveType::Named);
+   EXPECT_TRUE(filePtr.isPointer);
+   EXPECT_EQ(filePtr.namedSpelling, "FILE");
+   EXPECT_EQ(Cgen::CTypeToString(filePtr), "FILE*");
+
+   Cgen::CType structHero {};
+   ASSERT_TRUE(Cgen::CTypeFromString("struct Hero", &structHero));
+   EXPECT_EQ(structHero.namedSpelling, "Hero");
+}
+
+TEST(CTypeTest, NamedPointersMatchAndVoidPointerCompatible)
+{
+   Cgen::CType heroPtr {};
+   ASSERT_TRUE(Cgen::CTypeFromString("Hero*", &heroPtr));
+   Cgen::CType otherHeroPtr {};
+   ASSERT_TRUE(Cgen::CTypeFromString("Hero*", &otherHeroPtr));
+   EXPECT_TRUE(Cgen::AreTypesCompatible(heroPtr, otherHeroPtr));
+
+   Cgen::CType pointPtr {};
+   ASSERT_TRUE(Cgen::CTypeFromString("Point*", &pointPtr));
+   EXPECT_FALSE(Cgen::AreTypesCompatible(heroPtr, pointPtr));
+
+   Cgen::CType voidPtr {};
+   ASSERT_TRUE(Cgen::CTypeFromString("void*", &voidPtr));
+   EXPECT_TRUE(Cgen::AreTypesCompatible(voidPtr, heroPtr));
+}
+
 TEST(CTypeTest, CompatibilityRequiresSameShape)
 {
    Cgen::CType left {};

@@ -211,6 +211,10 @@ namespace Cgen
             {
                InsertNamedProperty(node, "name", pNames);
             }
+            if (node.type == BlockType::AddressOf)
+            {
+               InsertNamedProperty(node, "name", pNames);
+            }
             if ((node.type == BlockType::Assign) || (node.type == BlockType::Inc) ||
                 (node.type == BlockType::Dec) || (node.type == BlockType::CompoundAssign))
             {

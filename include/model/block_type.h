@@ -30,6 +30,7 @@ namespace Cgen
       VariableDecl,
       GlobalDecl,
       VariableRef,
+      AddressOf,
       Assign,
       CompoundAssign,
       Inc,

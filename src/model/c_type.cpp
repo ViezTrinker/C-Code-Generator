@@ -4,6 +4,7 @@
  */
 #include "model/c_type.h"
 
+#include <cctype>
 #include <cstring>
 
 namespace Cgen
@@ -53,6 +54,54 @@ namespace Cgen
          return (primitiveType == PrimitiveType::Float) ||
                 (primitiveType == PrimitiveType::Double);
       }
+
+      std::string_view TrimAscii(std::string_view text)
+      {
+         while ((!text.empty()) &&
+                (std::isspace(static_cast<unsigned char>(text.front())) != 0))
+         {
+            text.remove_prefix(1);
+         }
+         while ((!text.empty()) &&
+                (std::isspace(static_cast<unsigned char>(text.back())) != 0))
+         {
+            text.remove_suffix(1);
+         }
+         return text;
+      }
+
+      bool IsValidNamedTypeSpelling(std::string_view text)
+      {
+         if (text.empty())
+         {
+            return false;
+         }
+         const unsigned char first = static_cast<unsigned char>(text.front());
+         if ((std::isalpha(first) == 0) && (text.front() != '_'))
+         {
+            return false;
+         }
+         for (size_t index = 1; index < text.size(); ++index)
+         {
+            const unsigned char character =
+               static_cast<unsigned char>(text[index]);
+            if ((std::isalnum(character) == 0) && (text[index] != '_'))
+            {
+               return false;
+            }
+         }
+         return true;
+      }
+
+      bool SameNamedBase(const CType& left, const CType& right)
+      {
+         if ((left.base != PrimitiveType::Named) ||
+             (right.base != PrimitiveType::Named))
+         {
+            return false;
+         }
+         return left.namedSpelling == right.namedSpelling;
+      }
    } // namespace
 
    std::string_view PrimitiveTypeToCSpelling(PrimitiveType primitiveType)
@@ -76,6 +125,10 @@ namespace Cgen
             return PrimitiveTable[index].pId;
          }
       }
+      if (primitiveType == PrimitiveType::Named)
+      {
+         return "named";
+      }
       return "int32_t";
    }
 
@@ -98,7 +151,16 @@ namespace Cgen
 
    std::string CTypeToString(const CType& cType)
    {
-      std::string result(PrimitiveTypeToCSpelling(cType.base));
+      std::string result;
+      if (cType.base == PrimitiveType::Named)
+      {
+         result = cType.namedSpelling.empty() ? std::string("void")
+                                              : cType.namedSpelling;
+      }
+      else
+      {
+         result = std::string(PrimitiveTypeToCSpelling(cType.base));
+      }
       if (cType.isPointer)
       {
          result.append("*");
@@ -113,36 +175,72 @@ namespace Cgen
          return false;
       }
       CType parsed {};
-      std::string_view core = text;
-      if (!text.empty() && text.back() == '*')
-      {
-         parsed.isPointer = true;
-         core = text.substr(0, text.size() - 1);
-      }
-      if (!PrimitiveTypeFromString(core, &parsed.base))
+      std::string_view core = TrimAscii(text);
+      if (core.empty())
       {
          return false;
       }
+      if (core.back() == '*')
+      {
+         parsed.isPointer = true;
+         core.remove_suffix(1);
+         core = TrimAscii(core);
+      }
+      if (core.size() >= 7 && (core.substr(0, 7) == "struct "))
+      {
+         core.remove_prefix(7);
+         core = TrimAscii(core);
+      }
+      if (PrimitiveTypeFromString(core, &parsed.base))
+      {
+         parsed.namedSpelling.clear();
+         *pOutType = parsed;
+         return true;
+      }
+      if (!IsValidNamedTypeSpelling(core))
+      {
+         return false;
+      }
+      parsed.base = PrimitiveType::Named;
+      parsed.namedSpelling = std::string(core);
       *pOutType = parsed;
       return true;
    }
 
    bool AreTypesCompatible(const CType& left, const CType& right)
    {
-      if ((left.base == right.base) && (left.isPointer == right.isPointer))
+      if (left.isPointer == right.isPointer)
       {
-         return true;
+         if ((left.base == PrimitiveType::Named) ||
+             (right.base == PrimitiveType::Named))
+         {
+            if (SameNamedBase(left, right))
+            {
+               return true;
+            }
+         }
+         else if (left.base == right.base)
+         {
+            return true;
+         }
       }
+
       if (left.isPointer && right.isPointer &&
           ((left.base == PrimitiveType::Void) || (right.base == PrimitiveType::Void)))
       {
          return true;
       }
-      if ((!left.isPointer) && (!right.isPointer) &&
-          ((left.base == PrimitiveType::Void) || (right.base == PrimitiveType::Void)))
+
+      // Untyped Void (non-pointer) is a universal wildcard (Call args, etc.).
+      if ((left.base == PrimitiveType::Void) && (!left.isPointer))
       {
          return true;
       }
+      if ((right.base == PrimitiveType::Void) && (!right.isPointer))
+      {
+         return true;
+      }
+
       if ((!left.isPointer) && (!right.isPointer) && IsIntegerLike(left.base) &&
           IsIntegerLike(right.base))
       {

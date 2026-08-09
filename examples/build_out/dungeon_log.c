@@ -264,11 +264,11 @@ int main(void)
             roll = (rand() % 3);
             if ((roll == 0))
             {
-               do_combat(&hero);
+               do_combat((&hero));
             }
             else if ((roll == 1))
             {
-               do_loot(&hero);
+               do_loot((&hero));
             }
             else
             {

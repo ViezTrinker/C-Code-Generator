@@ -12,7 +12,7 @@
 namespace Cgen
 {
    /*!
-    *\brief Primitive C types supported in the MVP.
+    *\brief Primitive C types, plus Named for struct/typedef spellings.
     */
    enum class PrimitiveType: uint8_t
    {
@@ -27,16 +27,20 @@ namespace Cgen
       Int64,
       Uint64,
       Float,
-      Double
+      Double,
+      Named
    };
 
    /*!
     *\brief C type with optional single-level pointer.
+    *
+    * When base is Named, namedSpelling holds the typedef/struct id (e.g. Hero, FILE).
     */
    struct CType
    {
       PrimitiveType base = PrimitiveType::Int32;
       bool isPointer = false;
+      std::string namedSpelling;
    };
 
    /*!
@@ -73,7 +77,7 @@ namespace Cgen
    std::string CTypeToString(const CType& cType);
 
    /*!
-    *\brief Parses a CType from "uint32_t" or "uint32_t*".
+    *\brief Parses a CType from "uint32_t", "uint32_t*", "Hero", or "FILE*".
     *
     *\param[in] text Type text.
     *\param[out] pOutType Parsed type on success.

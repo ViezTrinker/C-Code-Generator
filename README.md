@@ -157,7 +157,7 @@ History lines look like `X 2026-8-9 14:37:05` (`X` = you won, `O` = AI won, `D` 
 - Rest sleeps 1s, then asks for a float heal bonus
 - Events append timestamped lines to `dungeon_log.txt` (codes: `0` empty, `1` win, `2` lose, `3` loot, `4` rest)
 - On quit, enter any character to finish
-- **Hero** is a local (no globals): init via **Struct Literal**, helpers take `Hero*` or multi-arg status fields, stamp buffer uses **Malloc**/**Free**
+- **Hero** is a local (no globals): init via **Struct Literal**, helpers take `Hero*` via **Address Of**, multi-arg status fields, stamp buffer uses **Malloc**/**Free**
 
 ```powershell
 python scripts\generate_dungeon_log.py
@@ -172,7 +172,7 @@ A checked-in C snapshot lives at [`examples/build_out/dungeon_log.c`](examples/b
 - Drag nodes; connect amber **control** ports and blue **data** ports
 - **Wheel** pans vertically; **Shift+wheel** pans horizontally; **Ctrl+wheel** zooms
 - **Middle-drag**, **Space+drag**, or **arrow keys** also pan the canvas; hover ports for name tooltips
-- **Call** accepts up to 8 args (`Arg0`–`Arg7`); **Struct Literal** builds designated initializers; set Decl/Ref/Assign `type` (e.g. `uint8_t*`) to wire **Malloc**/**Free**
+- **Call** accepts up to 8 args (`Arg0`–`Arg7`); **Struct Literal** builds designated initializers; set Decl/Ref/Assign `type` (e.g. `uint8_t*`, `Hero`, `FILE*`) for typed ports; **Address Of** emits `&name` for pointer args
 - **Shift+click** / marquee multi-select; **Ctrl+A** select all; **Ctrl+C** / **Ctrl+V** copy/paste
 - Right-click a block for **Delete Block**, or a wired port for **Delete Wire**
 - **Delete** / **Backspace** removes selected blocks (not Start); **Ctrl+Z** / **Ctrl+Y** undo/redo (up to 64 steps)

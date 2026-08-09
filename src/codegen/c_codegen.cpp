@@ -256,6 +256,12 @@ namespace Cgen
                expression = GetProperty(*pNode, "name", "value");
                break;
             }
+            case BlockType::AddressOf:
+            {
+               const std::string targetName = GetProperty(*pNode, "name", "value");
+               expression = "(&" + targetName + ")";
+               break;
+            }
             case BlockType::Add:
             case BlockType::Sub:
             case BlockType::Mul:

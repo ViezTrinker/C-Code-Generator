@@ -22,10 +22,18 @@ TEST(BlockTypeTest, RoundTripsKnownIds)
    EXPECT_EQ(parsed, Cgen::BlockType::Cast);
    ASSERT_TRUE(Cgen::BlockTypeFromString("StructDecl", &parsed));
    EXPECT_EQ(parsed, Cgen::BlockType::StructDecl);
+   ASSERT_TRUE(Cgen::BlockTypeFromString("EnumDecl", &parsed));
+   EXPECT_EQ(parsed, Cgen::BlockType::EnumDecl);
+   ASSERT_TRUE(Cgen::BlockTypeFromString("TypedefDecl", &parsed));
+   EXPECT_EQ(parsed, Cgen::BlockType::TypedefDecl);
    ASSERT_TRUE(Cgen::BlockTypeFromString("StructLiteral", &parsed));
    EXPECT_EQ(parsed, Cgen::BlockType::StructLiteral);
    ASSERT_TRUE(Cgen::BlockTypeFromString("AddressOf", &parsed));
    EXPECT_EQ(parsed, Cgen::BlockType::AddressOf);
+   ASSERT_TRUE(Cgen::BlockTypeFromString("DerefLoad", &parsed));
+   EXPECT_EQ(parsed, Cgen::BlockType::DerefLoad);
+   ASSERT_TRUE(Cgen::BlockTypeFromString("DerefStore", &parsed));
+   EXPECT_EQ(parsed, Cgen::BlockType::DerefStore);
 }
 
 TEST(BlockTypeTest, RejectsUnknownId)
@@ -45,6 +53,7 @@ TEST(BlockTypeTest, ExpressionClassification)
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::FieldLoad));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::StructLiteral));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::AddressOf));
+   EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::DerefLoad));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::StrLen));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::Random));
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::Printf));
@@ -53,6 +62,9 @@ TEST(BlockTypeTest, ExpressionClassification)
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::Break));
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::ScanfInt));
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::StructDecl));
+   EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::EnumDecl));
+   EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::TypedefDecl));
+   EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::DerefStore));
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::Assert));
 }
 
@@ -116,6 +128,8 @@ TEST(BlockTypeTest, EveryBlockHasHelpText)
       Cgen::BlockType::Assert,
       Cgen::BlockType::Comment,
       Cgen::BlockType::StructDecl,
+      Cgen::BlockType::EnumDecl,
+      Cgen::BlockType::TypedefDecl,
       Cgen::BlockType::FieldLoad,
       Cgen::BlockType::FieldStore,
       Cgen::BlockType::RandomChar,
@@ -129,7 +143,9 @@ TEST(BlockTypeTest, EveryBlockHasHelpText)
       Cgen::BlockType::FunctionDef,
       Cgen::BlockType::Return,
       Cgen::BlockType::Call,
-      Cgen::BlockType::StructLiteral
+      Cgen::BlockType::StructLiteral,
+      Cgen::BlockType::DerefLoad,
+      Cgen::BlockType::DerefStore
    };
 
    for (size_t index = 0; index < (sizeof(AllTypes) / sizeof(AllTypes[0])); ++index)

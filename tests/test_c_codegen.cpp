@@ -680,3 +680,106 @@ TEST(CCodegenTest, EmitsNestedFieldPath)
    EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
    EXPECT_NE(output.source.find("hero.stats.hp = 10;"), std::string::npos);
 }
+
+TEST(CCodegenTest, EmitsEnumAndTypedefBeforeGlobals)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId enumId =
+      document.AddNode(Cgen::BlockType::EnumDecl, 40.0f, -80.0f);
+   document.FindNodeMutable(enumId)->properties["name"] = "Color";
+   document.FindNodeMutable(enumId)->properties["enumerators"] = "Red, Green, Blue";
+
+   const Cgen::NodeId typedefId =
+      document.AddNode(Cgen::BlockType::TypedefDecl, 40.0f, -40.0f);
+   document.FindNodeMutable(typedefId)->properties["name"] = "Byte";
+   document.FindNodeMutable(typedefId)->properties["type"] = "uint8_t";
+
+   const Cgen::NodeId globalColor =
+      document.AddNode(Cgen::BlockType::GlobalDecl, 40.0f, 40.0f);
+   document.FindNodeMutable(globalColor)->properties["name"] = "tint";
+   document.FindNodeMutable(globalColor)->properties["type"] = "Color";
+
+   const Cgen::NodeId globalByte =
+      document.AddNode(Cgen::BlockType::GlobalDecl, 40.0f, 80.0f);
+   document.FindNodeMutable(globalByte)->properties["name"] = "flag";
+   document.FindNodeMutable(globalByte)->properties["type"] = "Byte";
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+
+   const size_t enumPos = output.source.find("typedef enum Color");
+   const size_t typedefPos = output.source.find("typedef uint8_t Byte;");
+   const size_t tintPos = output.source.find("Color tint;");
+   const size_t flagPos = output.source.find("Byte flag;");
+   ASSERT_NE(enumPos, std::string::npos);
+   ASSERT_NE(typedefPos, std::string::npos);
+   ASSERT_NE(tintPos, std::string::npos);
+   ASSERT_NE(flagPos, std::string::npos);
+   EXPECT_LT(enumPos, tintPos);
+   EXPECT_LT(typedefPos, flagPos);
+   EXPECT_NE(output.source.find("Red"), std::string::npos);
+   EXPECT_NE(output.source.find("Green"), std::string::npos);
+   EXPECT_NE(output.source.find("Blue"), std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsDerefLoadAndStore)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId declId =
+      document.AddNode(Cgen::BlockType::VariableDecl, 40.0f, 40.0f);
+   document.FindNodeMutable(declId)->properties["name"] = "value";
+   document.FindNodeMutable(declId)->properties["type"] = "int32_t";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(declId));
+
+   const Cgen::NodeId addrStoreId =
+      document.AddNode(Cgen::BlockType::AddressOf, 40.0f, 120.0f);
+   document.FindNodeMutable(addrStoreId)->properties["name"] = "value";
+   document.FindNodeMutable(addrStoreId)->properties["type"] = "int32_t*";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(addrStoreId));
+
+   const Cgen::NodeId addrLoadId =
+      document.AddNode(Cgen::BlockType::AddressOf, 40.0f, 200.0f);
+   document.FindNodeMutable(addrLoadId)->properties["name"] = "value";
+   document.FindNodeMutable(addrLoadId)->properties["type"] = "int32_t*";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(addrLoadId));
+
+   const Cgen::NodeId litId =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 280.0f);
+   document.FindNodeMutable(litId)->properties["value"] = "42";
+   document.FindNodeMutable(litId)->properties["type"] = "int32_t";
+
+   const Cgen::NodeId storeId =
+      document.AddNode(Cgen::BlockType::DerefStore, 200.0f, 40.0f);
+   document.FindNodeMutable(storeId)->properties["type"] = "int32_t";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(storeId));
+
+   const Cgen::NodeId loadId =
+      document.AddNode(Cgen::BlockType::DerefLoad, 200.0f, 160.0f);
+   document.FindNodeMutable(loadId)->properties["type"] = "int32_t";
+   Cgen::SyncNodePortTypes(document.FindNodeMutable(loadId));
+
+   const Cgen::NodeId printfId =
+      document.AddNode(Cgen::BlockType::Printf, 360.0f, 40.0f);
+   document.FindNodeMutable(printfId)->properties["format"] = "%d\\n";
+
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 520.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", declId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(declId, "Next", storeId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(addrStoreId, "Value", storeId, "Ptr", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(litId, "Value", storeId, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(storeId, "Next", printfId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(addrLoadId, "Value", loadId, "Ptr", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(loadId, "Value", printfId, "Arg0", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(printfId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("(*&value) = 42;"), std::string::npos);
+   EXPECT_NE(output.source.find("(int32_t)((*&value))"), std::string::npos);
+}

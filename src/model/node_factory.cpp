@@ -198,6 +198,12 @@ namespace Cgen
          {BlockType::StructDecl, "StructDecl", "Struct",
           "File-scope typedef struct. Properties: name, fields (C field list).",
           false},
+         {BlockType::EnumDecl, "EnumDecl", "Enum",
+          "File-scope typedef enum. Properties: name, enumerators (comma-separated).",
+          false},
+         {BlockType::TypedefDecl, "TypedefDecl", "Typedef",
+          "File-scope typedef. Properties: name, type (underlying C type).",
+          false},
          {BlockType::FieldLoad, "FieldLoad", "Field Get",
           "Reads object.field or object->field. Properties: object, field (nested a.b ok), access.",
           true},
@@ -239,7 +245,13 @@ namespace Cgen
           false},
          {BlockType::StructLiteral, "StructLiteral", "Struct Literal",
           "Expression: designated initializer. Properties: type, init (e.g. .hp = 30, .atk = 6).",
-          true}
+          true},
+         {BlockType::DerefLoad, "DerefLoad", "Deref Get",
+          "Reads *Ptr. Wire a pointer into Ptr; set type for the loaded value.",
+          true},
+         {BlockType::DerefStore, "DerefStore", "Deref Set",
+          "Writes Value into *Ptr. Wire Ptr and Value.",
+          false}
       };
 
       constexpr size_t BlockTableCount = sizeof(BlockTable) / sizeof(BlockTable[0]);
@@ -643,6 +655,14 @@ namespace Cgen
             node.properties["name"] = "Point";
             node.properties["fields"] = "int32_t x; int32_t y";
             break;
+         case BlockType::EnumDecl:
+            node.properties["name"] = "Color";
+            node.properties["enumerators"] = "Red, Green, Blue";
+            break;
+         case BlockType::TypedefDecl:
+            node.properties["name"] = "Byte";
+            node.properties["type"] = "uint8_t";
+            break;
          case BlockType::FieldLoad:
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
             node.properties["object"] = "point";
@@ -656,6 +676,18 @@ namespace Cgen
             node.properties["object"] = "point";
             node.properties["field"] = "x";
             node.properties["access"] = ".";
+            break;
+         case BlockType::DerefLoad:
+            node.ports.push_back(MakeDataIn("Ptr", PrimitiveType::Void, true));
+            node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
+            node.properties["type"] = "int32_t";
+            break;
+         case BlockType::DerefStore:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.ports.push_back(MakeDataIn("Ptr", PrimitiveType::Void, true));
+            node.ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
+            node.properties["type"] = "int32_t";
             break;
          case BlockType::RandomChar:
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
@@ -1280,6 +1312,22 @@ namespace Cgen
             (typeIterator != pNode->properties.end()) ? typeIterator->second
                                                       : std::string_view("int32_t");
          ApplyTypeToPort(FindPortMutable(pNode, "Value"), typeText);
+         return;
+      }
+      if ((pNode->type == BlockType::DerefLoad) ||
+          (pNode->type == BlockType::DerefStore))
+      {
+         const auto typeIterator = pNode->properties.find("type");
+         const std::string_view typeText =
+            (typeIterator != pNode->properties.end()) ? typeIterator->second
+                                                      : std::string_view("int32_t");
+         ApplyTypeToPort(FindPortMutable(pNode, "Value"), typeText);
+         std::string pointerType = std::string(typeText);
+         if ((pointerType.empty()) || (pointerType.back() != '*'))
+         {
+            pointerType.push_back('*');
+         }
+         ApplyTypeToPort(FindPortMutable(pNode, "Ptr"), pointerType);
          return;
       }
       if (pNode->type == BlockType::Call)

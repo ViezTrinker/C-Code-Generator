@@ -106,7 +106,9 @@ namespace Cgen
          const std::vector<Node>& nodes = document.GetNodes();
          for (size_t index = 0; index < nodes.size(); ++index)
          {
-            if (nodes[index].type != BlockType::StructDecl)
+            if ((nodes[index].type != BlockType::StructDecl) &&
+                (nodes[index].type != BlockType::EnumDecl) &&
+                (nodes[index].type != BlockType::TypedefDecl))
             {
                continue;
             }

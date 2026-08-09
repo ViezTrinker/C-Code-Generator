@@ -73,6 +73,8 @@ namespace Cgen
       Assert,
       Comment,
       StructDecl,
+      EnumDecl,
+      TypedefDecl,
       FieldLoad,
       FieldStore,
       RandomChar,
@@ -86,7 +88,9 @@ namespace Cgen
       FunctionDef,
       Return,
       Call,
-      StructLiteral
+      StructLiteral,
+      DerefLoad,
+      DerefStore
    };
 
    /*!

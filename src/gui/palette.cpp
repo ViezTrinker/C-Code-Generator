@@ -128,7 +128,9 @@ namespace Cgen
       constexpr BlockType MemoryTypes[] = {
          BlockType::Malloc,
          BlockType::Free,
-         BlockType::AddressOf
+         BlockType::AddressOf,
+         BlockType::DerefLoad,
+         BlockType::DerefStore
       };
 
       constexpr BlockType TimeRandomTypes[] = {
@@ -141,6 +143,8 @@ namespace Cgen
 
       constexpr BlockType StructTypes[] = {
          BlockType::StructDecl,
+         BlockType::EnumDecl,
+         BlockType::TypedefDecl,
          BlockType::StructLiteral,
          BlockType::FieldLoad,
          BlockType::FieldStore
@@ -182,7 +186,7 @@ namespace Cgen
           false},
          {"Time / Random", TimeRandomTypes,
           sizeof(TimeRandomTypes) / sizeof(TimeRandomTypes[0]), false},
-         {"Structs", StructTypes, sizeof(StructTypes) / sizeof(StructTypes[0]),
+         {"Structs / Types", StructTypes, sizeof(StructTypes) / sizeof(StructTypes[0]),
           false},
          {"Functions", FunctionTypes,
           sizeof(FunctionTypes) / sizeof(FunctionTypes[0]), false},

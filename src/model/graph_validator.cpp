@@ -34,8 +34,9 @@ namespace Cgen
       bool IsRootishType(BlockType blockType)
       {
          return (blockType == BlockType::Start) || (blockType == BlockType::FunctionDef) ||
-                (blockType == BlockType::StructDecl) || (blockType == BlockType::GlobalDecl) ||
-                (blockType == BlockType::Comment);
+                (blockType == BlockType::StructDecl) || (blockType == BlockType::EnumDecl) ||
+                (blockType == BlockType::TypedefDecl) ||
+                (blockType == BlockType::GlobalDecl) || (blockType == BlockType::Comment);
       }
 
       bool IsStatementLike(BlockType blockType)
@@ -253,7 +254,14 @@ namespace Cgen
                    (blockType == BlockType::CompoundAssign) ||
                    (blockType == BlockType::FieldStore) ||
                    (blockType == BlockType::IndexAssign) ||
+                   (blockType == BlockType::DerefStore) ||
                    (blockType == BlockType::Switch);
+         }
+         if (portName == "Ptr")
+         {
+            return (blockType == BlockType::DerefLoad) ||
+                   (blockType == BlockType::DerefStore) ||
+                   (blockType == BlockType::Free);
          }
          if ((portName == "Left") || (portName == "Right"))
          {
@@ -520,6 +528,90 @@ namespace Cgen
                         node.id,
                         std::string(BlockTypeLabel(node.type)) +
                            " is not inside a While/For Body.");
+            }
+         }
+
+         if (node.type == BlockType::Call)
+         {
+            const std::string functionName = GetProperty(node, "function", "");
+            if (functionName.empty())
+            {
+               AddIssue(&report,
+                        ValidationSeverity::Error,
+                        node.id,
+                        "Call is missing property 'function'.");
+            }
+            else
+            {
+               const Node* pFunction = nullptr;
+               for (const Node& candidate : document.GetNodes())
+               {
+                  if (candidate.type != BlockType::FunctionDef)
+                  {
+                     continue;
+                  }
+                  if (GetProperty(candidate, "name", "") == functionName)
+                  {
+                     pFunction = &candidate;
+                     break;
+                  }
+               }
+               if (pFunction == nullptr)
+               {
+                  AddIssue(&report,
+                           ValidationSeverity::Warning,
+                           node.id,
+                           "Call targets unknown function '" + functionName +
+                              "' (no FunctionDef).");
+               }
+               else
+               {
+                  const uint32_t expectedArgs = GetFunctionParamCount(*pFunction);
+                  uint32_t wiredArgs = 0;
+                  for (uint32_t argIndex = 0; argIndex < MaxFunctionParams; ++argIndex)
+                  {
+                     const std::string argName = "Arg" + std::to_string(argIndex);
+                     if (document.FindIncomingEdge(node.id, argName) != nullptr)
+                     {
+                        ++wiredArgs;
+                     }
+                  }
+                  if (wiredArgs != expectedArgs)
+                  {
+                     std::ostringstream stream;
+                     stream << "Call to '" << functionName << "' has " << wiredArgs
+                            << " args but FunctionDef expects " << expectedArgs << ".";
+                     AddIssue(&report,
+                              ValidationSeverity::Error,
+                              node.id,
+                              stream.str());
+                  }
+               }
+            }
+         }
+
+         if (node.type == BlockType::FunctionDef)
+         {
+            const uint32_t paramCount = GetFunctionParamCount(node);
+            const std::string functionName = GetProperty(node, "name", "helper");
+            for (uint32_t paramIndex = 0; paramIndex < paramCount; ++paramIndex)
+            {
+               const std::string portName = "Param" + std::to_string(paramIndex);
+               if (document.FindOutgoingEdge(node.id, portName) != nullptr)
+               {
+                  continue;
+               }
+               std::string paramName;
+               std::string paramType;
+               if (!GetFunctionParam(node, paramIndex, &paramName, &paramType))
+               {
+                  paramName = portName;
+               }
+               AddIssue(&report,
+                        ValidationSeverity::Warning,
+                        node.id,
+                        "Unused Param port " + portName + " ('" + paramName +
+                           "') on FunctionDef '" + functionName + "'.");
             }
          }
       }

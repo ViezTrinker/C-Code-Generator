@@ -452,6 +452,15 @@ namespace Cgen
                expression = "(" + typeName + "){ " + initText + " }";
                break;
             }
+            case BlockType::DerefLoad:
+            {
+               const std::string ptrExpr =
+                  EmitInputExpression(pContext, nodeId, "Ptr");
+               const std::string toType = GetProperty(*pNode, "type", "int32_t");
+               expression =
+                  FormatCastExpression(toType, "(*" + ptrExpr + ")");
+               break;
+            }
             default:
                AppendDiag(pContext,
                           std::string("Node is not an expression: ") +
@@ -956,6 +965,16 @@ namespace Cgen
                (*pContext->pOut) << leftSide << " = " << valueExpr << ";\n";
                break;
             }
+            case BlockType::DerefStore:
+            {
+               const std::string ptrExpr =
+                  EmitInputExpression(pContext, node.id, "Ptr");
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, node.id, "Value");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "(*" << ptrExpr << ") = " << valueExpr << ";\n";
+               break;
+            }
             case BlockType::ShuffleArray:
             {
                const std::string arrayName = GetProperty(node, "array", "buffer");
@@ -1283,6 +1302,80 @@ namespace Cgen
          }
       }
 
+      void EmitEnumDecls(EmitContext* pContext)
+      {
+         const std::vector<Node>& nodes = pContext->pDocument->GetNodes();
+         for (size_t index = 0; index < nodes.size(); ++index)
+         {
+            const Node& node = nodes[index];
+            if (node.type != BlockType::EnumDecl)
+            {
+               continue;
+            }
+            const std::string name = GetProperty(node, "name", "Color");
+            const std::string enumerators =
+               GetProperty(node, "enumerators", "Red, Green, Blue");
+            (*pContext->pOut) << "typedef enum " << name << "\n{\n";
+            std::string item;
+            bool wroteItem = false;
+            for (size_t charIndex = 0; charIndex <= enumerators.size(); ++charIndex)
+            {
+               const bool atEnd = (charIndex == enumerators.size());
+               const char character = atEnd ? ',' : enumerators[charIndex];
+               if (character == ',')
+               {
+                  size_t start = 0;
+                  while ((start < item.size()) &&
+                         ((item[start] == ' ') || (item[start] == '\t')))
+                  {
+                     ++start;
+                  }
+                  size_t end = item.size();
+                  while ((end > start) &&
+                         ((item[end - 1] == ' ') || (item[end - 1] == '\t')))
+                  {
+                     --end;
+                  }
+                  if (start < end)
+                  {
+                     if (wroteItem)
+                     {
+                        (*pContext->pOut) << ",\n";
+                     }
+                     (*pContext->pOut) << "   " << item.substr(start, end - start);
+                     wroteItem = true;
+                  }
+                  item.clear();
+               }
+               else if (!atEnd)
+               {
+                  item.push_back(character);
+               }
+            }
+            if (wroteItem)
+            {
+               (*pContext->pOut) << "\n";
+            }
+            (*pContext->pOut) << "} " << name << ";\n\n";
+         }
+      }
+
+      void EmitTypedefDecls(EmitContext* pContext)
+      {
+         const std::vector<Node>& nodes = pContext->pDocument->GetNodes();
+         for (size_t index = 0; index < nodes.size(); ++index)
+         {
+            const Node& node = nodes[index];
+            if (node.type != BlockType::TypedefDecl)
+            {
+               continue;
+            }
+            const std::string name = GetProperty(node, "name", "Byte");
+            const std::string typeText = GetProperty(node, "type", "uint8_t");
+            (*pContext->pOut) << "typedef " << typeText << " " << name << ";\n\n";
+         }
+      }
+
       void EmitFunctions(EmitContext* pContext)
       {
          const std::vector<Node>& nodes = pContext->pDocument->GetNodes();
@@ -1473,6 +1566,8 @@ namespace Cgen
       stream << "\n";
 
       EmitStructDecls(&context);
+      EmitEnumDecls(&context);
+      EmitTypedefDecls(&context);
       stream << "\n";
       EmitGlobals(&context);
       stream << "\n";

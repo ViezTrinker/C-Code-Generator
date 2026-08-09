@@ -6,6 +6,7 @@
 
 #include "model/graph_document.h"
 #include "model/graph_validator.h"
+#include "model/node.h"
 
 TEST(GraphValidatorTest, ReportsMissingEndFromStart)
 {
@@ -193,6 +194,102 @@ TEST(GraphValidatorTest, WarnsUnreachableEnd)
       if ((report.issues[index].nodeId == orphanEndId) &&
           (report.issues[index].severity == Cgen::ValidationSeverity::Warning) &&
           (report.issues[index].message.find("Unreachable End") != std::string::npos))
+      {
+         found = true;
+         break;
+      }
+   }
+   EXPECT_TRUE(found);
+}
+
+TEST(GraphValidatorTest, WarnsUnknownCallFunction)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId callId =
+      document.AddNode(Cgen::BlockType::Call, 200.0f, 40.0f);
+   document.FindNodeMutable(callId)->properties["function"] = "missing_fn";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", callId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(callId, "Next", endId, "In", nullptr)));
+
+   const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+   bool found = false;
+   for (size_t index = 0; index < report.issues.size(); ++index)
+   {
+      if ((report.issues[index].nodeId == callId) &&
+          (report.issues[index].severity == Cgen::ValidationSeverity::Warning) &&
+          (report.issues[index].message.find("unknown function") != std::string::npos))
+      {
+         found = true;
+         break;
+      }
+   }
+   EXPECT_TRUE(found);
+}
+
+TEST(GraphValidatorTest, ReportsCallArityMismatch)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId functionId =
+      document.AddNode(Cgen::BlockType::FunctionDef, 40.0f, 200.0f);
+   Cgen::Node* pFunction = document.FindNodeMutable(functionId);
+   ASSERT_NE(pFunction, nullptr);
+   pFunction->properties["name"] = "add2";
+   pFunction->properties["paramCount"] = "2";
+   pFunction->properties["param0Name"] = "a";
+   pFunction->properties["param0Type"] = "int32_t";
+   pFunction->properties["param1Name"] = "b";
+   pFunction->properties["param1Type"] = "int32_t";
+   Cgen::SyncFunctionDefParams(pFunction);
+
+   const Cgen::NodeId litId =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 40.0f);
+   const Cgen::NodeId callId =
+      document.AddNode(Cgen::BlockType::Call, 200.0f, 40.0f);
+   document.FindNodeMutable(callId)->properties["function"] = "add2";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", callId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(litId, "Value", callId, "Arg0", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(callId, "Next", endId, "In", nullptr)));
+
+   const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+   bool found = false;
+   for (size_t index = 0; index < report.issues.size(); ++index)
+   {
+      if ((report.issues[index].nodeId == callId) &&
+          (report.issues[index].severity == Cgen::ValidationSeverity::Error) &&
+          (report.issues[index].message.find("expects 2") != std::string::npos))
+      {
+         found = true;
+         break;
+      }
+   }
+   EXPECT_TRUE(found);
+}
+
+TEST(GraphValidatorTest, WarnsUnusedFunctionParamPort)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId functionId =
+      document.AddNode(Cgen::BlockType::FunctionDef, 40.0f, 40.0f);
+   Cgen::Node* pFunction = document.FindNodeMutable(functionId);
+   ASSERT_NE(pFunction, nullptr);
+   pFunction->properties["name"] = "bump";
+   pFunction->properties["paramCount"] = "1";
+   pFunction->properties["param0Name"] = "x";
+   pFunction->properties["param0Type"] = "int32_t";
+   Cgen::SyncFunctionDefParams(pFunction);
+
+   const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+   bool found = false;
+   for (size_t index = 0; index < report.issues.size(); ++index)
+   {
+      if ((report.issues[index].nodeId == functionId) &&
+          (report.issues[index].severity == Cgen::ValidationSeverity::Warning) &&
+          (report.issues[index].message.find("Unused Param port") !=
+           std::string::npos))
       {
          found = true;
          break;

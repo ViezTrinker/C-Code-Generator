@@ -48,10 +48,21 @@ namespace Cgen
       /*!
        *\brief Syncs UI with the selected node.
        *
+       * Unchanged selection keeps the active field so typing is not cleared by
+       * unrelated mouse-release syncs.
+       *
        *\param[in] pDocument Document owning the node.
        *\param[in] selectedNodeId Selected node id, or 0.
        */
       void SetSelection(GraphDocument* pDocument, NodeId selectedNodeId);
+
+      /*!
+       *\brief Rebuilds fields from the current document selection.
+       *
+       * Use after undo/redo when the selected node id is unchanged but property
+       * values may have changed.
+       */
+      void ReloadFromDocument(void);
 
       /*!
        *\brief Handles a mouse click inside the panel.

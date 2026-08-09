@@ -38,9 +38,19 @@ namespace Cgen
 
    void PropertyPanel::SetSelection(GraphDocument* pDocument, NodeId selectedNodeId)
    {
+      if ((pDocument == _pDocument) && (selectedNodeId == _selectedNodeId))
+      {
+         return;
+      }
       CommitActiveField();
       _pDocument = pDocument;
       _selectedNodeId = selectedNodeId;
+      _activeFieldIndex = -1;
+      RebuildFields();
+   }
+
+   void PropertyPanel::ReloadFromDocument(void)
+   {
       _activeFieldIndex = -1;
       RebuildFields();
    }

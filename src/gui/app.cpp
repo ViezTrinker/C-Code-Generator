@@ -329,6 +329,7 @@ namespace Cgen
          return;
       }
       SyncSelectionUi();
+      _pProperties->ReloadFromDocument();
    }
 
    void App::RedoEdit(void)
@@ -338,6 +339,7 @@ namespace Cgen
          return;
       }
       SyncSelectionUi();
+      _pProperties->ReloadFromDocument();
    }
 
    void App::DeleteSelectedBlock(void)

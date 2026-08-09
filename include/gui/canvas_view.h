@@ -8,11 +8,14 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Clock.hpp>
 
 #include "gui/document_history.h"
+#include "model/c_type.h"
 #include "model/graph_clipboard.h"
 #include "model/graph_document.h"
 
@@ -234,6 +237,14 @@ namespace Cgen
          sf::Vector2f worldPosition {};
          PortKind kind = PortKind::Control;
          PortDirection direction = PortDirection::Out;
+         CType dataType {};
+      };
+
+      enum class WireHoverStatus: uint8_t
+      {
+         None = 0,
+         Compatible,
+         Incompatible
       };
 
       sf::Vector2f ScreenToWorld(sf::Vector2f screenPoint) const;
@@ -261,6 +272,14 @@ namespace Cgen
                                     float* pOutMinY,
                                     float* pOutMaxX,
                                     float* pOutMaxY) const;
+      void CollectFunctionBodyNodeIds(NodeId functionId,
+                                      std::unordered_set<NodeId>* pOutIds) const;
+      bool IsFunctionCollapsed(const Node& node) const;
+      bool IsNodeHiddenByCollapse(NodeId nodeId) const;
+      void ToggleFunctionCollapsed(NodeId functionId);
+      bool TryConnectWire(const PortHit& fromHit, const PortHit& toHit);
+      void UpdateWireHoverFeedback(sf::Vector2f worldPoint);
+      void ClearWireHoverFeedback(void);
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
@@ -280,8 +299,13 @@ namespace Cgen
       std::optional<PortHit> _wireStart;
       sf::Vector2f _wirePreviewWorld {};
       bool _hasHoveredPort = false;
+      NodeId _hoveredPortNodeId = 0;
       std::string _hoveredPortName;
       sf::Vector2f _hoveredPortScreen {};
+      WireHoverStatus _wireHoverStatus = WireHoverStatus::None;
+      std::string _wireHoverHint;
+      NodeId _lastClickNodeId = 0;
+      sf::Clock _lastClickClock;
    };
 } // namespace Cgen
 

@@ -19,7 +19,16 @@
 namespace Cgen
 {
    /*!
-    *\brief Edits string properties of the selected node via keyboard.
+    *\brief How a property field is edited.
+    */
+   enum class FieldEditKind: uint8_t
+   {
+      Text = 0,
+      Choice
+   };
+
+   /*!
+    *\brief Edits string properties of the selected node via keyboard and dropdowns.
     */
    class PropertyPanel
    {
@@ -110,6 +119,14 @@ namespace Cgen
       {
          std::string key;
          std::string value;
+         FieldEditKind editKind = FieldEditKind::Text;
+         std::vector<std::string> choices;
+         sf::FloatRect bounds {};
+      };
+
+      struct ChoiceItem
+      {
+         std::string label;
          sf::FloatRect bounds {};
       };
 
@@ -118,6 +135,11 @@ namespace Cgen
       void RebuildPreviewLines(std::string_view previewText);
       void CommitActiveField(void);
       float FieldsStartY(void) const;
+      void CloseChoicePopup(void);
+      void OpenChoicePopup(int32_t fieldIndex);
+      void RebuildChoicePopupBounds(void);
+      bool HandleChoicePopupClick(sf::Vector2f point);
+      void FillChoicesForField(Field* pField, BlockType blockType) const;
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
@@ -128,6 +150,10 @@ namespace Cgen
       std::vector<std::string> _helpLines;
       std::vector<std::string> _previewLines;
       int32_t _activeFieldIndex = -1;
+      bool _choicePopupOpen = false;
+      int32_t _choicePopupFieldIndex = -1;
+      sf::FloatRect _choicePopupBounds {};
+      std::vector<ChoiceItem> _choiceItems;
    };
 } // namespace Cgen
 

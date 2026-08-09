@@ -12,8 +12,10 @@
 #include <SFML/Window/Keyboard.hpp>
 
 #include "gui/block_placement.h"
+#include "model/c_type.h"
 #include "model/graph_layout.h"
 #include "model/node.h"
+#include "model/result.h"
 
 namespace Cgen
 {
@@ -30,6 +32,7 @@ namespace Cgen
       constexpr float MinimapHeight = 120.0f;
       constexpr float MinimapMargin = 10.0f;
       constexpr float MinimapContentPad = 24.0f;
+      constexpr float DoubleClickSeconds = 0.35f;
 
       bool IsShiftHeld(void)
       {
@@ -73,6 +76,7 @@ namespace Cgen
       _pDocument = pDocument;
       ClearSelection();
       _wireStart.reset();
+      ClearWireHoverFeedback();
       _isDraggingNode = false;
       _isPanning = false;
       _isMarquee = false;
@@ -461,6 +465,10 @@ namespace Cgen
       for (size_t nodeIndex = 0; nodeIndex < nodes.size(); ++nodeIndex)
       {
          const Node& node = nodes[nodeIndex];
+         if (IsNodeHiddenByCollapse(node.id))
+         {
+            continue;
+         }
          for (size_t portIndex = 0; portIndex < node.ports.size(); ++portIndex)
          {
             if (!node.ports[portIndex].visible)
@@ -478,6 +486,7 @@ namespace Cgen
                pOutHit->worldPosition = portPos;
                pOutHit->kind = node.ports[portIndex].kind;
                pOutHit->direction = node.ports[portIndex].direction;
+               pOutHit->dataType = node.ports[portIndex].dataType;
                return true;
             }
          }
@@ -495,6 +504,10 @@ namespace Cgen
       for (size_t index = 0; index < nodes.size(); ++index)
       {
          const size_t reverseIndex = nodes.size() - 1 - index;
+         if (IsNodeHiddenByCollapse(nodes[reverseIndex].id))
+         {
+            continue;
+         }
          if (NodeBounds(nodes[reverseIndex]).contains(worldPoint))
          {
             return nodes[reverseIndex].id;
@@ -617,18 +630,13 @@ namespace Cgen
          {
             _wireStart = portHit;
             _wirePreviewWorld = world;
+            ClearWireHoverFeedback();
          }
          else if (_wireStart.has_value())
          {
-            PushCheckpoint();
-            _pDocument->Connect(_wireStart->nodeId,
-                                _wireStart->portName,
-                                portHit.nodeId,
-                                portHit.portName,
-                                nullptr);
-            Node* pToNode = _pDocument->FindNodeMutable(portHit.nodeId);
-            SyncPrintfArgVisibility(pToNode, _pDocument);
+            TryConnectWire(*_wireStart, portHit);
             _wireStart.reset();
+            ClearWireHoverFeedback();
          }
          return true;
       }
@@ -636,6 +644,18 @@ namespace Cgen
       const NodeId hitNode = HitTestNode(world);
       if (hitNode != 0)
       {
+         const Node* pHitNode = _pDocument->FindNode(hitNode);
+         if ((pHitNode != nullptr) && (pHitNode->type == BlockType::FunctionDef) &&
+             (_lastClickNodeId == hitNode) &&
+             (_lastClickClock.getElapsedTime().asSeconds() <= DoubleClickSeconds))
+         {
+            ToggleFunctionCollapsed(hitNode);
+            _lastClickNodeId = 0;
+            return true;
+         }
+         _lastClickNodeId = hitNode;
+         _lastClickClock.restart();
+
          if (IsShiftHeld())
          {
             ToggleSelection(hitNode);
@@ -650,6 +670,7 @@ namespace Cgen
       }
       else
       {
+         _lastClickNodeId = 0;
          if (!IsShiftHeld())
          {
             ClearSelection();
@@ -673,16 +694,10 @@ namespace Cgen
             if (HitTestPort(world, &portHit) &&
                 (portHit.direction == PortDirection::In))
             {
-               PushCheckpoint();
-               _pDocument->Connect(_wireStart->nodeId,
-                                   _wireStart->portName,
-                                   portHit.nodeId,
-                                   portHit.portName,
-                                   nullptr);
-               Node* pToNode = _pDocument->FindNodeMutable(portHit.nodeId);
-               SyncPrintfArgVisibility(pToNode, _pDocument);
+               TryConnectWire(*_wireStart, portHit);
             }
             _wireStart.reset();
+            ClearWireHoverFeedback();
          }
          if (_isMarquee && (_pDocument != nullptr))
          {
@@ -699,6 +714,10 @@ namespace Cgen
                }
                for (const Node& node : _pDocument->GetNodes())
                {
+                  if (IsNodeHiddenByCollapse(node.id))
+                  {
+                     continue;
+                  }
                   const sf::FloatRect bounds = NodeBounds(node);
                   const sf::Vector2f center(
                      bounds.position.x + (bounds.size.x * 0.5f),
@@ -746,13 +765,21 @@ namespace Cgen
       if (HitTestPort(world, &hoverHit))
       {
          _hasHoveredPort = true;
+         _hoveredPortNodeId = hoverHit.nodeId;
          _hoveredPortName = hoverHit.portName;
          _hoveredPortScreen = WorldToScreen(hoverHit.worldPosition);
       }
       else
       {
          _hasHoveredPort = false;
+         _hoveredPortNodeId = 0;
          _hoveredPortName.clear();
+      }
+
+      if (_wireStart.has_value())
+      {
+         UpdateWireHoverFeedback(world);
+         return;
       }
 
       if (_isPanning)
@@ -1051,6 +1078,204 @@ namespace Cgen
       }
    }
 
+   void CanvasView::CollectFunctionBodyNodeIds(NodeId functionId,
+                                              std::unordered_set<NodeId>* pOutIds) const
+   {
+      if ((pOutIds == nullptr) || (_pDocument == nullptr))
+      {
+         return;
+      }
+
+      std::queue<NodeId> pending;
+      const Edge* pBody = _pDocument->FindOutgoingEdge(functionId, "Body");
+      if (pBody != nullptr)
+      {
+         pending.push(pBody->toNodeId);
+      }
+
+      while (!pending.empty())
+      {
+         const NodeId currentId = pending.front();
+         pending.pop();
+         if (pOutIds->find(currentId) != pOutIds->end())
+         {
+            continue;
+         }
+         pOutIds->insert(currentId);
+         const Node* pNode = _pDocument->FindNode(currentId);
+         if (pNode == nullptr)
+         {
+            continue;
+         }
+         for (size_t portIndex = 0; portIndex < pNode->ports.size(); ++portIndex)
+         {
+            const Port& port = pNode->ports[portIndex];
+            if ((port.kind != PortKind::Control) ||
+                (port.direction != PortDirection::Out))
+            {
+               continue;
+            }
+            const Edge* pEdge = _pDocument->FindOutgoingEdge(currentId, port.name);
+            if ((pEdge != nullptr) &&
+                (pOutIds->find(pEdge->toNodeId) == pOutIds->end()))
+            {
+               pending.push(pEdge->toNodeId);
+            }
+         }
+      }
+   }
+
+   bool CanvasView::IsFunctionCollapsed(const Node& node) const
+   {
+      if (node.type != BlockType::FunctionDef)
+      {
+         return false;
+      }
+      const auto iterator = node.properties.find("collapsed");
+      if (iterator == node.properties.end())
+      {
+         return false;
+      }
+      return iterator->second == "1";
+   }
+
+   bool CanvasView::IsNodeHiddenByCollapse(NodeId nodeId) const
+   {
+      if (_pDocument == nullptr)
+      {
+         return false;
+      }
+      const std::vector<Node>& nodes = _pDocument->GetNodes();
+      for (size_t index = 0; index < nodes.size(); ++index)
+      {
+         if (!IsFunctionCollapsed(nodes[index]))
+         {
+            continue;
+         }
+         std::unordered_set<NodeId> bodyIds;
+         CollectFunctionBodyNodeIds(nodes[index].id, &bodyIds);
+         if (bodyIds.find(nodeId) != bodyIds.end())
+         {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   void CanvasView::ToggleFunctionCollapsed(NodeId functionId)
+   {
+      if (_pDocument == nullptr)
+      {
+         return;
+      }
+      Node* pFunction = _pDocument->FindNodeMutable(functionId);
+      if ((pFunction == nullptr) || (pFunction->type != BlockType::FunctionDef))
+      {
+         return;
+      }
+
+      PushCheckpoint();
+      const bool willCollapse = !IsFunctionCollapsed(*pFunction);
+      pFunction->properties["collapsed"] = willCollapse ? "1" : "0";
+      if (willCollapse)
+      {
+         std::unordered_set<NodeId> bodyIds;
+         CollectFunctionBodyNodeIds(functionId, &bodyIds);
+         for (std::unordered_set<NodeId>::const_iterator iterator = bodyIds.begin();
+              iterator != bodyIds.end();
+              ++iterator)
+         {
+            RemoveFromSelection(*iterator);
+         }
+      }
+      _pDocument->SetDirty(true);
+   }
+
+   bool CanvasView::TryConnectWire(const PortHit& fromHit, const PortHit& toHit)
+   {
+      if (_pDocument == nullptr)
+      {
+         return false;
+      }
+      if (toHit.direction != PortDirection::In)
+      {
+         return false;
+      }
+      if (fromHit.kind != toHit.kind)
+      {
+         return false;
+      }
+      if ((fromHit.kind == PortKind::Data) &&
+          (!AreTypesCompatible(fromHit.dataType, toHit.dataType)))
+      {
+         return false;
+      }
+
+      PushCheckpoint();
+      const Result connectResult =
+         _pDocument->Connect(fromHit.nodeId,
+                             fromHit.portName,
+                             toHit.nodeId,
+                             toHit.portName,
+                             nullptr);
+      if (IsErr(connectResult))
+      {
+         return false;
+      }
+
+      Node* pToNode = _pDocument->FindNodeMutable(toHit.nodeId);
+      SyncPrintfArgVisibility(pToNode, _pDocument);
+      return true;
+   }
+
+   void CanvasView::UpdateWireHoverFeedback(sf::Vector2f worldPoint)
+   {
+      ClearWireHoverFeedback();
+      if (!_wireStart.has_value())
+      {
+         return;
+      }
+
+      PortHit hoverPort;
+      if ((!HitTestPort(worldPoint, &hoverPort)) ||
+          (hoverPort.direction != PortDirection::In))
+      {
+         return;
+      }
+
+      const std::string fromType = CTypeToString(_wireStart->dataType);
+      const std::string toType = CTypeToString(hoverPort.dataType);
+      if (_wireStart->kind != hoverPort.kind)
+      {
+         _wireHoverStatus = WireHoverStatus::Incompatible;
+         _wireHoverHint = "Port kind mismatch";
+         return;
+      }
+      if ((_wireStart->kind == PortKind::Data) &&
+          (!AreTypesCompatible(_wireStart->dataType, hoverPort.dataType)))
+      {
+         _wireHoverStatus = WireHoverStatus::Incompatible;
+         _wireHoverHint = fromType + " → " + toType + " (incompatible)";
+         return;
+      }
+
+      _wireHoverStatus = WireHoverStatus::Compatible;
+      if (_wireStart->kind == PortKind::Data)
+      {
+         _wireHoverHint = fromType + " → " + toType;
+      }
+      else
+      {
+         _wireHoverHint = "Control flow OK";
+      }
+   }
+
+   void CanvasView::ClearWireHoverFeedback(void)
+   {
+      _wireHoverStatus = WireHoverStatus::None;
+      _wireHoverHint.clear();
+   }
+
    void CanvasView::DrawFunctionRegions(sf::RenderTarget* pTarget) const
    {
       if ((pTarget == nullptr) || (_pDocument == nullptr))
@@ -1069,7 +1294,17 @@ namespace Cgen
          float minY = 0.0f;
          float maxX = 0.0f;
          float maxY = 0.0f;
-         CollectFunctionBodyBounds(nodes[index].id, &minX, &minY, &maxX, &maxY);
+         if (IsFunctionCollapsed(nodes[index]))
+         {
+            minX = nodes[index].posX;
+            minY = nodes[index].posY;
+            maxX = nodes[index].posX + BlockNodeWidth;
+            maxY = nodes[index].posY + ComputeBlockNodeHeight(nodes[index]);
+         }
+         else
+         {
+            CollectFunctionBodyBounds(nodes[index].id, &minX, &minY, &maxX, &maxY);
+         }
          const sf::Vector2f topLeft =
             WorldToScreen(sf::Vector2f(minX - RegionPad, minY - RegionPad));
          const sf::Vector2f bottomRight =
@@ -1178,10 +1413,25 @@ namespace Cgen
 
       DrawFunctionRegions(pTarget);
 
+      std::unordered_set<NodeId> hiddenIds;
+      const std::vector<Node>& allNodes = _pDocument->GetNodes();
+      for (size_t index = 0; index < allNodes.size(); ++index)
+      {
+         if (IsFunctionCollapsed(allNodes[index]))
+         {
+            CollectFunctionBodyNodeIds(allNodes[index].id, &hiddenIds);
+         }
+      }
+
       const std::vector<Edge>& edges = _pDocument->GetEdges();
       for (size_t index = 0; index < edges.size(); ++index)
       {
          const Edge& edge = edges[index];
+         if ((hiddenIds.find(edge.fromNodeId) != hiddenIds.end()) ||
+             (hiddenIds.find(edge.toNodeId) != hiddenIds.end()))
+         {
+            continue;
+         }
          const Node* pFrom = _pDocument->FindNode(edge.fromNodeId);
          const Node* pTo = _pDocument->FindNode(edge.toNodeId);
          if ((pFrom == nullptr) || (pTo == nullptr))
@@ -1233,11 +1483,20 @@ namespace Cgen
       {
          const sf::Vector2f fromScreen = WorldToScreen(_wireStart->worldPosition);
          const sf::Vector2f toScreen = WorldToScreen(_wirePreviewWorld);
+         sf::Color previewColor(200, 200, 200);
+         if (_wireHoverStatus == WireHoverStatus::Compatible)
+         {
+            previewColor = sf::Color(90, 220, 130);
+         }
+         else if (_wireHoverStatus == WireHoverStatus::Incompatible)
+         {
+            previewColor = sf::Color(230, 90, 90);
+         }
          sf::VertexArray preview(sf::PrimitiveType::Lines, 2);
          preview[0].position = fromScreen;
-         preview[0].color = sf::Color(200, 200, 200);
+         preview[0].color = previewColor;
          preview[1].position = toScreen;
-         preview[1].color = sf::Color(200, 200, 200);
+         preview[1].color = previewColor;
          pTarget->draw(preview);
       }
 
@@ -1246,6 +1505,10 @@ namespace Cgen
       for (size_t index = 0; index < nodes.size(); ++index)
       {
          const Node& node = nodes[index];
+         if (hiddenIds.find(node.id) != hiddenIds.end())
+         {
+            continue;
+         }
          const sf::Vector2f topLeft = WorldToScreen(sf::Vector2f(node.posX, node.posY));
          const float nodeHeight = ComputeBlockNodeHeight(node);
          sf::RectangleShape shape;
@@ -1292,6 +1555,15 @@ namespace Cgen
                                                    topLeft.y + (22.0f * zoom)));
                pTarget->draw(nameLabel);
             }
+            if (IsFunctionCollapsed(node))
+            {
+               sf::Text collapsedLabel(*_pFont, "[collapsed]", 10);
+               collapsedLabel.setFillColor(sf::Color(255, 200, 120));
+               collapsedLabel.setPosition(
+                  sf::Vector2f(topLeft.x + (8.0f * zoom),
+                               topLeft.y + (36.0f * zoom)));
+               pTarget->draw(collapsedLabel);
+            }
          }
 
          for (size_t portIndex = 0; portIndex < node.ports.size(); ++portIndex)
@@ -1313,6 +1585,31 @@ namespace Cgen
             else
             {
                circle.setFillColor(sf::Color(240, 180, 70));
+            }
+            if (_wireStart.has_value() && (port.direction == PortDirection::In))
+            {
+               const bool kindsMatch = (_wireStart->kind == port.kind);
+               const bool typesOk =
+                  (port.kind != PortKind::Data) ||
+                  AreTypesCompatible(_wireStart->dataType, port.dataType);
+               const bool isHoveredTarget =
+                  _hasHoveredPort && (_hoveredPortNodeId == node.id) &&
+                  (_hoveredPortName == port.name);
+               if ((!kindsMatch) || (!typesOk))
+               {
+                  circle.setOutlineColor(sf::Color(200, 70, 70, isHoveredTarget ? 255 : 140));
+                  circle.setOutlineThickness((isHoveredTarget ? 2.5f : 1.5f) * zoom);
+               }
+               else if (isHoveredTarget)
+               {
+                  circle.setOutlineColor(sf::Color(90, 220, 130));
+                  circle.setOutlineThickness(2.5f * zoom);
+               }
+               else
+               {
+                  circle.setOutlineColor(sf::Color(70, 160, 100, 110));
+                  circle.setOutlineThickness(1.2f * zoom);
+               }
             }
             pTarget->draw(circle);
 
@@ -1337,8 +1634,28 @@ namespace Cgen
 
       if (_hasHoveredPort)
       {
-         sf::Text tip(*_pFont, _hoveredPortName, 12);
+         std::string tipText = _hoveredPortName;
+         if (!_wireHoverHint.empty())
+         {
+            tipText.append(" — ");
+            tipText.append(_wireHoverHint);
+         }
+         else if (_wireStart.has_value() &&
+                  (_wireStart->kind == PortKind::Data))
+         {
+            tipText.append("  ");
+            tipText.append(CTypeToString(_wireStart->dataType));
+         }
+         sf::Text tip(*_pFont, tipText, 12);
          tip.setFillColor(sf::Color::White);
+         if (_wireHoverStatus == WireHoverStatus::Compatible)
+         {
+            tip.setFillColor(sf::Color(180, 255, 200));
+         }
+         else if (_wireHoverStatus == WireHoverStatus::Incompatible)
+         {
+            tip.setFillColor(sf::Color(255, 180, 180));
+         }
          tip.setPosition(sf::Vector2f(_hoveredPortScreen.x + 12.0f,
                                       _hoveredPortScreen.y - 18.0f));
          const sf::FloatRect tipBounds = tip.getLocalBounds();

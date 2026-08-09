@@ -4,6 +4,7 @@
  */
 #include "gui/property_panel.h"
 
+#include <algorithm>
 #include <vector>
 
 #include "codegen/c_codegen.h"
@@ -20,8 +21,119 @@ namespace Cgen
       constexpr float PreviewLineHeight = 15.0f;
       constexpr float PreviewBottomGap = 10.0f;
       constexpr float FieldRowHeight = 44.0f;
+      constexpr float ChoiceItemHeight = 22.0f;
+      constexpr float ChoicePopupMaxHeight = 176.0f;
       constexpr unsigned int HelpCharacterSize = 12;
       constexpr unsigned int PreviewCharacterSize = 12;
+
+      bool IsTypePropertyKey(std::string_view key)
+      {
+         return (key == "type") || (key == "returnType") || (key == "toType") ||
+                (key == "elemType");
+      }
+
+      void AppendUniqueChoice(std::vector<std::string>* pOut, std::string_view value)
+      {
+         if ((pOut == nullptr) || value.empty())
+         {
+            return;
+         }
+         for (size_t index = 0; index < pOut->size(); ++index)
+         {
+            if ((*pOut)[index] == value)
+            {
+               return;
+            }
+         }
+         pOut->push_back(std::string(value));
+      }
+
+      void AppendPrimitiveTypeChoices(std::vector<std::string>* pOut)
+      {
+         if (pOut == nullptr)
+         {
+            return;
+         }
+         constexpr const char* BaseTypes[] = {
+            "void",     "char",     "int8_t",   "uint8_t",  "int16_t",  "uint16_t",
+            "int32_t",  "uint32_t", "int64_t",  "uint64_t", "float",    "double",
+            "FILE",     "size_t"
+         };
+         for (size_t index = 0; index < (sizeof(BaseTypes) / sizeof(BaseTypes[0]));
+              ++index)
+         {
+            AppendUniqueChoice(pOut, BaseTypes[index]);
+            std::string pointerType = BaseTypes[index];
+            pointerType.push_back('*');
+            AppendUniqueChoice(pOut, pointerType);
+         }
+      }
+
+      void AppendNamedTypesFromDocument(const GraphDocument& document,
+                                        std::vector<std::string>* pOut)
+      {
+         if (pOut == nullptr)
+         {
+            return;
+         }
+         const std::vector<Node>& nodes = document.GetNodes();
+         for (size_t index = 0; index < nodes.size(); ++index)
+         {
+            if (nodes[index].type != BlockType::StructDecl)
+            {
+               continue;
+            }
+            const auto nameIterator = nodes[index].properties.find("name");
+            if ((nameIterator == nodes[index].properties.end()) ||
+                nameIterator->second.empty())
+            {
+               continue;
+            }
+            AppendUniqueChoice(pOut, nameIterator->second);
+            std::string pointerType = nameIterator->second;
+            pointerType.push_back('*');
+            AppendUniqueChoice(pOut, pointerType);
+         }
+      }
+
+      void AppendCompoundOpChoices(std::vector<std::string>* pOut)
+      {
+         AppendUniqueChoice(pOut, "+");
+         AppendUniqueChoice(pOut, "-");
+         AppendUniqueChoice(pOut, "*");
+         AppendUniqueChoice(pOut, "/");
+         AppendUniqueChoice(pOut, "%");
+      }
+
+      void AppendAccessChoices(std::vector<std::string>* pOut)
+      {
+         AppendUniqueChoice(pOut, ".");
+         AppendUniqueChoice(pOut, "->");
+      }
+
+      void AppendFunctionNameChoices(const GraphDocument& document,
+                                     std::vector<std::string>* pOut)
+      {
+         if (pOut == nullptr)
+         {
+            return;
+         }
+         const std::vector<Node>& nodes = document.GetNodes();
+         for (size_t index = 0; index < nodes.size(); ++index)
+         {
+            if (nodes[index].type != BlockType::FunctionDef)
+            {
+               continue;
+            }
+            const auto nameIterator = nodes[index].properties.find("name");
+            if ((nameIterator == nodes[index].properties.end()) ||
+                nameIterator->second.empty())
+            {
+               continue;
+            }
+            AppendUniqueChoice(pOut, nameIterator->second);
+         }
+      }
    } // namespace
 
    PropertyPanel::PropertyPanel(const sf::Font& font)
@@ -32,6 +144,7 @@ namespace Cgen
    void PropertyPanel::SetBounds(const sf::FloatRect& bounds)
    {
       _bounds = bounds;
+      CloseChoicePopup();
       RebuildFields();
    }
 
@@ -47,6 +160,7 @@ namespace Cgen
          return;
       }
       CommitActiveField();
+      CloseChoicePopup();
       _pDocument = pDocument;
       _selectedNodeId = selectedNodeId;
       _activeFieldIndex = -1;
@@ -55,6 +169,7 @@ namespace Cgen
 
    void PropertyPanel::ReloadFromDocument(void)
    {
+      CloseChoicePopup();
       _activeFieldIndex = -1;
       RebuildFields();
    }
@@ -62,12 +177,120 @@ namespace Cgen
    void PropertyPanel::Blur(void)
    {
       CommitActiveField();
+      CloseChoicePopup();
       _activeFieldIndex = -1;
    }
 
    bool PropertyPanel::HasKeyboardFocus(void) const
    {
       return _activeFieldIndex >= 0;
+   }
+
+   void PropertyPanel::CloseChoicePopup(void)
+   {
+      _choicePopupOpen = false;
+      _choicePopupFieldIndex = -1;
+      _choiceItems.clear();
+      _choicePopupBounds = sf::FloatRect {};
+   }
+
+   void PropertyPanel::RebuildChoicePopupBounds(void)
+   {
+      if ((!_choicePopupOpen) || (_choicePopupFieldIndex < 0) ||
+          (static_cast<size_t>(_choicePopupFieldIndex) >= _fields.size()))
+      {
+         CloseChoicePopup();
+         return;
+      }
+      const Field& field = _fields[static_cast<size_t>(_choicePopupFieldIndex)];
+      const float width = field.bounds.size.x;
+      const float fullHeight =
+         static_cast<float>(_choiceItems.size()) * ChoiceItemHeight;
+      const float height = std::min(fullHeight, ChoicePopupMaxHeight);
+      _choicePopupBounds =
+         sf::FloatRect(sf::Vector2f(field.bounds.position.x,
+                                    field.bounds.position.y + field.bounds.size.y + 2.0f),
+                       sf::Vector2f(width, height));
+      for (size_t index = 0; index < _choiceItems.size(); ++index)
+      {
+         const float itemY =
+            _choicePopupBounds.position.y +
+            (static_cast<float>(index) * ChoiceItemHeight);
+         _choiceItems[index].bounds =
+            sf::FloatRect(sf::Vector2f(_choicePopupBounds.position.x, itemY),
+                          sf::Vector2f(width, ChoiceItemHeight));
+      }
+   }
+
+   void PropertyPanel::OpenChoicePopup(int32_t fieldIndex)
+   {
+      CloseChoicePopup();
+      if ((fieldIndex < 0) || (static_cast<size_t>(fieldIndex) >= _fields.size()))
+      {
+         return;
+      }
+      const Field& field = _fields[static_cast<size_t>(fieldIndex)];
+      if ((field.editKind != FieldEditKind::Choice) || field.choices.empty())
+      {
+         return;
+      }
+      _choicePopupOpen = true;
+      _choicePopupFieldIndex = fieldIndex;
+      _choiceItems.clear();
+      for (size_t index = 0; index < field.choices.size(); ++index)
+      {
+         ChoiceItem item;
+         item.label = field.choices[index];
+         _choiceItems.push_back(item);
+      }
+      RebuildChoicePopupBounds();
+   }
+
+   void PropertyPanel::FillChoicesForField(Field* pField, BlockType blockType) const
+   {
+      if (pField == nullptr)
+      {
+         return;
+      }
+      pField->editKind = FieldEditKind::Text;
+      pField->choices.clear();
+
+      if (IsTypePropertyKey(pField->key))
+      {
+         pField->editKind = FieldEditKind::Choice;
+         AppendPrimitiveTypeChoices(&pField->choices);
+         if (_pDocument != nullptr)
+         {
+            AppendNamedTypesFromDocument(*_pDocument, &pField->choices);
+         }
+         AppendUniqueChoice(&pField->choices, pField->value);
+         return;
+      }
+      if ((pField->key == "op") && (blockType == BlockType::CompoundAssign))
+      {
+         pField->editKind = FieldEditKind::Choice;
+         AppendCompoundOpChoices(&pField->choices);
+         AppendUniqueChoice(&pField->choices, pField->value);
+         return;
+      }
+      if ((pField->key == "access") &&
+          ((blockType == BlockType::FieldLoad) || (blockType == BlockType::FieldStore)))
+      {
+         pField->editKind = FieldEditKind::Choice;
+         AppendAccessChoices(&pField->choices);
+         AppendUniqueChoice(&pField->choices, pField->value);
+         return;
+      }
+      if ((pField->key == "function") && (blockType == BlockType::Call))
+      {
+         pField->editKind = FieldEditKind::Choice;
+         if (_pDocument != nullptr)
+         {
+            AppendFunctionNameChoices(*_pDocument, &pField->choices);
+         }
+         AppendUniqueChoice(&pField->choices, pField->value);
+         return;
+      }
    }
 
    float PropertyPanel::FieldsStartY(void) const
@@ -219,9 +442,14 @@ namespace Cgen
            iterator != pNode->properties.end();
            ++iterator)
       {
+         if (iterator->first == "collapsed")
+         {
+            continue;
+         }
          Field field;
          field.key = iterator->first;
          field.value = iterator->second;
+         FillChoicesForField(&field, pNode->type);
          field.bounds =
             sf::FloatRect(sf::Vector2f(_bounds.position.x + 8.0f, cursorY + 16.0f),
                           sf::Vector2f(_bounds.size.x - 16.0f, 22.0f));
@@ -263,8 +491,49 @@ namespace Cgen
       RebuildPreviewLines(GenerateCSnippet(*_pDocument, _selectedNodeId));
    }
 
+   bool PropertyPanel::HandleChoicePopupClick(sf::Vector2f point)
+   {
+      if (!_choicePopupOpen)
+      {
+         return false;
+      }
+      if (!_choicePopupBounds.contains(point))
+      {
+         CloseChoicePopup();
+         return false;
+      }
+      for (size_t index = 0; index < _choiceItems.size(); ++index)
+      {
+         if (!_choiceItems[index].bounds.contains(point))
+         {
+            continue;
+         }
+         if ((_choicePopupFieldIndex < 0) ||
+             (static_cast<size_t>(_choicePopupFieldIndex) >= _fields.size()))
+         {
+            CloseChoicePopup();
+            return true;
+         }
+         _activeFieldIndex = _choicePopupFieldIndex;
+         _fields[static_cast<size_t>(_choicePopupFieldIndex)].value =
+            _choiceItems[index].label;
+         CommitActiveField();
+         CloseChoicePopup();
+         _activeFieldIndex = -1;
+         return true;
+      }
+      return true;
+   }
+
    bool PropertyPanel::HandleClick(sf::Vector2f point)
    {
+      if (_choicePopupOpen)
+      {
+         if (HandleChoicePopupClick(point))
+         {
+            return true;
+         }
+      }
       if (!_bounds.contains(point))
       {
          return false;
@@ -273,12 +542,22 @@ namespace Cgen
       _activeFieldIndex = -1;
       for (size_t index = 0; index < _fields.size(); ++index)
       {
-         if (_fields[index].bounds.contains(point))
+         if (!_fields[index].bounds.contains(point))
          {
-            _activeFieldIndex = static_cast<int32_t>(index);
-            return true;
+            continue;
          }
+         _activeFieldIndex = static_cast<int32_t>(index);
+         if (_fields[index].editKind == FieldEditKind::Choice)
+         {
+            OpenChoicePopup(_activeFieldIndex);
+         }
+         else
+         {
+            CloseChoicePopup();
+         }
+         return true;
       }
+      CloseChoicePopup();
       return true;
    }
 
@@ -312,6 +591,11 @@ namespace Cgen
 
    bool PropertyPanel::HandleKey(sf::Keyboard::Key keyCode)
    {
+      if (_choicePopupOpen && (keyCode == sf::Keyboard::Key::Escape))
+      {
+         CloseChoicePopup();
+         return true;
+      }
       if (_activeFieldIndex < 0)
       {
          return false;
@@ -319,12 +603,14 @@ namespace Cgen
       if (keyCode == sf::Keyboard::Key::Enter)
       {
          CommitActiveField();
+         CloseChoicePopup();
          _activeFieldIndex = -1;
          return true;
       }
       if (keyCode == sf::Keyboard::Key::Escape)
       {
          RebuildFields();
+         CloseChoicePopup();
          _activeFieldIndex = -1;
          return true;
       }
@@ -405,7 +691,12 @@ namespace Cgen
       for (size_t index = 0; index < _fields.size(); ++index)
       {
          const Field& field = _fields[index];
-         sf::Text keyText(*_pFont, field.key, 12);
+         std::string keyLabel = field.key;
+         if (field.editKind == FieldEditKind::Choice)
+         {
+            keyLabel.append("  ▾");
+         }
+         sf::Text keyText(*_pFont, keyLabel, 12);
          keyText.setFillColor(sf::Color(180, 180, 180));
          keyText.setPosition(sf::Vector2f(_bounds.position.x + 8.0f, labelY));
          pTarget->draw(keyText);
@@ -431,6 +722,33 @@ namespace Cgen
                                             field.bounds.position.y + 2.0f));
          pTarget->draw(valueText);
          labelY += FieldRowHeight;
+      }
+
+      if (_choicePopupOpen)
+      {
+         sf::RectangleShape popupBg;
+         popupBg.setPosition(_choicePopupBounds.position);
+         popupBg.setSize(_choicePopupBounds.size);
+         popupBg.setFillColor(sf::Color(28, 30, 36));
+         popupBg.setOutlineColor(sf::Color(120, 140, 180));
+         popupBg.setOutlineThickness(1.0f);
+         pTarget->draw(popupBg);
+
+         const float visibleBottom =
+            _choicePopupBounds.position.y + _choicePopupBounds.size.y;
+         for (size_t index = 0; index < _choiceItems.size(); ++index)
+         {
+            const ChoiceItem& item = _choiceItems[index];
+            if (item.bounds.position.y >= visibleBottom)
+            {
+               break;
+            }
+            sf::Text itemText(*_pFont, item.label, 12);
+            itemText.setFillColor(sf::Color(220, 220, 230));
+            itemText.setPosition(sf::Vector2f(item.bounds.position.x + 6.0f,
+                                              item.bounds.position.y + 3.0f));
+            pTarget->draw(itemText);
+         }
       }
    }
 } // namespace Cgen

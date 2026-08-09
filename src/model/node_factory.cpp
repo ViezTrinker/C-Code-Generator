@@ -225,7 +225,7 @@ namespace Cgen
           "Expression: rand() integer. Combine with Mod to limit the range.",
           true},
          {BlockType::FunctionDef, "FunctionDef", "Function",
-          "Defines a C function. Properties: name, returnType, params. Wire Body.",
+          "Defines a C function. Double-click to collapse/expand body. Properties: name, returnType, params. Wire Body.",
           false},
          {BlockType::Return, "Return", "Return",
           "Returns from a function. Optional Value input for the return expression.",
@@ -699,6 +699,7 @@ namespace Cgen
             node.properties["name"] = "helper";
             node.properties["returnType"] = "int32_t";
             node.properties["params"] = "int32_t x";
+            node.properties["collapsed"] = "0";
             break;
          case BlockType::Return:
             node.ports.push_back(MakeControlIn("In"));

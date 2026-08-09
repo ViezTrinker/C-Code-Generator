@@ -187,7 +187,7 @@ A checked-in C snapshot lives at [`examples/build_out/dungeon_log.c`](examples/b
 ## Usage
 
 - Place blocks from the left **Blocks** panel (filter box finds blocks by name)
-- Drag nodes; connect amber **control** ports and blue **data** ports
+- Drag nodes; connect amber **control** ports and blue **data** ports (wire preview turns green/red for type compatibility)
 - **Wheel** pans vertically; **Shift+wheel** pans horizontally; **Ctrl+wheel** zooms
 - **Middle-drag**, **Space+drag**, or **arrow keys** also pan the canvas; hover ports for name tooltips
 - **Call** accepts up to 8 args (`Arg0`–`Arg7`); **Struct Literal** builds designated initializers; set Decl/Ref/Assign `type` (e.g. `uint8_t*`, `Hero`, `FILE*`) for typed ports; **Address Of** emits `&name` for pointer args
@@ -196,7 +196,8 @@ A checked-in C snapshot lives at [`examples/build_out/dungeon_log.c`](examples/b
 - **Delete** / **Backspace** removes selected blocks (not Start); **Ctrl+Z** / **Ctrl+Y** undo/redo (up to 64 steps)
 - **Tidy** / **Ctrl+L** auto-layouts control flow left-to-right
 - **Fit** / **Ctrl+0** fits the whole graph; **Fit Sel** / **Ctrl+Shift+0** fits the selection; use the bottom-right **minimap** to jump
-- Edit properties on the right (Enter commits; each commit is one undo step); each selection shows a short **C:** preview
+- Edit properties on the right (Enter commits; each commit is one undo step); choice fields (`type`, `op`, `access`, `function`) offer dropdowns; each selection shows a short **C:** preview
+- **Double-click** a **FunctionDef** to collapse/expand its body
 - **Generate C** validates the graph (unused decls, unwired Switch Value, missing Switch Default, unreachable End, … — click an issue in Compiler to jump), writes `build_out/<cgen-name>.c`, and opens a scrollable source view (Esc closes it)
 - CLI `--codegen` writes only; `--compile` / `--run` are optional
 - **Build** runs `gcc`; logs appear in the Compiler pane

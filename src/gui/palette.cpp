@@ -347,6 +347,60 @@ namespace Cgen
       return _bounds.contains(point);
    }
 
+   void Palette::ClearHover(void)
+   {
+      _hasHover = false;
+      _hoverKind = RowKind::Block;
+      _hoverGroupIndex = 0;
+      _hoverType = BlockType::End;
+   }
+
+   void Palette::ClearPressed(void)
+   {
+      _hasPressed = false;
+      _pressedKind = RowKind::Block;
+      _pressedGroupIndex = 0;
+      _pressedType = BlockType::End;
+   }
+
+   bool Palette::FindRowAtPoint(sf::Vector2f point, Row* pOutRow) const
+   {
+      if (pOutRow == nullptr)
+      {
+         return false;
+      }
+      if (!ListBounds().contains(point))
+      {
+         return false;
+      }
+      for (size_t index = 0; index < _visibleRows.size(); ++index)
+      {
+         if (!_visibleRows[index].bounds.contains(point))
+         {
+            continue;
+         }
+         *pOutRow = _visibleRows[index];
+         return true;
+      }
+      return false;
+   }
+
+   bool Palette::RowMatchesHighlight(const Row& row,
+                                     RowKind kind,
+                                     uint32_t groupIndex,
+                                     BlockType type) const
+   {
+      if (row.kind != kind)
+      {
+         return false;
+      }
+      if (kind == RowKind::GroupHeader)
+      {
+         return (row.groupIndex == groupIndex);
+      }
+      return (row.type == type);
+   }
+
    PaletteClickResult Palette::HandleClick(sf::Vector2f point, BlockType* pOutType)
    {
       if (!_bounds.contains(point))
@@ -357,42 +411,66 @@ namespace Cgen
       if (FilterBounds().contains(point))
       {
          _filterFocused = true;
+         ClearPressed();
          return PaletteClickResult::Consumed;
       }
       _filterFocused = false;
 
-      if (!ListBounds().contains(point))
+      Row hitRow;
+      if (!FindRowAtPoint(point, &hitRow))
       {
+         ClearPressed();
          return PaletteClickResult::Consumed;
       }
 
-      for (size_t index = 0; index < _visibleRows.size(); ++index)
+      _hasPressed = true;
+      _pressedKind = hitRow.kind;
+      _pressedGroupIndex = hitRow.groupIndex;
+      _pressedType = hitRow.type;
+      _hasHover = true;
+      _hoverKind = hitRow.kind;
+      _hoverGroupIndex = hitRow.groupIndex;
+      _hoverType = hitRow.type;
+
+      if (hitRow.kind == RowKind::GroupHeader)
       {
-         const Row& row = _visibleRows[index];
-         if (!row.bounds.contains(point))
+         const size_t groupIndex = static_cast<size_t>(hitRow.groupIndex);
+         if (groupIndex < _groupExpanded.size())
          {
-            continue;
+            _groupExpanded[groupIndex] = !_groupExpanded[groupIndex];
+            RebuildVisibleRows();
          }
-
-         if (row.kind == RowKind::GroupHeader)
-         {
-            const size_t groupIndex = static_cast<size_t>(row.groupIndex);
-            if (groupIndex < _groupExpanded.size())
-            {
-               _groupExpanded[groupIndex] = !_groupExpanded[groupIndex];
-               RebuildVisibleRows();
-            }
-            return PaletteClickResult::Consumed;
-         }
-
-         if (pOutType != nullptr)
-         {
-            *pOutType = row.type;
-         }
-         return PaletteClickResult::PlaceBlock;
+         _hasSelectedGroup = true;
+         _selectedGroupIndex = hitRow.groupIndex;
+         return PaletteClickResult::Consumed;
       }
 
-      return PaletteClickResult::Consumed;
+      _hasSelectedBlock = true;
+      _selectedBlockType = hitRow.type;
+      if (pOutType != nullptr)
+      {
+         *pOutType = hitRow.type;
+      }
+      return PaletteClickResult::PlaceBlock;
+   }
+
+   void Palette::HandleMouseMove(sf::Vector2f point)
+   {
+      Row hitRow;
+      if (!FindRowAtPoint(point, &hitRow))
+      {
+         ClearHover();
+         return;
+      }
+      _hasHover = true;
+      _hoverKind = hitRow.kind;
+      _hoverGroupIndex = hitRow.groupIndex;
+      _hoverType = hitRow.type;
+   }
+
+   void Palette::HandleMouseRelease(void)
+   {
+      ClearPressed();
    }
 
    bool Palette::HandleTextEntered(uint32_t unicode)
@@ -585,7 +663,46 @@ namespace Cgen
          sf::RectangleShape rowBackground;
          rowBackground.setPosition(row.bounds.position);
          rowBackground.setSize(row.bounds.size);
-         if (row.kind == RowKind::GroupHeader)
+
+         const bool isPressed =
+            _hasPressed &&
+            RowMatchesHighlight(row, _pressedKind, _pressedGroupIndex, _pressedType);
+         const bool isSelectedBlock =
+            _hasSelectedBlock && (row.kind == RowKind::Block) &&
+            (row.type == _selectedBlockType);
+         const bool isSelectedGroup =
+            _hasSelectedGroup && (row.kind == RowKind::GroupHeader) &&
+            (row.groupIndex == _selectedGroupIndex);
+         const bool isHovered =
+            _hasHover &&
+            RowMatchesHighlight(row, _hoverKind, _hoverGroupIndex, _hoverType);
+
+         if (isPressed)
+         {
+            rowBackground.setFillColor(sf::Color(70, 115, 175));
+            rowBackground.setOutlineColor(sf::Color(150, 195, 245));
+            rowBackground.setOutlineThickness(1.0f);
+         }
+         else if (isSelectedBlock || isSelectedGroup)
+         {
+            rowBackground.setFillColor(sf::Color(55, 95, 145));
+            rowBackground.setOutlineColor(sf::Color(130, 175, 230));
+            rowBackground.setOutlineThickness(1.0f);
+         }
+         else if (isHovered)
+         {
+            if (row.kind == RowKind::GroupHeader)
+            {
+               rowBackground.setFillColor(sf::Color(72, 84, 105));
+            }
+            else
+            {
+               rowBackground.setFillColor(sf::Color(68, 82, 105));
+            }
+            rowBackground.setOutlineColor(sf::Color(120, 145, 180));
+            rowBackground.setOutlineThickness(1.0f);
+         }
+         else if (row.kind == RowKind::GroupHeader)
          {
             rowBackground.setFillColor(sf::Color(58, 64, 78));
          }
@@ -617,7 +734,11 @@ namespace Cgen
          }
 
          sf::Text label(*_pFont, labelText, 13);
-         if (row.kind == RowKind::GroupHeader)
+         if (isPressed || isSelectedBlock || isSelectedGroup)
+         {
+            label.setFillColor(sf::Color(245, 250, 255));
+         }
+         else if (row.kind == RowKind::GroupHeader)
          {
             label.setFillColor(sf::Color(220, 230, 255));
          }

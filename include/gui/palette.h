@@ -63,6 +63,18 @@ namespace Cgen
       PaletteClickResult HandleClick(sf::Vector2f point, BlockType* pOutType);
 
       /*!
+       *\brief Updates hover highlight from the mouse position.
+       *
+       *\param[in] point Mouse position.
+       */
+      void HandleMouseMove(sf::Vector2f point);
+
+      /*!
+       *\brief Clears pressed-row highlight.
+       */
+      void HandleMouseRelease(void);
+
+      /*!
        *\brief Scrolls the block list when the wheel is used over this palette.
        *
        *\param[in] delta Wheel delta.
@@ -126,6 +138,13 @@ namespace Cgen
       uint32_t MaxScrollRows(void) const;
       sf::FloatRect ListBounds(void) const;
       sf::FloatRect FilterBounds(void) const;
+      void ClearHover(void);
+      void ClearPressed(void);
+      bool FindRowAtPoint(sf::Vector2f point, Row* pOutRow) const;
+      bool RowMatchesHighlight(const Row& row,
+                               RowKind kind,
+                               uint32_t groupIndex,
+                               BlockType type) const;
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
@@ -134,6 +153,18 @@ namespace Cgen
       uint32_t _scrollRows = 0;
       std::string _filterText;
       bool _filterFocused = false;
+      bool _hasHover = false;
+      RowKind _hoverKind = RowKind::Block;
+      uint32_t _hoverGroupIndex = 0;
+      BlockType _hoverType = BlockType::End;
+      bool _hasPressed = false;
+      RowKind _pressedKind = RowKind::Block;
+      uint32_t _pressedGroupIndex = 0;
+      BlockType _pressedType = BlockType::End;
+      bool _hasSelectedBlock = false;
+      BlockType _selectedBlockType = BlockType::End;
+      bool _hasSelectedGroup = false;
+      uint32_t _selectedGroupIndex = 0;
    };
 } // namespace Cgen
 

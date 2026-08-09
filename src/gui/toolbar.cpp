@@ -6,6 +6,17 @@
 
 namespace Cgen
 {
+   namespace
+   {
+      const sf::Color BackgroundColor(40, 44, 52);
+      const sf::Color ButtonNormalFill(60, 66, 78);
+      const sf::Color ButtonHoverFill(78, 90, 112);
+      const sf::Color ButtonPressedFill(70, 110, 170);
+      const sf::Color ButtonActiveFill(55, 95, 145);
+      const sf::Color ButtonOutline(100, 110, 130);
+      const sf::Color ButtonActiveOutline(150, 190, 240);
+   } // namespace
+
    Toolbar::Toolbar(const sf::Font& font)
       : _pFont(&font)
    {
@@ -45,14 +56,37 @@ namespace Cgen
       }
    }
 
-   ToolbarAction Toolbar::HitTest(sf::Vector2f point) const
+   void Toolbar::HandleMouseMove(sf::Vector2f point)
+   {
+      _hoveredAction = ToolbarAction::None;
+      for (size_t index = 0; index < _buttons.size(); ++index)
+      {
+         if (!_buttons[index].bounds.contains(point))
+         {
+            continue;
+         }
+         _hoveredAction = _buttons[index].action;
+         return;
+      }
+   }
+
+   void Toolbar::HandleMouseRelease(void)
+   {
+      _pressedAction = ToolbarAction::None;
+   }
+
+   ToolbarAction Toolbar::HitTest(sf::Vector2f point)
    {
       for (size_t index = 0; index < _buttons.size(); ++index)
       {
-         if (_buttons[index].bounds.contains(point))
+         if (!_buttons[index].bounds.contains(point))
          {
-            return _buttons[index].action;
+            continue;
          }
+         _pressedAction = _buttons[index].action;
+         _activeAction = _buttons[index].action;
+         _hoveredAction = _buttons[index].action;
+         return _buttons[index].action;
       }
       return ToolbarAction::None;
    }
@@ -66,7 +100,7 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(_bounds.position);
       background.setSize(_bounds.size);
-      background.setFillColor(sf::Color(40, 44, 52));
+      background.setFillColor(BackgroundColor);
       pTarget->draw(background);
 
       for (size_t index = 0; index < _buttons.size(); ++index)
@@ -75,8 +109,26 @@ namespace Cgen
          sf::RectangleShape shape;
          shape.setPosition(button.bounds.position);
          shape.setSize(button.bounds.size);
-         shape.setFillColor(sf::Color(60, 66, 78));
-         shape.setOutlineColor(sf::Color(100, 110, 130));
+
+         sf::Color fillColor = ButtonNormalFill;
+         sf::Color outlineColor = ButtonOutline;
+         if (button.action == _pressedAction)
+         {
+            fillColor = ButtonPressedFill;
+            outlineColor = ButtonActiveOutline;
+         }
+         else if (button.action == _activeAction)
+         {
+            fillColor = ButtonActiveFill;
+            outlineColor = ButtonActiveOutline;
+         }
+         else if (button.action == _hoveredAction)
+         {
+            fillColor = ButtonHoverFill;
+         }
+
+         shape.setFillColor(fillColor);
+         shape.setOutlineColor(outlineColor);
          shape.setOutlineThickness(1.0f);
          pTarget->draw(shape);
 

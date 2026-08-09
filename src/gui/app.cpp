@@ -766,6 +766,8 @@ namespace Cgen
             }
             else if (const auto* pMouseRelease = event->getIf<sf::Event::MouseButtonReleased>())
             {
+               _pToolbar->HandleMouseRelease();
+               _pPalette->HandleMouseRelease();
                if ((!_sourceViewVisible) && (!_helpViewVisible))
                {
                   const sf::Vector2f point(static_cast<float>(pMouseRelease->position.x),
@@ -776,10 +778,12 @@ namespace Cgen
             }
             else if (const auto* pMouseMove = event->getIf<sf::Event::MouseMoved>())
             {
+               const sf::Vector2f point(static_cast<float>(pMouseMove->position.x),
+                                        static_cast<float>(pMouseMove->position.y));
+               _pToolbar->HandleMouseMove(point);
+               _pPalette->HandleMouseMove(point);
                if ((!_sourceViewVisible) && (!_helpViewVisible))
                {
-                  const sf::Vector2f point(static_cast<float>(pMouseMove->position.x),
-                                           static_cast<float>(pMouseMove->position.y));
                   _pCanvas->HandleMouseMove(point);
                   if (_document.IsDirty())
                   {

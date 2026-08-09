@@ -57,12 +57,24 @@ namespace Cgen
       void SetBounds(const sf::FloatRect& bounds);
 
       /*!
-       *\brief Hit-tests a click.
+       *\brief Updates hover highlight from the mouse position.
+       *
+       *\param[in] point Mouse position.
+       */
+      void HandleMouseMove(sf::Vector2f point);
+
+      /*!
+       *\brief Clears pressed-button highlight.
+       */
+      void HandleMouseRelease(void);
+
+      /*!
+       *\brief Hit-tests a click and marks the button as pressed/active.
        *
        *\param[in] point Mouse position.
        *\return Action for the clicked button, or None.
        */
-      ToolbarAction HitTest(sf::Vector2f point) const;
+      ToolbarAction HitTest(sf::Vector2f point);
 
       /*!
        *\brief Draws the toolbar.
@@ -82,6 +94,9 @@ namespace Cgen
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
       std::vector<Button> _buttons;
+      ToolbarAction _hoveredAction = ToolbarAction::None;
+      ToolbarAction _pressedAction = ToolbarAction::None;
+      ToolbarAction _activeAction = ToolbarAction::None;
    };
 } // namespace Cgen
 

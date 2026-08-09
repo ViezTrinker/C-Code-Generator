@@ -11,6 +11,7 @@ add_subdirectory(
 )
 
 set(CGEN_TEST_SOURCES
+   test_main.cpp
    test_block_placement.cpp
    test_block_type.cpp
    test_c_type.cpp
@@ -27,7 +28,7 @@ add_executable(cgen_unit_tests
 
 target_link_libraries(cgen_unit_tests PRIVATE
    cgen_core
-   GTest::gtest_main
+   GTest::gtest
 )
 
 # Forward slashes avoid Windows escape issues inside the string macro.

@@ -1,11 +1,13 @@
-# C Code Generator
+# Graphical C Code Generator
 
 **Wire a flowchart. Get real C99.**
 
 A visual block editor that turns graphs into compilable C — then builds and runs them in the same window. Built for teaching, exploration, and anyone who thinks better in diagrams than in blank `.c` files.
 
+**Repository:** [github.com/ViezTrinker/Graphical-C-Code-Generator](https://github.com/ViezTrinker/Graphical-C-Code-Generator)
+
 <p align="center">
-  <img src="docs/screenshots/editor.png" alt="C Code Generator editor showing a prime-number flowchart" width="900" />
+  <img src="docs/screenshots/editor.png" alt="Graphical C Code Generator editor showing a prime-number flowchart" width="900" />
 </p>
 
 <p align="center"><em>Prime number detector as a flowchart — blocks, wires, properties, minimap.</em></p>

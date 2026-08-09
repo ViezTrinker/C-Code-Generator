@@ -26,7 +26,7 @@
 namespace Cgen
 {
    App::App(void)
-      : _window(sf::VideoMode({1440u, 900u}), "C Code Generator")
+      : _window(sf::VideoMode({1440u, 900u}), "Graphical C Code Generator")
       , _buildRunner("build_out")
    {
       _window.setFramerateLimit(60);
@@ -87,7 +87,7 @@ namespace Cgen
 
    void App::UpdateTitle(void)
    {
-      std::string title = "C Code Generator";
+      std::string title = "Graphical C Code Generator";
       if (!_document.GetFilePath().empty())
       {
          title.append(" - ");
@@ -337,7 +337,7 @@ namespace Cgen
          _pContextMenu->Close();
       }
       _pHelpLog->SetText(
-         "C Code Generator — Help\n"
+         "Graphical C Code Generator — Help\n"
          "Press Esc or ? again to close.\n\n"
          "Editing\n"
          "- Click a block in the left Blocks panel to place it on the canvas.\n"

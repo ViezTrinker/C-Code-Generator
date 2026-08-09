@@ -1,4 +1,4 @@
-# CMake dependency bootstrap for c_code_generator.
+# CMake dependency bootstrap for Graphical C Code Generator.
 # Prefer vendored / local trees, otherwise FetchContent downloads SFML once.
 # nlohmann_json is always taken from third_party/nlohmann/json.hpp in this repo.
 include_guard(GLOBAL)

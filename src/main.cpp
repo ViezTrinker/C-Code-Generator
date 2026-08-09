@@ -1,6 +1,6 @@
 /*!
  *\file main.cpp
- *\brief Entry point for the C code generator application.
+ *\brief Entry point for Graphical C Code Generator.
  */
 #include <iostream>
 #include <string>
@@ -26,6 +26,9 @@ namespace
    void PrintCliUsage(void)
    {
       std::cerr
+         << "Graphical C Code Generator\n"
+         << "https://github.com/ViezTrinker/Graphical-C-Code-Generator\n"
+         << "\n"
          << "Usage:\n"
          << "  c_code_generator.exe\n"
          << "  c_code_generator.exe --self-test\n"

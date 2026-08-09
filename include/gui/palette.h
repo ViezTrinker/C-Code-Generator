@@ -1,6 +1,6 @@
 /*!
  *\file palette.h
- *\brief Left-side block palette.
+ *\brief Left-side block palette with collapsible groups.
  */
 #ifndef PALETTE_H
 #define PALETTE_H
@@ -15,7 +15,17 @@
 namespace Cgen
 {
    /*!
-    *\brief Clickable list of placeable blocks.
+    *\brief Result of a palette mouse click.
+    */
+   enum class PaletteClickResult: int8_t
+   {
+      Ignored = 0,
+      Consumed = 1,
+      PlaceBlock = 2
+   };
+
+   /*!
+    *\brief Clickable grouped list of placeable blocks.
     */
    class Palette
    {
@@ -42,13 +52,13 @@ namespace Cgen
       bool Contains(sf::Vector2f point) const;
 
       /*!
-       *\brief Hit-tests a click and returns a block type to place.
+       *\brief Handles a click: toggle a group or select a block to place.
        *
        *\param[in] point Mouse position.
-       *\param[out] pOutType Selected type on hit.
-       *\return true if an entry was clicked.
+       *\param[out] pOutType Block type when result is PlaceBlock.
+       *\return Click result.
        */
-      bool HitTest(sf::Vector2f point, BlockType* pOutType) const;
+      PaletteClickResult HandleClick(sf::Vector2f point, BlockType* pOutType);
 
       /*!
        *\brief Scrolls the block list when the wheel is used over this palette.
@@ -67,13 +77,22 @@ namespace Cgen
       void Draw(sf::RenderTarget* pTarget) const;
 
    private:
-      struct Entry
+      enum class RowKind: uint8_t
       {
-         BlockType type = BlockType::Start;
+         GroupHeader = 0,
+         Block = 1
+      };
+
+      struct Row
+      {
+         RowKind kind = RowKind::Block;
+         uint32_t groupIndex = 0;
+         BlockType type = BlockType::End;
          sf::FloatRect bounds {};
       };
 
-      void RebuildEntryBounds(void);
+      void RebuildVisibleRows(void);
+      void RebuildRowBounds(void);
       void ClampScroll(void);
       uint32_t VisibleRowCapacity(void) const;
       uint32_t MaxScrollRows(void) const;
@@ -81,7 +100,8 @@ namespace Cgen
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
-      std::vector<Entry> _entries;
+      std::vector<bool> _groupExpanded;
+      std::vector<Row> _visibleRows;
       uint32_t _scrollRows = 0;
    };
 } // namespace Cgen

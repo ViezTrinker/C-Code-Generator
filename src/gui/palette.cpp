@@ -1,6 +1,6 @@
 /*!
  *\file palette.cpp
- *\brief Block palette implementation.
+ *\brief Block palette with collapsible category groups.
  */
 #include "gui/palette.h"
 
@@ -10,7 +10,13 @@ namespace Cgen
 {
    namespace
    {
-      constexpr BlockType PaletteTypes[] = {
+      constexpr float TitleHeight = 28.0f;
+      constexpr float RowHeight = 24.0f;
+      constexpr float RowGap = 2.0f;
+      constexpr float RowStride = RowHeight + RowGap;
+      constexpr float BlockIndent = 14.0f;
+
+      constexpr BlockType ControlFlowTypes[] = {
          BlockType::End,
          BlockType::If,
          BlockType::ElseIf,
@@ -19,7 +25,10 @@ namespace Cgen
          BlockType::While,
          BlockType::For,
          BlockType::Break,
-         BlockType::Continue,
+         BlockType::Continue
+      };
+
+      constexpr BlockType DataTypes[] = {
          BlockType::Literal,
          BlockType::VariableDecl,
          BlockType::GlobalDecl,
@@ -28,13 +37,19 @@ namespace Cgen
          BlockType::CompoundAssign,
          BlockType::Inc,
          BlockType::Dec,
+         BlockType::Cast
+      };
+
+      constexpr BlockType ArithmeticTypes[] = {
          BlockType::Add,
          BlockType::Sub,
          BlockType::Mul,
          BlockType::Div,
          BlockType::Mod,
-         BlockType::Neg,
-         BlockType::Cast,
+         BlockType::Neg
+      };
+
+      constexpr BlockType LogicTypes[] = {
          BlockType::Equal,
          BlockType::NotEqual,
          BlockType::Less,
@@ -43,13 +58,19 @@ namespace Cgen
          BlockType::GreaterEqual,
          BlockType::And,
          BlockType::Or,
-         BlockType::Not,
+         BlockType::Not
+      };
+
+      constexpr BlockType ConsoleIoTypes[] = {
          BlockType::Printf,
          BlockType::WaitEnter,
          BlockType::ScanfInt,
          BlockType::ScanfChar,
          BlockType::ScanfFloat,
-         BlockType::ScanfLine,
+         BlockType::ScanfLine
+      };
+
+      constexpr BlockType ArrayStringTypes[] = {
          BlockType::ArrayDecl,
          BlockType::IndexAssign,
          BlockType::IndexLoad,
@@ -57,44 +78,92 @@ namespace Cgen
          BlockType::StrCpy,
          BlockType::StrNCpy,
          BlockType::StrCmp,
+         BlockType::ShuffleArray
+      };
+
+      constexpr BlockType FileTypes[] = {
          BlockType::FileOpen,
          BlockType::FileRead,
          BlockType::FileWrite,
-         BlockType::FileClose,
-         BlockType::Assert,
-         BlockType::Comment,
-         BlockType::StructDecl,
-         BlockType::FieldLoad,
-         BlockType::FieldStore,
-         BlockType::RandomChar,
-         BlockType::ShuffleArray,
+         BlockType::FileClose
+      };
+
+      constexpr BlockType MemoryTypes[] = {
          BlockType::Malloc,
-         BlockType::Free,
+         BlockType::Free
+      };
+
+      constexpr BlockType TimeRandomTypes[] = {
          BlockType::TimeNow,
          BlockType::LocalTime,
          BlockType::Sleep,
          BlockType::Random,
+         BlockType::RandomChar
+      };
+
+      constexpr BlockType StructTypes[] = {
+         BlockType::StructDecl,
+         BlockType::FieldLoad,
+         BlockType::FieldStore
+      };
+
+      constexpr BlockType FunctionTypes[] = {
          BlockType::FunctionDef,
          BlockType::Return,
          BlockType::Call
       };
 
-      constexpr size_t PaletteTypeCount = sizeof(PaletteTypes) / sizeof(PaletteTypes[0]);
-      constexpr float TitleHeight = 28.0f;
-      constexpr float RowHeight = 24.0f;
-      constexpr float RowGap = 2.0f;
-      constexpr float RowStride = RowHeight + RowGap;
+      constexpr BlockType TeachingTypes[] = {
+         BlockType::Assert,
+         BlockType::Comment
+      };
+
+      struct GroupDef
+      {
+         const char* pTitle;
+         const BlockType* pTypes;
+         size_t typeCount;
+         bool expandByDefault;
+      };
+
+      constexpr GroupDef PaletteGroups[] = {
+         {"Control Flow", ControlFlowTypes,
+          sizeof(ControlFlowTypes) / sizeof(ControlFlowTypes[0]), true},
+         {"Data", DataTypes, sizeof(DataTypes) / sizeof(DataTypes[0]), true},
+         {"Arithmetic", ArithmeticTypes,
+          sizeof(ArithmeticTypes) / sizeof(ArithmeticTypes[0]), false},
+         {"Compare / Logic", LogicTypes,
+          sizeof(LogicTypes) / sizeof(LogicTypes[0]), false},
+         {"Console I/O", ConsoleIoTypes,
+          sizeof(ConsoleIoTypes) / sizeof(ConsoleIoTypes[0]), false},
+         {"Arrays / Strings", ArrayStringTypes,
+          sizeof(ArrayStringTypes) / sizeof(ArrayStringTypes[0]), false},
+         {"Files", FileTypes, sizeof(FileTypes) / sizeof(FileTypes[0]), false},
+         {"Memory", MemoryTypes, sizeof(MemoryTypes) / sizeof(MemoryTypes[0]),
+          false},
+         {"Time / Random", TimeRandomTypes,
+          sizeof(TimeRandomTypes) / sizeof(TimeRandomTypes[0]), false},
+         {"Structs", StructTypes, sizeof(StructTypes) / sizeof(StructTypes[0]),
+          false},
+         {"Functions", FunctionTypes,
+          sizeof(FunctionTypes) / sizeof(FunctionTypes[0]), false},
+         {"Teaching", TeachingTypes,
+          sizeof(TeachingTypes) / sizeof(TeachingTypes[0]), false}
+      };
+
+      constexpr size_t PaletteGroupCount =
+         sizeof(PaletteGroups) / sizeof(PaletteGroups[0]);
    } // namespace
 
    Palette::Palette(const sf::Font& font)
       : _pFont(&font)
    {
-      for (size_t index = 0; index < PaletteTypeCount; ++index)
+      _groupExpanded.resize(PaletteGroupCount, false);
+      for (size_t index = 0; index < PaletteGroupCount; ++index)
       {
-         Entry entry;
-         entry.type = PaletteTypes[index];
-         _entries.push_back(entry);
+         _groupExpanded[index] = PaletteGroups[index].expandByDefault;
       }
+      RebuildVisibleRows();
    }
 
    sf::FloatRect Palette::ListBounds(void) const
@@ -122,13 +191,13 @@ namespace Cgen
 
    uint32_t Palette::MaxScrollRows(void) const
    {
-      const auto entryCount = static_cast<uint32_t>(_entries.size());
+      const auto rowCount = static_cast<uint32_t>(_visibleRows.size());
       const uint32_t capacity = VisibleRowCapacity();
-      if (entryCount <= capacity)
+      if (rowCount <= capacity)
       {
          return 0;
       }
-      return entryCount - capacity;
+      return rowCount - capacity;
    }
 
    void Palette::ClampScroll(void)
@@ -140,16 +209,52 @@ namespace Cgen
       }
    }
 
-   void Palette::RebuildEntryBounds(void)
+   void Palette::RebuildVisibleRows(void)
+   {
+      _visibleRows.clear();
+      for (size_t groupIndex = 0; groupIndex < PaletteGroupCount; ++groupIndex)
+      {
+         Row header;
+         header.kind = RowKind::GroupHeader;
+         header.groupIndex = static_cast<uint32_t>(groupIndex);
+         _visibleRows.push_back(header);
+
+         if (!_groupExpanded[groupIndex])
+         {
+            continue;
+         }
+
+         const GroupDef& group = PaletteGroups[groupIndex];
+         for (size_t typeIndex = 0; typeIndex < group.typeCount; ++typeIndex)
+         {
+            Row blockRow;
+            blockRow.kind = RowKind::Block;
+            blockRow.groupIndex = static_cast<uint32_t>(groupIndex);
+            blockRow.type = group.pTypes[typeIndex];
+            _visibleRows.push_back(blockRow);
+         }
+      }
+      ClampScroll();
+      RebuildRowBounds();
+   }
+
+   void Palette::RebuildRowBounds(void)
    {
       const sf::FloatRect listBounds = ListBounds();
       float cursorY =
          listBounds.position.y - (static_cast<float>(_scrollRows) * RowStride);
-      for (size_t index = 0; index < _entries.size(); ++index)
+      for (size_t index = 0; index < _visibleRows.size(); ++index)
       {
-         _entries[index].bounds = sf::FloatRect(
-            sf::Vector2f(_bounds.position.x + 6.0f, cursorY),
-            sf::Vector2f(_bounds.size.x - 12.0f, RowHeight));
+         float left = _bounds.position.x + 6.0f;
+         float width = _bounds.size.x - 12.0f;
+         if (_visibleRows[index].kind == RowKind::Block)
+         {
+            left += BlockIndent;
+            width -= BlockIndent;
+         }
+         _visibleRows[index].bounds = sf::FloatRect(
+            sf::Vector2f(left, cursorY),
+            sf::Vector2f(width, RowHeight));
          cursorY += RowStride;
       }
    }
@@ -158,7 +263,7 @@ namespace Cgen
    {
       _bounds = bounds;
       ClampScroll();
-      RebuildEntryBounds();
+      RebuildRowBounds();
    }
 
    bool Palette::Contains(sf::Vector2f point) const
@@ -166,25 +271,40 @@ namespace Cgen
       return _bounds.contains(point);
    }
 
-   bool Palette::HitTest(sf::Vector2f point, BlockType* pOutType) const
+   PaletteClickResult Palette::HandleClick(sf::Vector2f point, BlockType* pOutType)
    {
-      if (pOutType == nullptr)
-      {
-         return false;
-      }
       if (!ListBounds().contains(point))
       {
-         return false;
+         return PaletteClickResult::Ignored;
       }
-      for (size_t index = 0; index < _entries.size(); ++index)
+
+      for (size_t index = 0; index < _visibleRows.size(); ++index)
       {
-         if (_entries[index].bounds.contains(point))
+         const Row& row = _visibleRows[index];
+         if (!row.bounds.contains(point))
          {
-            *pOutType = _entries[index].type;
-            return true;
+            continue;
          }
+
+         if (row.kind == RowKind::GroupHeader)
+         {
+            const size_t groupIndex = static_cast<size_t>(row.groupIndex);
+            if (groupIndex < _groupExpanded.size())
+            {
+               _groupExpanded[groupIndex] = !_groupExpanded[groupIndex];
+               RebuildVisibleRows();
+            }
+            return PaletteClickResult::Consumed;
+         }
+
+         if (pOutType != nullptr)
+         {
+            *pOutType = row.type;
+         }
+         return PaletteClickResult::PlaceBlock;
       }
-      return false;
+
+      return PaletteClickResult::Consumed;
    }
 
    bool Palette::HandleWheel(float delta, sf::Vector2f point)
@@ -215,7 +335,7 @@ namespace Cgen
          }
       }
 
-      RebuildEntryBounds();
+      RebuildRowBounds();
       return true;
    }
 
@@ -259,30 +379,65 @@ namespace Cgen
                       listBounds.size.y / static_cast<float>(targetSize.y))));
       pTarget->setView(clipView);
 
-      for (size_t index = 0; index < _entries.size(); ++index)
+      const float listBottom = listBounds.position.y + listBounds.size.y;
+      for (size_t index = 0; index < _visibleRows.size(); ++index)
       {
-         const Entry& entry = _entries[index];
-         const float entryBottom = entry.bounds.position.y + entry.bounds.size.y;
-         const float listBottom = listBounds.position.y + listBounds.size.y;
+         const Row& row = _visibleRows[index];
+         const float entryBottom = row.bounds.position.y + row.bounds.size.y;
          if (entryBottom < listBounds.position.y)
          {
             continue;
          }
-         if (entry.bounds.position.y > listBottom)
+         if (row.bounds.position.y > listBottom)
          {
             continue;
          }
 
-         sf::RectangleShape row;
-         row.setPosition(entry.bounds.position);
-         row.setSize(entry.bounds.size);
-         row.setFillColor(sf::Color(50, 54, 62));
-         pTarget->draw(row);
+         sf::RectangleShape rowBackground;
+         rowBackground.setPosition(row.bounds.position);
+         rowBackground.setSize(row.bounds.size);
+         if (row.kind == RowKind::GroupHeader)
+         {
+            rowBackground.setFillColor(sf::Color(58, 64, 78));
+         }
+         else
+         {
+            rowBackground.setFillColor(sf::Color(50, 54, 62));
+         }
+         pTarget->draw(rowBackground);
 
-         sf::Text label(*_pFont, std::string(BlockTypeLabel(entry.type)), 13);
-         label.setFillColor(sf::Color(230, 230, 230));
-         label.setPosition(sf::Vector2f(entry.bounds.position.x + 6.0f,
-                                        entry.bounds.position.y + 2.0f));
+         std::string labelText;
+         if (row.kind == RowKind::GroupHeader)
+         {
+            const size_t groupIndex = static_cast<size_t>(row.groupIndex);
+            const bool expanded =
+               (groupIndex < _groupExpanded.size()) && _groupExpanded[groupIndex];
+            if (expanded)
+            {
+               labelText = "v  ";
+            }
+            else
+            {
+               labelText = ">  ";
+            }
+            labelText.append(PaletteGroups[groupIndex].pTitle);
+         }
+         else
+         {
+            labelText = std::string(BlockTypeLabel(row.type));
+         }
+
+         sf::Text label(*_pFont, labelText, 13);
+         if (row.kind == RowKind::GroupHeader)
+         {
+            label.setFillColor(sf::Color(220, 230, 255));
+         }
+         else
+         {
+            label.setFillColor(sf::Color(230, 230, 230));
+         }
+         label.setPosition(sf::Vector2f(row.bounds.position.x + 6.0f,
+                                        row.bounds.position.y + 2.0f));
          pTarget->draw(label);
       }
 

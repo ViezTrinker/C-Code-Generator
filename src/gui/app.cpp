@@ -626,12 +626,14 @@ namespace Cgen
                else
                {
                   BlockType placeType = BlockType::Literal;
-                  if (_pPalette->HitTest(point, &placeType))
+                  const PaletteClickResult paletteClick =
+                     _pPalette->HandleClick(point, &placeType);
+                  if (paletteClick == PaletteClickResult::PlaceBlock)
                   {
                      _pCanvas->PlaceBlock(placeType, point);
                      SyncSelectionUi();
                   }
-                  else if (_pPalette->Contains(point))
+                  else if (paletteClick == PaletteClickResult::Consumed)
                   {
                   }
                   else if (_pProgramLog->HandleClick(point))

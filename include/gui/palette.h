@@ -5,6 +5,7 @@
 #ifndef PALETTE_H
 #define PALETTE_H
 
+#include <cstdint>
 #include <vector>
 
 #include <SFML/Graphics.hpp>
@@ -50,6 +51,15 @@ namespace Cgen
       bool HitTest(sf::Vector2f point, BlockType* pOutType) const;
 
       /*!
+       *\brief Scrolls the block list when the wheel is used over this palette.
+       *
+       *\param[in] delta Wheel delta.
+       *\param[in] point Mouse position.
+       *\return true if handled.
+       */
+      bool HandleWheel(float delta, sf::Vector2f point);
+
+      /*!
        *\brief Draws the palette.
        *
        *\param[in,out] pTarget Render target.
@@ -63,9 +73,16 @@ namespace Cgen
          sf::FloatRect bounds {};
       };
 
+      void RebuildEntryBounds(void);
+      void ClampScroll(void);
+      uint32_t VisibleRowCapacity(void) const;
+      uint32_t MaxScrollRows(void) const;
+      sf::FloatRect ListBounds(void) const;
+
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
       std::vector<Entry> _entries;
+      uint32_t _scrollRows = 0;
    };
 } // namespace Cgen
 

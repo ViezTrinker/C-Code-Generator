@@ -691,6 +691,9 @@ namespace Cgen
                else if (_pCompilerLog->HandleWheel(pWheel->delta, point))
                {
                }
+               else if (_pPalette->HandleWheel(pWheel->delta, point))
+               {
+               }
                else if ((!_sourceViewVisible) && (!_helpViewVisible))
                {
                   _pCanvas->HandleWheel(pWheel->delta, point);

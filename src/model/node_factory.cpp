@@ -30,11 +30,26 @@ namespace Cgen
          {BlockType::If, "If", "If",
           "Branches on Cond (non-zero = true). Runs Then or Else, then continues on Next.",
           false},
+         {BlockType::ElseIf, "ElseIf", "Else If",
+          "Wire from If/ElseIf Else for a flat else-if chain. Same ports as If.",
+          false},
+         {BlockType::Switch, "Switch", "Switch",
+          "Multi-way branch on Value. Wire Cases to a Case chain; optional Default.",
+          false},
+         {BlockType::Case, "Case", "Case",
+          "One switch arm. Property: value. Wire Body and NextCase. Used only from Switch.",
+          false},
          {BlockType::While, "While", "While",
           "Loops while Cond is non-zero. Body runs each iteration; Exit runs afterward.",
           false},
          {BlockType::For, "For", "For",
           "Counted loop. Properties: iterator, start, end, type. Body runs for each value.",
+          false},
+         {BlockType::Break, "Break", "Break",
+          "Exits the innermost loop or switch. Valid only inside a loop/switch body.",
+          false},
+         {BlockType::Continue, "Continue", "Continue",
+          "Skips to the next loop iteration. Valid only inside a loop body.",
           false},
          {BlockType::Literal, "Literal", "Literal",
           "Constant value expression. Set value (e.g. 42, 'X', or 0).",
@@ -51,6 +66,15 @@ namespace Cgen
          {BlockType::Assign, "Assign", "Assign",
           "Assigns Value into target. Property: target (variable name).",
           false},
+         {BlockType::CompoundAssign, "CompoundAssign", "Op Assign",
+          "Compound assign. Properties: target, op (+ - * / %). Wire Value.",
+          false},
+         {BlockType::Inc, "Inc", "Inc",
+          "Increments a variable. Property: target.",
+          false},
+         {BlockType::Dec, "Dec", "Dec",
+          "Decrements a variable. Property: target.",
+          false},
          {BlockType::Add, "Add", "Add",
           "Expression: Left + Right.",
           true},
@@ -65,6 +89,9 @@ namespace Cgen
           true},
          {BlockType::Mod, "Mod", "Mod",
           "Expression: Left % Right (remainder).",
+          true},
+         {BlockType::Neg, "Neg", "Neg",
+          "Expression: unary minus of Value.",
           true},
          {BlockType::Equal, "Equal", "Equal",
           "Expression: Left == Right (1 if equal, else 0).",
@@ -84,6 +111,15 @@ namespace Cgen
          {BlockType::GreaterEqual, "GreaterEqual", "Greater Equal",
           "Expression: Left >= Right.",
           true},
+         {BlockType::And, "And", "And",
+          "Expression: Left && Right (logical and).",
+          true},
+         {BlockType::Or, "Or", "Or",
+          "Expression: Left || Right (logical or).",
+          true},
+         {BlockType::Not, "Not", "Not",
+          "Expression: !Value (logical not).",
+          true},
          {BlockType::Printf, "Printf", "Printf",
           "Prints text. Property: format (printf style). Wire Arg0-Arg5 for values.",
           false},
@@ -96,14 +132,29 @@ namespace Cgen
          {BlockType::ScanfChar, "ScanfChar", "Scanf Char",
           "Reads one character with scanf. Properties: target variable, prompt text.",
           false},
+         {BlockType::ScanfLine, "ScanfLine", "Scanf Line",
+          "Reads a line with fgets. Properties: target buffer, size, prompt.",
+          false},
          {BlockType::ArrayDecl, "ArrayDecl", "Array Decl",
           "Declares a local array. Properties: name, elemType, size.",
           false},
          {BlockType::IndexAssign, "IndexAssign", "Index Set",
-          "Writes Value into array[Index] as char. Property: array name.",
+          "Writes Value into array[Index]. Properties: array, elemType (cast).",
           false},
          {BlockType::IndexLoad, "IndexLoad", "Index Get",
-          "Reads array[Index] as int. Property: array name.",
+          "Reads array[Index] as int32. Properties: array, elemType (storage hint).",
+          true},
+         {BlockType::StrLen, "StrLen", "Str Len",
+          "Expression: strlen(buffer) as int32. Property: buffer.",
+          true},
+         {BlockType::StrCpy, "StrCpy", "Str Cpy",
+          "Copies src into dest with strcpy. Properties: dest, src.",
+          false},
+         {BlockType::StrNCpy, "StrNCpy", "Str NCpy",
+          "Copies up to count chars with strncpy and null-terminates. Properties: dest, src, count.",
+          false},
+         {BlockType::StrCmp, "StrCmp", "Str Cmp",
+          "Expression: strcmp(left, right). Properties: left, right.",
           true},
          {BlockType::RandomChar, "RandomChar", "Rand Char",
           "Random character expression. Property: set = lower, upper, digit, or special.",
@@ -187,6 +238,21 @@ namespace Cgen
          pNode->ports.push_back(MakeDataIn("Left", PrimitiveType::Int32, false));
          pNode->ports.push_back(MakeDataIn("Right", PrimitiveType::Int32, false));
          pNode->ports.push_back(MakeDataOut("Result", PrimitiveType::Int32, false));
+      }
+
+      void AddUnaryExpressionPorts(Node* pNode)
+      {
+         pNode->ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
+         pNode->ports.push_back(MakeDataOut("Result", PrimitiveType::Int32, false));
+      }
+
+      void AddIfLikePorts(Node* pNode)
+      {
+         pNode->ports.push_back(MakeControlIn("In"));
+         pNode->ports.push_back(MakeDataIn("Cond", PrimitiveType::Int32, false));
+         pNode->ports.push_back(MakeControlOut("Then"));
+         pNode->ports.push_back(MakeControlOut("Else"));
+         pNode->ports.push_back(MakeControlOut("Next"));
       }
    } // namespace
 
@@ -272,11 +338,21 @@ namespace Cgen
             node.ports.push_back(MakeControlIn("In"));
             break;
          case BlockType::If:
+         case BlockType::ElseIf:
+            AddIfLikePorts(&node);
+            break;
+         case BlockType::Switch:
             node.ports.push_back(MakeControlIn("In"));
-            node.ports.push_back(MakeDataIn("Cond", PrimitiveType::Int32, false));
-            node.ports.push_back(MakeControlOut("Then"));
-            node.ports.push_back(MakeControlOut("Else"));
+            node.ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
+            node.ports.push_back(MakeControlOut("Cases"));
+            node.ports.push_back(MakeControlOut("Default"));
             node.ports.push_back(MakeControlOut("Next"));
+            break;
+         case BlockType::Case:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Body"));
+            node.ports.push_back(MakeControlOut("NextCase"));
+            node.properties["value"] = "0";
             break;
          case BlockType::While:
             node.ports.push_back(MakeControlIn("In"));
@@ -292,6 +368,11 @@ namespace Cgen
             node.properties["start"] = "0";
             node.properties["end"] = "10";
             node.properties["type"] = "int32_t";
+            break;
+         case BlockType::Break:
+         case BlockType::Continue:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
             break;
          case BlockType::Literal:
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
@@ -320,6 +401,19 @@ namespace Cgen
             node.ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
             node.properties["target"] = "value";
             break;
+         case BlockType::CompoundAssign:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
+            node.properties["target"] = "value";
+            node.properties["op"] = "+";
+            break;
+         case BlockType::Inc:
+         case BlockType::Dec:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["target"] = "value";
+            break;
          case BlockType::Add:
          case BlockType::Sub:
          case BlockType::Mul:
@@ -331,7 +425,13 @@ namespace Cgen
          case BlockType::LessEqual:
          case BlockType::Greater:
          case BlockType::GreaterEqual:
+         case BlockType::And:
+         case BlockType::Or:
             AddBinaryExpressionPorts(&node);
+            break;
+         case BlockType::Neg:
+         case BlockType::Not:
+            AddUnaryExpressionPorts(&node);
             break;
          case BlockType::Printf:
             node.ports.push_back(MakeControlIn("In"));
@@ -361,6 +461,13 @@ namespace Cgen
             node.properties["target"] = "ch";
             node.properties["prompt"] = "Enter character: ";
             break;
+         case BlockType::ScanfLine:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["target"] = "buffer";
+            node.properties["size"] = "256";
+            node.properties["prompt"] = "Enter line: ";
+            break;
          case BlockType::ArrayDecl:
             node.ports.push_back(MakeControlIn("In"));
             node.ports.push_back(MakeControlOut("Next"));
@@ -374,11 +481,35 @@ namespace Cgen
             node.ports.push_back(MakeDataIn("Index", PrimitiveType::Int32, false));
             node.ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
             node.properties["array"] = "buffer";
+            node.properties["elemType"] = "char";
             break;
          case BlockType::IndexLoad:
             node.ports.push_back(MakeDataIn("Index", PrimitiveType::Int32, false));
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
             node.properties["array"] = "buffer";
+            node.properties["elemType"] = "char";
+            break;
+         case BlockType::StrLen:
+            node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
+            node.properties["buffer"] = "buffer";
+            break;
+         case BlockType::StrCpy:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["dest"] = "dest";
+            node.properties["src"] = "src";
+            break;
+         case BlockType::StrNCpy:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["dest"] = "dest";
+            node.properties["src"] = "src";
+            node.properties["count"] = "256";
+            break;
+         case BlockType::StrCmp:
+            node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
+            node.properties["left"] = "left";
+            node.properties["right"] = "right";
             break;
          case BlockType::RandomChar:
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));

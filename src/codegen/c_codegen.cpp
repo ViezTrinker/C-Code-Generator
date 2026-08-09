@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *\file c_codegen.cpp
  *\brief C99 code generation from the flowchart IR.
  */
@@ -173,9 +173,19 @@ namespace Cgen
                return ">";
             case BlockType::GreaterEqual:
                return ">=";
+            case BlockType::And:
+               return "&&";
+            case BlockType::Or:
+               return "||";
             default:
                return "+";
          }
+      }
+
+      bool IsValidCompoundOp(std::string_view opText)
+      {
+         return (opText == "+") || (opText == "-") || (opText == "*") ||
+                (opText == "/") || (opText == "%");
       }
 
       std::string EmitExpression(EmitContext* pContext, NodeId nodeId)
@@ -218,10 +228,39 @@ namespace Cgen
             case BlockType::LessEqual:
             case BlockType::Greater:
             case BlockType::GreaterEqual:
+            case BlockType::And:
+            case BlockType::Or:
             {
                const std::string left = EmitInputExpression(pContext, nodeId, "Left");
                const std::string right = EmitInputExpression(pContext, nodeId, "Right");
                expression = "(" + left + " " + BinaryOperator(pNode->type) + " " + right + ")";
+               break;
+            }
+            case BlockType::Not:
+            {
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, nodeId, "Value");
+               expression = "(!" + valueExpr + ")";
+               break;
+            }
+            case BlockType::Neg:
+            {
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, nodeId, "Value");
+               expression = "(-" + valueExpr + ")";
+               break;
+            }
+            case BlockType::StrLen:
+            {
+               const std::string bufferName = GetProperty(*pNode, "buffer", "buffer");
+               expression = "((int32_t)strlen(" + bufferName + "))";
+               break;
+            }
+            case BlockType::StrCmp:
+            {
+               const std::string leftName = GetProperty(*pNode, "left", "left");
+               const std::string rightName = GetProperty(*pNode, "right", "right");
+               expression = "strcmp(" + leftName + ", " + rightName + ")";
                break;
             }
             case BlockType::TimeNow:
@@ -287,6 +326,147 @@ namespace Cgen
       }
 
       void EmitStatementChain(EmitContext* pContext, NodeId startNodeId);
+      void EmitIfElseChain(EmitContext* pContext, const Node& node, bool asElseIf);
+
+      void EmitSwitchStatement(EmitContext* pContext, const Node& node)
+      {
+         const std::string valueExpr = EmitInputExpression(pContext, node.id, "Value");
+         WriteIndent(pContext);
+         (*pContext->pOut) << "switch (" << valueExpr << ")\n";
+         WriteIndent(pContext);
+         (*pContext->pOut) << "{\n";
+         ++pContext->indentLevel;
+
+         const Edge* pCases =
+            pContext->pDocument->FindOutgoingEdge(node.id, "Cases");
+         NodeId caseId = 0;
+         if (pCases != nullptr)
+         {
+            caseId = pCases->toNodeId;
+         }
+         std::unordered_set<NodeId> visitedCases;
+         while (caseId != 0)
+         {
+            if (visitedCases.find(caseId) != visitedCases.end())
+            {
+               AppendDiag(pContext, "Cycle detected in Switch Case chain.");
+               break;
+            }
+            visitedCases.insert(caseId);
+
+            const Node* pCaseNode = GetNode(*pContext, caseId);
+            if (pCaseNode == nullptr)
+            {
+               AppendDiag(pContext, "Missing Case node in Switch chain.");
+               break;
+            }
+            if (pCaseNode->type != BlockType::Case)
+            {
+               AppendDiag(pContext, "Switch Cases must point to a Case block.");
+               break;
+            }
+
+            const std::string matchValue = GetProperty(*pCaseNode, "value", "0");
+            WriteIndent(pContext);
+            (*pContext->pOut) << "case " << matchValue << ":\n";
+            WriteIndent(pContext);
+            (*pContext->pOut) << "{\n";
+            ++pContext->indentLevel;
+            const Edge* pBody =
+               pContext->pDocument->FindOutgoingEdge(caseId, "Body");
+            if (pBody != nullptr)
+            {
+               EmitStatementChain(pContext, pBody->toNodeId);
+            }
+            WriteIndent(pContext);
+            (*pContext->pOut) << "break;\n";
+            --pContext->indentLevel;
+            WriteIndent(pContext);
+            (*pContext->pOut) << "}\n";
+
+            const Edge* pNextCase =
+               pContext->pDocument->FindOutgoingEdge(caseId, "NextCase");
+            if (pNextCase == nullptr)
+            {
+               caseId = 0;
+            }
+            else
+            {
+               caseId = pNextCase->toNodeId;
+            }
+         }
+
+         const Edge* pDefault =
+            pContext->pDocument->FindOutgoingEdge(node.id, "Default");
+         if (pDefault != nullptr)
+         {
+            WriteIndent(pContext);
+            (*pContext->pOut) << "default:\n";
+            WriteIndent(pContext);
+            (*pContext->pOut) << "{\n";
+            ++pContext->indentLevel;
+            EmitStatementChain(pContext, pDefault->toNodeId);
+            WriteIndent(pContext);
+            (*pContext->pOut) << "break;\n";
+            --pContext->indentLevel;
+            WriteIndent(pContext);
+            (*pContext->pOut) << "}\n";
+         }
+
+         --pContext->indentLevel;
+         WriteIndent(pContext);
+         (*pContext->pOut) << "}\n";
+      }
+
+      void EmitIfElseChain(EmitContext* pContext, const Node& node, bool asElseIf)
+      {
+         const std::string condExpr = EmitInputExpression(pContext, node.id, "Cond");
+         WriteIndent(pContext);
+         if (asElseIf)
+         {
+            (*pContext->pOut) << "else if (" << condExpr << ")\n";
+         }
+         else
+         {
+            (*pContext->pOut) << "if (" << condExpr << ")\n";
+         }
+         WriteIndent(pContext);
+         (*pContext->pOut) << "{\n";
+         ++pContext->indentLevel;
+         const Edge* pThen =
+            pContext->pDocument->FindOutgoingEdge(node.id, "Then");
+         if (pThen != nullptr)
+         {
+            EmitStatementChain(pContext, pThen->toNodeId);
+         }
+         --pContext->indentLevel;
+         WriteIndent(pContext);
+         (*pContext->pOut) << "}\n";
+
+         const Edge* pElse =
+            pContext->pDocument->FindOutgoingEdge(node.id, "Else");
+         if (pElse == nullptr)
+         {
+            return;
+         }
+
+         const Node* pElseNode = GetNode(*pContext, pElse->toNodeId);
+         if ((pElseNode != nullptr) && (pElseNode->type == BlockType::ElseIf))
+         {
+            EmitIfElseChain(pContext, *pElseNode, true);
+            return;
+         }
+
+         WriteIndent(pContext);
+         (*pContext->pOut) << "else\n";
+         WriteIndent(pContext);
+         (*pContext->pOut) << "{\n";
+         ++pContext->indentLevel;
+         EmitStatementChain(pContext, pElse->toNodeId);
+         --pContext->indentLevel;
+         WriteIndent(pContext);
+         (*pContext->pOut) << "}\n";
+      }
 
       void EmitSingleStatement(EmitContext* pContext, const Node& node)
       {
@@ -309,24 +489,58 @@ namespace Cgen
             case BlockType::Assign:
             {
                const std::string target = GetProperty(node, "target", "value");
-               const std::string valueExpr = EmitInputExpression(pContext, node.id, "Value");
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, node.id, "Value");
                WriteIndent(pContext);
                (*pContext->pOut) << target << " = " << valueExpr << ";\n";
                break;
             }
+            case BlockType::CompoundAssign:
+            {
+               const std::string target = GetProperty(node, "target", "value");
+               const std::string opText = GetProperty(node, "op", "+");
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, node.id, "Value");
+               WriteIndent(pContext);
+               if (IsValidCompoundOp(opText))
+               {
+                  (*pContext->pOut) << target << " " << opText << "= " << valueExpr
+                                    << ";\n";
+               }
+               else
+               {
+                  AppendDiag(pContext,
+                             "CompoundAssign op must be one of + - * / %; using =.");
+                  (*pContext->pOut) << target << " = " << valueExpr << ";\n";
+               }
+               break;
+            }
+            case BlockType::Inc:
+            {
+               const std::string target = GetProperty(node, "target", "value");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "++" << target << ";\n";
+               break;
+            }
+            case BlockType::Dec:
+            {
+               const std::string target = GetProperty(node, "target", "value");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "--" << target << ";\n";
+               break;
+            }
             case BlockType::Printf:
             {
-               const std::string formatProp = GetProperty(node, "format", "value=%d\\n");
-               const std::string formatText = EscapeCString(UnescapeFormat(formatProp));
-               constexpr std::array<const char*, 6> ArgPorts = {
-                  "Arg0", "Arg1", "Arg2", "Arg3", "Arg4", "Arg5"
-               };
+               const std::string formatRaw = GetProperty(node, "format", "value=%d\\n");
+               const std::string formatText = EscapeCString(UnescapeFormat(formatRaw));
                WriteIndent(pContext);
                (*pContext->pOut) << "printf(\"" << formatText << "\"";
-               for (size_t argIndex = 0; argIndex < ArgPorts.size(); ++argIndex)
+               for (int32_t argIndex = 0; argIndex < 6; ++argIndex)
                {
+                  std::ostringstream portName;
+                  portName << "Arg" << argIndex;
                   const std::string argExpr =
-                     EmitInputExpression(pContext, node.id, ArgPorts[argIndex]);
+                     EmitInputExpression(pContext, node.id, portName.str());
                   if (!argExpr.empty())
                   {
                      (*pContext->pOut) << ", " << argExpr;
@@ -339,53 +553,22 @@ namespace Cgen
             }
             case BlockType::WaitEnter:
             {
-               const std::string promptProp =
+               const std::string promptRaw =
                   GetProperty(node, "prompt", "Press Enter to exit...\\n");
-               const std::string promptText = EscapeCString(UnescapeFormat(promptProp));
+               const std::string promptText = EscapeCString(UnescapeFormat(promptRaw));
                WriteIndent(pContext);
                (*pContext->pOut) << "printf(\"" << promptText << "\");\n";
                WriteIndent(pContext);
                (*pContext->pOut) << "fflush(stdout);\n";
                WriteIndent(pContext);
-               (*pContext->pOut) << "{\n";
-               ++pContext->indentLevel;
-               WriteIndent(pContext);
-               (*pContext->pOut) << "int cgenWaitChar = 0;\n";
-               WriteIndent(pContext);
-               (*pContext->pOut)
-                  << "while (((cgenWaitChar = getchar()) != '\\n') && "
-                     "(cgenWaitChar != EOF))\n";
-               WriteIndent(pContext);
-               (*pContext->pOut) << "{\n";
-               WriteIndent(pContext);
-               (*pContext->pOut) << "}\n";
-               WriteIndent(pContext);
-               (*pContext->pOut) << "if (cgenWaitChar != EOF)\n";
-               WriteIndent(pContext);
-               (*pContext->pOut) << "{\n";
-               ++pContext->indentLevel;
-               WriteIndent(pContext);
-               (*pContext->pOut)
-                  << "while (((cgenWaitChar = getchar()) != '\\n') && "
-                     "(cgenWaitChar != EOF))\n";
-               WriteIndent(pContext);
-               (*pContext->pOut) << "{\n";
-               WriteIndent(pContext);
-               (*pContext->pOut) << "}\n";
-               --pContext->indentLevel;
-               WriteIndent(pContext);
-               (*pContext->pOut) << "}\n";
-               --pContext->indentLevel;
-               WriteIndent(pContext);
-               (*pContext->pOut) << "}\n";
+               (*pContext->pOut) << "(void)getchar();\n";
                break;
             }
             case BlockType::ScanfInt:
             {
                const std::string target = GetProperty(node, "target", "value");
-               const std::string promptProp =
-                  GetProperty(node, "prompt", "Enter value: ");
-               const std::string promptText = EscapeCString(UnescapeFormat(promptProp));
+               const std::string promptRaw = GetProperty(node, "prompt", "Enter value: ");
+               const std::string promptText = EscapeCString(UnescapeFormat(promptRaw));
                WriteIndent(pContext);
                (*pContext->pOut) << "printf(\"" << promptText << "\");\n";
                WriteIndent(pContext);
@@ -405,9 +588,9 @@ namespace Cgen
             case BlockType::ScanfChar:
             {
                const std::string target = GetProperty(node, "target", "ch");
-               const std::string promptProp =
+               const std::string promptRaw =
                   GetProperty(node, "prompt", "Enter character: ");
-               const std::string promptText = EscapeCString(UnescapeFormat(promptProp));
+               const std::string promptText = EscapeCString(UnescapeFormat(promptRaw));
                WriteIndent(pContext);
                (*pContext->pOut) << "printf(\"" << promptText << "\");\n";
                WriteIndent(pContext);
@@ -418,7 +601,31 @@ namespace Cgen
                (*pContext->pOut) << "{\n";
                ++pContext->indentLevel;
                WriteIndent(pContext);
-               (*pContext->pOut) << target << " = '\\0';\n";
+               (*pContext->pOut) << target << " = 0;\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               break;
+            }
+            case BlockType::ScanfLine:
+            {
+               const std::string target = GetProperty(node, "target", "buffer");
+               const std::string sizeText = GetProperty(node, "size", "256");
+               const std::string promptRaw =
+                  GetProperty(node, "prompt", "Enter line: ");
+               const std::string promptText = EscapeCString(UnescapeFormat(promptRaw));
+               WriteIndent(pContext);
+               (*pContext->pOut) << "printf(\"" << promptText << "\");\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "fflush(stdout);\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "if (fgets(" << target << ", " << sizeText
+                                 << ", stdin) == NULL)\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << target << "[0] = '\\0';\n";
                --pContext->indentLevel;
                WriteIndent(pContext);
                (*pContext->pOut) << "}\n";
@@ -436,13 +643,34 @@ namespace Cgen
             case BlockType::IndexAssign:
             {
                const std::string arrayName = GetProperty(node, "array", "buffer");
+               const std::string elemType = GetProperty(node, "elemType", "char");
                const std::string indexExpr =
                   EmitInputExpression(pContext, node.id, "Index");
                const std::string valueExpr =
                   EmitInputExpression(pContext, node.id, "Value");
                WriteIndent(pContext);
-               (*pContext->pOut) << arrayName << "[" << indexExpr << "] = (char)("
-                                 << valueExpr << ");\n";
+               (*pContext->pOut) << arrayName << "[" << indexExpr << "] = (" << elemType
+                                 << ")(" << valueExpr << ");\n";
+               break;
+            }
+            case BlockType::StrCpy:
+            {
+               const std::string destName = GetProperty(node, "dest", "dest");
+               const std::string srcName = GetProperty(node, "src", "src");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "strcpy(" << destName << ", " << srcName << ");\n";
+               break;
+            }
+            case BlockType::StrNCpy:
+            {
+               const std::string destName = GetProperty(node, "dest", "dest");
+               const std::string srcName = GetProperty(node, "src", "src");
+               const std::string countText = GetProperty(node, "count", "256");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "strncpy(" << destName << ", " << srcName << ", "
+                                 << countText << ");\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << destName << "[(" << countText << ") - 1] = '\\0';\n";
                break;
             }
             case BlockType::ShuffleArray:
@@ -546,7 +774,8 @@ namespace Cgen
             }
             case BlockType::Return:
             {
-               const std::string valueExpr = EmitInputExpression(pContext, node.id, "Value");
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, node.id, "Value");
                WriteIndent(pContext);
                if (valueExpr.empty())
                {
@@ -574,38 +803,24 @@ namespace Cgen
                break;
             }
             case BlockType::If:
-            {
-               const std::string condExpr = EmitInputExpression(pContext, node.id, "Cond");
-               WriteIndent(pContext);
-               (*pContext->pOut) << "if (" << condExpr << ")\n";
-               WriteIndent(pContext);
-               (*pContext->pOut) << "{\n";
-               ++pContext->indentLevel;
-               const Edge* pThen =
-                  pContext->pDocument->FindOutgoingEdge(node.id, "Then");
-               if (pThen != nullptr)
-               {
-                  EmitStatementChain(pContext, pThen->toNodeId);
-               }
-               --pContext->indentLevel;
-               WriteIndent(pContext);
-               (*pContext->pOut) << "}\n";
-               const Edge* pElse =
-                  pContext->pDocument->FindOutgoingEdge(node.id, "Else");
-               if (pElse != nullptr)
-               {
-                  WriteIndent(pContext);
-                  (*pContext->pOut) << "else\n";
-                  WriteIndent(pContext);
-                  (*pContext->pOut) << "{\n";
-                  ++pContext->indentLevel;
-                  EmitStatementChain(pContext, pElse->toNodeId);
-                  --pContext->indentLevel;
-                  WriteIndent(pContext);
-                  (*pContext->pOut) << "}\n";
-               }
+            case BlockType::ElseIf:
+               EmitIfElseChain(pContext, node, false);
                break;
-            }
+            case BlockType::Switch:
+               EmitSwitchStatement(pContext, node);
+               break;
+            case BlockType::Case:
+               AppendDiag(pContext,
+                          "Case block must be reached via Switch Cases, not a linear chain.");
+               break;
+            case BlockType::Break:
+               WriteIndent(pContext);
+               (*pContext->pOut) << "break;\n";
+               break;
+            case BlockType::Continue:
+               WriteIndent(pContext);
+               (*pContext->pOut) << "continue;\n";
+               break;
             case BlockType::While:
             {
                const std::string condExpr = EmitInputExpression(pContext, node.id, "Cond");
@@ -661,25 +876,12 @@ namespace Cgen
                break;
          }
       }
-
       NodeId NextLinearNode(const EmitContext& context, const Node& node)
       {
          const char* pPortName = "Next";
-         if (node.type == BlockType::If)
-         {
-            pPortName = "Next";
-         }
-         else if (node.type == BlockType::While)
+         if ((node.type == BlockType::While) || (node.type == BlockType::For))
          {
             pPortName = "Exit";
-         }
-         else if (node.type == BlockType::For)
-         {
-            pPortName = "Exit";
-         }
-         else if (node.type == BlockType::Start)
-         {
-            pPortName = "Next";
          }
 
          const Edge* pEdge =
@@ -722,7 +924,10 @@ namespace Cgen
 
             EmitSingleStatement(pContext, *pNode);
 
-            if ((pNode->type == BlockType::Return) || (pNode->type == BlockType::End))
+            if ((pNode->type == BlockType::Return) ||
+                (pNode->type == BlockType::End) ||
+                (pNode->type == BlockType::Break) ||
+                (pNode->type == BlockType::Continue))
             {
                return;
             }
@@ -825,11 +1030,20 @@ namespace Cgen
       const bool usesTimeHeader =
          usesRandom || usesLocalTime ||
          DocumentContainsBlockType(document, BlockType::TimeNow);
+      const bool usesStringHeader =
+         DocumentContainsBlockType(document, BlockType::StrLen) ||
+         DocumentContainsBlockType(document, BlockType::StrCpy) ||
+         DocumentContainsBlockType(document, BlockType::StrNCpy) ||
+         DocumentContainsBlockType(document, BlockType::StrCmp);
 
       stream << "/* Generated by c_code_generator */\n";
       stream << "#include <stdint.h>\n";
       stream << "#include <stdio.h>\n";
       stream << "#include <stdlib.h>\n";
+      if (usesStringHeader)
+      {
+         stream << "#include <string.h>\n";
+      }
       if (usesTimeHeader)
       {
          stream << "#include <time.h>\n";

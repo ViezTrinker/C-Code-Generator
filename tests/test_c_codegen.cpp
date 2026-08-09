@@ -84,3 +84,201 @@ TEST(CCodegenTest, EmitsScanfChar)
    EXPECT_TRUE(Cgen::IsOk(output.result));
    EXPECT_NE(output.source.find("scanf(\" %c\", &ch)"), std::string::npos);
 }
+
+TEST(CCodegenTest, EmitsLogicAndUnary)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId declId =
+      document.AddNode(Cgen::BlockType::VariableDecl, 120.0f, 40.0f);
+   Cgen::Node* pDecl = document.FindNodeMutable(declId);
+   ASSERT_NE(pDecl, nullptr);
+   pDecl->properties["name"] = "flag";
+
+   const Cgen::NodeId leftLit =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 140.0f);
+   document.FindNodeMutable(leftLit)->properties["value"] = "1";
+   const Cgen::NodeId rightLit =
+      document.AddNode(Cgen::BlockType::Literal, 140.0f, 140.0f);
+   document.FindNodeMutable(rightLit)->properties["value"] = "0";
+   const Cgen::NodeId andId = document.AddNode(Cgen::BlockType::And, 100.0f, 220.0f);
+   const Cgen::NodeId notId = document.AddNode(Cgen::BlockType::Not, 100.0f, 300.0f);
+   const Cgen::NodeId negLit =
+      document.AddNode(Cgen::BlockType::Literal, 260.0f, 140.0f);
+   document.FindNodeMutable(negLit)->properties["value"] = "5";
+   const Cgen::NodeId negId = document.AddNode(Cgen::BlockType::Neg, 260.0f, 220.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(leftLit, "Value", andId, "Left", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(rightLit, "Value", andId, "Right", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(andId, "Result", notId, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(negLit, "Value", negId, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(notId, "Result", declId, "Init", nullptr)));
+
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 320.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", declId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(declId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("&&"), std::string::npos);
+   EXPECT_NE(output.source.find("(!"), std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsElseIfChain)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId ifId = document.AddNode(Cgen::BlockType::If, 160.0f, 40.0f);
+   const Cgen::NodeId elseIfId =
+      document.AddNode(Cgen::BlockType::ElseIf, 160.0f, 160.0f);
+   const Cgen::NodeId condA =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 40.0f);
+   document.FindNodeMutable(condA)->properties["value"] = "1";
+   const Cgen::NodeId condB =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 160.0f);
+   document.FindNodeMutable(condB)->properties["value"] = "2";
+   const Cgen::NodeId thenPrintf =
+      document.AddNode(Cgen::BlockType::Printf, 320.0f, 40.0f);
+   document.FindNodeMutable(thenPrintf)->properties["format"] = "a\\n";
+   const Cgen::NodeId elseIfPrintf =
+      document.AddNode(Cgen::BlockType::Printf, 320.0f, 160.0f);
+   document.FindNodeMutable(elseIfPrintf)->properties["format"] = "b\\n";
+   const Cgen::NodeId elsePrintf =
+      document.AddNode(Cgen::BlockType::Printf, 320.0f, 280.0f);
+   document.FindNodeMutable(elsePrintf)->properties["format"] = "c\\n";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 480.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", ifId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(condA, "Value", ifId, "Cond", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(ifId, "Then", thenPrintf, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(ifId, "Else", elseIfId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(condB, "Value", elseIfId, "Cond", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(elseIfId, "Then", elseIfPrintf, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(elseIfId, "Else", elsePrintf, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(ifId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("if ("), std::string::npos);
+   EXPECT_NE(output.source.find("else if ("), std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsSwitchCaseBreakContinue)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId switchId =
+      document.AddNode(Cgen::BlockType::Switch, 160.0f, 40.0f);
+   const Cgen::NodeId valueLit =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 40.0f);
+   document.FindNodeMutable(valueLit)->properties["value"] = "1";
+   const Cgen::NodeId caseId = document.AddNode(Cgen::BlockType::Case, 160.0f, 140.0f);
+   document.FindNodeMutable(caseId)->properties["value"] = "1";
+   const Cgen::NodeId casePrintf =
+      document.AddNode(Cgen::BlockType::Printf, 320.0f, 140.0f);
+   document.FindNodeMutable(casePrintf)->properties["format"] = "one\\n";
+   const Cgen::NodeId defPrintf =
+      document.AddNode(Cgen::BlockType::Printf, 320.0f, 240.0f);
+   document.FindNodeMutable(defPrintf)->properties["format"] = "other\\n";
+
+   const Cgen::NodeId whileId =
+      document.AddNode(Cgen::BlockType::While, 160.0f, 320.0f);
+   const Cgen::NodeId whileCond =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 320.0f);
+   document.FindNodeMutable(whileCond)->properties["value"] = "0";
+   const Cgen::NodeId breakId =
+      document.AddNode(Cgen::BlockType::Break, 320.0f, 320.0f);
+   const Cgen::NodeId contId =
+      document.AddNode(Cgen::BlockType::Continue, 320.0f, 400.0f);
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 480.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", switchId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(valueLit, "Value", switchId, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(switchId, "Cases", caseId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(caseId, "Body", casePrintf, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(switchId, "Default", defPrintf, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(switchId, "Next", whileId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(whileCond, "Value", whileId, "Cond", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(whileId, "Body", breakId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(whileId, "Exit", contId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(contId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("switch ("), std::string::npos);
+   EXPECT_NE(output.source.find("case 1:"), std::string::npos);
+   EXPECT_NE(output.source.find("break;"), std::string::npos);
+   EXPECT_NE(output.source.find("continue;"), std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsStringsTypedIndexAndCompound)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId arrayId =
+      document.AddNode(Cgen::BlockType::ArrayDecl, 120.0f, 40.0f);
+   const Cgen::NodeId strcpyId =
+      document.AddNode(Cgen::BlockType::StrCpy, 280.0f, 40.0f);
+   document.FindNodeMutable(strcpyId)->properties["dest"] = "buffer";
+   document.FindNodeMutable(strcpyId)->properties["src"] = "src";
+   const Cgen::NodeId scanfLineId =
+      document.AddNode(Cgen::BlockType::ScanfLine, 440.0f, 40.0f);
+   const Cgen::NodeId indexId =
+      document.AddNode(Cgen::BlockType::IndexAssign, 600.0f, 40.0f);
+   Cgen::Node* pIndex = document.FindNodeMutable(indexId);
+   pIndex->properties["array"] = "nums";
+   pIndex->properties["elemType"] = "int32_t";
+   const Cgen::NodeId idxLit =
+      document.AddNode(Cgen::BlockType::Literal, 520.0f, 140.0f);
+   document.FindNodeMutable(idxLit)->properties["value"] = "0";
+   const Cgen::NodeId valLit =
+      document.AddNode(Cgen::BlockType::Literal, 620.0f, 140.0f);
+   document.FindNodeMutable(valLit)->properties["value"] = "7";
+   const Cgen::NodeId incId = document.AddNode(Cgen::BlockType::Inc, 760.0f, 40.0f);
+   document.FindNodeMutable(incId)->properties["target"] = "value";
+   const Cgen::NodeId compoundId =
+      document.AddNode(Cgen::BlockType::CompoundAssign, 900.0f, 40.0f);
+   document.FindNodeMutable(compoundId)->properties["target"] = "value";
+   document.FindNodeMutable(compoundId)->properties["op"] = "+";
+   const Cgen::NodeId addLit =
+      document.AddNode(Cgen::BlockType::Literal, 900.0f, 140.0f);
+   document.FindNodeMutable(addLit)->properties["value"] = "3";
+   const Cgen::NodeId strlenId =
+      document.AddNode(Cgen::BlockType::StrLen, 100.0f, 200.0f);
+   const Cgen::NodeId declId =
+      document.AddNode(Cgen::BlockType::VariableDecl, 100.0f, 280.0f);
+   document.FindNodeMutable(declId)->properties["name"] = "len";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 1040.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", arrayId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(arrayId, "Next", strcpyId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(strcpyId, "Next", scanfLineId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(scanfLineId, "Next", indexId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(idxLit, "Value", indexId, "Index", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(valLit, "Value", indexId, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(indexId, "Next", incId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(incId, "Next", compoundId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(addLit, "Value", compoundId, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(compoundId, "Next", declId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(strlenId, "Value", declId, "Init", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(declId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("#include <string.h>"), std::string::npos);
+   EXPECT_NE(output.source.find("strcpy("), std::string::npos);
+   EXPECT_NE(output.source.find("fgets("), std::string::npos);
+   EXPECT_NE(output.source.find("strlen("), std::string::npos);
+   EXPECT_NE(output.source.find("] = (int32_t)("), std::string::npos);
+   EXPECT_NE(output.source.find("++value;"), std::string::npos);
+   EXPECT_NE(output.source.find("value += "), std::string::npos);
+}

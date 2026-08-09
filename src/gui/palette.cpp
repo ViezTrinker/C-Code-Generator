@@ -4,6 +4,8 @@
  */
 #include "gui/palette.h"
 
+#include <string>
+
 namespace Cgen
 {
    namespace
@@ -11,28 +13,48 @@ namespace Cgen
       constexpr BlockType PaletteTypes[] = {
          BlockType::End,
          BlockType::If,
+         BlockType::ElseIf,
+         BlockType::Switch,
+         BlockType::Case,
          BlockType::While,
          BlockType::For,
+         BlockType::Break,
+         BlockType::Continue,
          BlockType::Literal,
          BlockType::VariableDecl,
          BlockType::GlobalDecl,
          BlockType::VariableRef,
          BlockType::Assign,
+         BlockType::CompoundAssign,
+         BlockType::Inc,
+         BlockType::Dec,
          BlockType::Add,
          BlockType::Sub,
          BlockType::Mul,
          BlockType::Div,
          BlockType::Mod,
+         BlockType::Neg,
          BlockType::Equal,
+         BlockType::NotEqual,
          BlockType::Less,
+         BlockType::LessEqual,
          BlockType::Greater,
+         BlockType::GreaterEqual,
+         BlockType::And,
+         BlockType::Or,
+         BlockType::Not,
          BlockType::Printf,
          BlockType::WaitEnter,
          BlockType::ScanfInt,
          BlockType::ScanfChar,
+         BlockType::ScanfLine,
          BlockType::ArrayDecl,
          BlockType::IndexAssign,
          BlockType::IndexLoad,
+         BlockType::StrLen,
+         BlockType::StrCpy,
+         BlockType::StrNCpy,
+         BlockType::StrCmp,
          BlockType::RandomChar,
          BlockType::ShuffleArray,
          BlockType::Malloc,
@@ -47,6 +69,10 @@ namespace Cgen
       };
 
       constexpr size_t PaletteTypeCount = sizeof(PaletteTypes) / sizeof(PaletteTypes[0]);
+      constexpr float TitleHeight = 28.0f;
+      constexpr float RowHeight = 24.0f;
+      constexpr float RowGap = 2.0f;
+      constexpr float RowStride = RowHeight + RowGap;
    } // namespace
 
    Palette::Palette(const sf::Font& font)
@@ -60,18 +86,68 @@ namespace Cgen
       }
    }
 
+   sf::FloatRect Palette::ListBounds(void) const
+   {
+      float height = _bounds.size.y - TitleHeight;
+      if (height < RowHeight)
+      {
+         height = RowHeight;
+      }
+      return sf::FloatRect(
+         sf::Vector2f(_bounds.position.x, _bounds.position.y + TitleHeight),
+         sf::Vector2f(_bounds.size.x, height));
+   }
+
+   uint32_t Palette::VisibleRowCapacity(void) const
+   {
+      const auto capacity =
+         static_cast<uint32_t>(ListBounds().size.y / RowStride);
+      if (capacity < 1)
+      {
+         return 1;
+      }
+      return capacity;
+   }
+
+   uint32_t Palette::MaxScrollRows(void) const
+   {
+      const auto entryCount = static_cast<uint32_t>(_entries.size());
+      const uint32_t capacity = VisibleRowCapacity();
+      if (entryCount <= capacity)
+      {
+         return 0;
+      }
+      return entryCount - capacity;
+   }
+
+   void Palette::ClampScroll(void)
+   {
+      const uint32_t maxScroll = MaxScrollRows();
+      if (_scrollRows > maxScroll)
+      {
+         _scrollRows = maxScroll;
+      }
+   }
+
+   void Palette::RebuildEntryBounds(void)
+   {
+      const sf::FloatRect listBounds = ListBounds();
+      float cursorY =
+         listBounds.position.y - (static_cast<float>(_scrollRows) * RowStride);
+      for (size_t index = 0; index < _entries.size(); ++index)
+      {
+         _entries[index].bounds = sf::FloatRect(
+            sf::Vector2f(_bounds.position.x + 6.0f, cursorY),
+            sf::Vector2f(_bounds.size.x - 12.0f, RowHeight));
+         cursorY += RowStride;
+      }
+   }
+
    void Palette::SetBounds(const sf::FloatRect& bounds)
    {
       _bounds = bounds;
-      constexpr float RowHeight = 24.0f;
-      float cursorY = bounds.position.y + 28.0f;
-      for (size_t index = 0; index < _entries.size(); ++index)
-      {
-         _entries[index].bounds =
-            sf::FloatRect(sf::Vector2f(bounds.position.x + 6.0f, cursorY),
-                          sf::Vector2f(bounds.size.x - 12.0f, RowHeight));
-         cursorY += RowHeight + 2.0f;
-      }
+      ClampScroll();
+      RebuildEntryBounds();
    }
 
    bool Palette::Contains(sf::Vector2f point) const
@@ -85,6 +161,10 @@ namespace Cgen
       {
          return false;
       }
+      if (!ListBounds().contains(point))
+      {
+         return false;
+      }
       for (size_t index = 0; index < _entries.size(); ++index)
       {
          if (_entries[index].bounds.contains(point))
@@ -94,6 +174,38 @@ namespace Cgen
          }
       }
       return false;
+   }
+
+   bool Palette::HandleWheel(float delta, sf::Vector2f point)
+   {
+      if (!_bounds.contains(point))
+      {
+         return false;
+      }
+
+      const uint32_t maxScroll = MaxScrollRows();
+      if (maxScroll == 0)
+      {
+         return true;
+      }
+
+      if (delta > 0.0f)
+      {
+         if (_scrollRows > 0)
+         {
+            --_scrollRows;
+         }
+      }
+      else if (delta < 0.0f)
+      {
+         if (_scrollRows < maxScroll)
+         {
+            ++_scrollRows;
+         }
+      }
+
+      RebuildEntryBounds();
+      return true;
    }
 
    void Palette::Draw(sf::RenderTarget* pTarget) const
@@ -116,9 +228,40 @@ namespace Cgen
                                      _bounds.position.y + 6.0f));
       pTarget->draw(title);
 
+      const sf::FloatRect listBounds = ListBounds();
+      const sf::Vector2u targetSize = pTarget->getSize();
+      if ((targetSize.x == 0) || (targetSize.y == 0))
+      {
+         return;
+      }
+
+      const sf::View previousView = pTarget->getView();
+      sf::View clipView;
+      clipView.setSize(listBounds.size);
+      clipView.setCenter(sf::Vector2f(
+         listBounds.position.x + (listBounds.size.x * 0.5f),
+         listBounds.position.y + (listBounds.size.y * 0.5f)));
+      clipView.setViewport(sf::FloatRect(
+         sf::Vector2f(listBounds.position.x / static_cast<float>(targetSize.x),
+                      listBounds.position.y / static_cast<float>(targetSize.y)),
+         sf::Vector2f(listBounds.size.x / static_cast<float>(targetSize.x),
+                      listBounds.size.y / static_cast<float>(targetSize.y))));
+      pTarget->setView(clipView);
+
       for (size_t index = 0; index < _entries.size(); ++index)
       {
          const Entry& entry = _entries[index];
+         const float entryBottom = entry.bounds.position.y + entry.bounds.size.y;
+         const float listBottom = listBounds.position.y + listBounds.size.y;
+         if (entryBottom < listBounds.position.y)
+         {
+            continue;
+         }
+         if (entry.bounds.position.y > listBottom)
+         {
+            continue;
+         }
+
          sf::RectangleShape row;
          row.setPosition(entry.bounds.position);
          row.setSize(entry.bounds.size);
@@ -131,5 +274,7 @@ namespace Cgen
                                         entry.bounds.position.y + 2.0f));
          pTarget->draw(label);
       }
+
+      pTarget->setView(previousView);
    }
 } // namespace Cgen

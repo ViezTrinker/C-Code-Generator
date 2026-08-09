@@ -7,6 +7,7 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <vector>
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -17,6 +18,7 @@
 #endif
 
 #include "codegen/c_codegen.h"
+#include "model/graph_validator.h"
 #include "serialize/cgen_serializer.h"
 
 namespace Cgen
@@ -98,14 +100,32 @@ namespace Cgen
 
    void App::SyncSelectionUi(void)
    {
-      NodeId selectedId = _pCanvas->GetSelectedNodeId();
-      if ((selectedId != 0) && (_document.FindNode(selectedId) == nullptr))
+      std::vector<NodeId> selected = _pCanvas->GetSelectedNodeIds();
+      std::vector<NodeId> valid;
+      for (size_t index = 0; index < selected.size(); ++index)
       {
-         selectedId = 0;
-         _pCanvas->SetSelectedNodeId(0);
+         if (_document.FindNode(selected[index]) != nullptr)
+         {
+            valid.push_back(selected[index]);
+         }
       }
-      _pProperties->SetSelection(&_document, selectedId);
+      if (valid.size() != selected.size())
+      {
+         _pCanvas->SetSelectedNodeIds(valid);
+      }
+      _pProperties->SetSelection(&_document, _pCanvas->GetSelectedNodeId());
       UpdateTitle();
+   }
+
+   void App::JumpToValidationNode(NodeId nodeId)
+   {
+      if ((nodeId == 0) || (_document.FindNode(nodeId) == nullptr))
+      {
+         return;
+      }
+      _pCanvas->SetSelectedNodeId(nodeId);
+      _pCanvas->CenterOnNode(nodeId);
+      SyncSelectionUi();
    }
 
    void App::NewDocument(void)
@@ -239,17 +259,22 @@ namespace Cgen
 
    void App::GenerateCode(void)
    {
+      const ValidationReport report = ValidateGraph(_document);
       const CodegenOutput output = GenerateCSource(_document);
       _lastGeneratedSource = output.source;
+
+      std::string footer;
       if (IsErr(output.result))
       {
-         _pCompilerLog->SetText("Codegen warnings/errors:\n" + output.diagnostics +
-                                "\n--- Generated source still written for inspection ---\n");
+         footer = "\nCodegen warnings/errors:\n" + output.diagnostics +
+                  "\n--- Generated source still written for inspection ---\n";
       }
       else
       {
-         _pCompilerLog->SetText("Code generation succeeded.\n");
+         footer = "\nCode generation succeeded.\n";
       }
+      _pCompilerLog->SetValidationReport(report, footer);
+
       _buildRunner.SetArtifactBaseName(_document.GetFilePath());
       const Result writeResult = _buildRunner.WriteSource(output.source);
       if (IsErr(writeResult))
@@ -295,21 +320,26 @@ namespace Cgen
          "Press Esc or ? again to close.\n\n"
          "Editing\n"
          "- Click a block in the left Blocks panel to place it on the canvas.\n"
-         "- Drag blocks to move them. Middle-drag or empty-drag pans the canvas.\n"
+         "- Type in the Blocks filter to find blocks by name.\n"
+         "- Drag blocks to move them. Middle-drag pans; left-drag empty for marquee.\n"
+         "- Shift+click toggles multi-select. Ctrl+A selects all.\n"
          "- Mouse wheel zooms the canvas.\n"
          "- Drag from an output port to an input port to wire blocks.\n"
          "- Amber ports = control flow, blue ports = data.\n"
-         "- Click a block, then edit its properties on the right (Enter commits).\n\n"
-         "Delete\n"
-         "- Select a block and press Delete or Backspace.\n"
+         "- Click a block, then edit its properties on the right (Enter commits).\n"
+         "- Properties show a short C: preview of the selected block.\n\n"
+         "Delete / clipboard\n"
+         "- Select block(s) and press Delete or Backspace.\n"
+         "- Ctrl+C / Ctrl+V copy and paste a subgraph (Start excluded).\n"
          "- Right-click a block → Delete Block (Start cannot be deleted).\n"
          "- Right-click a wired port → Delete Wire.\n\n"
-         "Undo\n"
+         "Undo / layout\n"
          "- Ctrl+Z undoes the last graph edit (place, delete, wire, move, property).\n"
-         "- Ctrl+Y redoes the last undone edit.\n\n"
+         "- Ctrl+Y redoes the last undone edit.\n"
+         "- Tidy or Ctrl+L auto-layouts control flow left-to-right.\n\n"
          "File & build\n"
          "- Ctrl+N New, Ctrl+O Open, Ctrl+S Save (.cgen).\n"
-         "- Generate C writes build_out/<name>.c and shows the source.\n"
+         "- Generate C validates the graph (click issues to jump), writes .c, shows source.\n"
          "- Build compiles with gcc. Run executes; type input in Program Output.\n"
          "- Stop terminates a running program.\n\n"
          "Help\n"
@@ -520,6 +550,10 @@ namespace Cgen
          case ToolbarAction::Stop:
             StopProgram();
             break;
+         case ToolbarAction::Tidy:
+            _pCanvas->TidyLayout();
+            SyncSelectionUi();
+            break;
          case ToolbarAction::Help:
             if (_helpViewVisible)
             {
@@ -630,27 +664,51 @@ namespace Cgen
                      _pPalette->HandleClick(point, &placeType);
                   if (paletteClick == PaletteClickResult::PlaceBlock)
                   {
+                     _pProperties->Blur();
+                     _pProgramLog->BlurInput();
+                     _pPalette->BlurFilter();
                      _pCanvas->PlaceBlock(placeType, point);
                      SyncSelectionUi();
                   }
                   else if (paletteClick == PaletteClickResult::Consumed)
                   {
-                  }
-                  else if (_pProgramLog->HandleClick(point))
-                  {
-                     _pProperties->Blur();
-                  }
-                  else if (_pProperties->HandleClick(point))
-                  {
-                     if (_pProperties->HasKeyboardFocus())
+                     if (_pPalette->IsFilterFocused())
                      {
+                        _pProperties->Blur();
                         _pProgramLog->BlurInput();
                      }
                   }
-                  else if (_pCanvas->HandleMousePress(pMousePress->button, point))
+                  else
                   {
-                     _pProperties->Blur();
-                     SyncSelectionUi();
+                     NodeId jumpNodeId = 0;
+                     if (_pCompilerLog->HandleClick(point, &jumpNodeId))
+                     {
+                        _pProperties->Blur();
+                        _pPalette->BlurFilter();
+                        if (jumpNodeId != 0)
+                        {
+                           JumpToValidationNode(jumpNodeId);
+                        }
+                     }
+                     else if (_pProgramLog->HandleClick(point, &jumpNodeId))
+                     {
+                        _pProperties->Blur();
+                        _pPalette->BlurFilter();
+                     }
+                     else if (_pProperties->HandleClick(point))
+                     {
+                        _pPalette->BlurFilter();
+                        if (_pProperties->HasKeyboardFocus())
+                        {
+                           _pProgramLog->BlurInput();
+                        }
+                     }
+                     else if (_pCanvas->HandleMousePress(pMousePress->button, point))
+                     {
+                        _pProperties->Blur();
+                        _pPalette->BlurFilter();
+                        SyncSelectionUi();
+                     }
                   }
                }
             }
@@ -707,6 +765,10 @@ namespace Cgen
                {
                   _pProgramLog->HandleTextEntered(pText->unicode);
                }
+               else if (_pPalette->IsFilterFocused())
+               {
+                  _pPalette->HandleTextEntered(pText->unicode);
+               }
                else
                {
                   _pProperties->HandleTextEntered(pText->unicode);
@@ -728,6 +790,10 @@ namespace Cgen
                   {
                      CloseSourceView();
                   }
+                  else if (_pPalette->IsFilterFocused() &&
+                           _pPalette->HandleKey(pKey->code))
+                  {
+                  }
                }
                else if (pKey->code == sf::Keyboard::Key::F1)
                {
@@ -742,6 +808,10 @@ namespace Cgen
                }
                else if (_pProgramLog->IsInputFocused() &&
                         _pProgramLog->HandleKey(pKey->code))
+               {
+               }
+               else if (_pPalette->IsFilterFocused() &&
+                        _pPalette->HandleKey(pKey->code))
                {
                }
                else if (_pProperties->HasKeyboardFocus() &&
@@ -772,6 +842,25 @@ namespace Cgen
                else if ((pKey->code == sf::Keyboard::Key::N) && (pKey->control))
                {
                   NewDocument();
+               }
+               else if ((pKey->code == sf::Keyboard::Key::C) && (pKey->control))
+               {
+                  _pCanvas->CopySelection();
+               }
+               else if ((pKey->code == sf::Keyboard::Key::V) && (pKey->control))
+               {
+                  _pCanvas->PasteClipboard();
+                  SyncSelectionUi();
+               }
+               else if ((pKey->code == sf::Keyboard::Key::A) && (pKey->control))
+               {
+                  _pCanvas->SelectAll();
+                  SyncSelectionUi();
+               }
+               else if ((pKey->code == sf::Keyboard::Key::L) && (pKey->control))
+               {
+                  _pCanvas->TidyLayout();
+                  SyncSelectionUi();
                }
             }
          }

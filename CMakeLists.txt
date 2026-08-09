@@ -13,7 +13,10 @@ set(CGEN_CORE_HEADERS
    include/model/block_type.h
    include/model/c_type.h
    include/model/edge.h
+   include/model/graph_clipboard.h
    include/model/graph_document.h
+   include/model/graph_layout.h
+   include/model/graph_validator.h
    include/model/node.h
    include/model/port.h
    include/model/result.h
@@ -25,7 +28,10 @@ set(CGEN_CORE_HEADERS
 
 set(CGEN_CORE_SOURCES
    src/model/c_type.cpp
+   src/model/graph_clipboard.cpp
    src/model/graph_document.cpp
+   src/model/graph_layout.cpp
+   src/model/graph_validator.cpp
    src/model/node_factory.cpp
    src/codegen/c_codegen.cpp
    src/serialize/cgen_serializer.cpp

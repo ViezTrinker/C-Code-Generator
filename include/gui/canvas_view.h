@@ -8,10 +8,12 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <SFML/Graphics.hpp>
 
 #include "gui/document_history.h"
+#include "model/graph_clipboard.h"
 #include "model/graph_document.h"
 
 namespace Cgen
@@ -79,16 +81,55 @@ namespace Cgen
       bool Contains(sf::Vector2f point) const;
 
       /*!
-       *\brief Returns the selected node id, or 0.
+       *\brief Returns the primary selected node id, or 0.
        */
       NodeId GetSelectedNodeId(void) const;
 
       /*!
-       *\brief Sets the selected node id.
+       *\brief Returns all selected node ids.
+       */
+      const std::vector<NodeId>& GetSelectedNodeIds(void) const;
+
+      /*!
+       *\brief Replaces the selection with a single node id.
        *
        *\param[in] nodeId Node id, or 0 to clear.
        */
       void SetSelectedNodeId(NodeId nodeId);
+
+      /*!
+       *\brief Replaces the multi-selection.
+       *
+       *\param[in] nodeIds Selected ids (empty clears).
+       */
+      void SetSelectedNodeIds(const std::vector<NodeId>& nodeIds);
+
+      /*!
+       *\brief Centers the viewport on a node.
+       *
+       *\param[in] nodeId Node to center.
+       */
+      void CenterOnNode(NodeId nodeId);
+
+      /*!
+       *\brief Selects every node in the document.
+       */
+      void SelectAll(void);
+
+      /*!
+       *\brief Copies the current selection into the in-app clipboard.
+       */
+      void CopySelection(void);
+
+      /*!
+       *\brief Pastes the in-app clipboard with an offset.
+       */
+      void PasteClipboard(void);
+
+      /*!
+       *\brief Applies auto-layout with one undo checkpoint.
+       */
+      void TidyLayout(void);
 
       /*!
        *\brief Places a block at the current mouse world position.
@@ -183,16 +224,26 @@ namespace Cgen
       bool HitTestPort(sf::Vector2f worldPoint, PortHit* pOutHit) const;
       NodeId HitTestNode(sf::Vector2f worldPoint) const;
       void PushCheckpoint(void);
+      bool IsNodeSelected(NodeId nodeId) const;
+      void ClearSelection(void);
+      void AddToSelection(NodeId nodeId);
+      void ToggleSelection(NodeId nodeId);
+      void RemoveFromSelection(NodeId nodeId);
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
       GraphDocument* _pDocument = nullptr;
       DocumentHistory* _pHistory = nullptr;
-      NodeId _selectedNodeId = 0;
+      std::vector<NodeId> _selectedNodeIds;
+      GraphClipboard _clipboard;
+      uint32_t _pasteCascade = 0;
       bool _isPanning = false;
       bool _isDraggingNode = false;
+      bool _isMarquee = false;
       bool _dragCheckpointTaken = false;
       sf::Vector2f _lastScreenPoint {};
+      sf::Vector2f _marqueeStartWorld {};
+      sf::Vector2f _marqueeEndWorld {};
       std::optional<PortHit> _wireStart;
       sf::Vector2f _wirePreviewWorld {};
    };

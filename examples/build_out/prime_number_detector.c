@@ -52,17 +52,6 @@ int main(void)
    }
    printf("Press Enter to exit...\n");
    fflush(stdout);
-   {
-      int cgenWaitChar = 0;
-      while (((cgenWaitChar = getchar()) != '\n') && (cgenWaitChar != EOF))
-      {
-      }
-      if (cgenWaitChar != EOF)
-      {
-         while (((cgenWaitChar = getchar()) != '\n') && (cgenWaitChar != EOF))
-         {
-         }
-      }
-   }
+   (void)getchar();
    return 0;
 }

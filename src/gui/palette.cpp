@@ -4,17 +4,52 @@
  */
 #include "gui/palette.h"
 
+#include <cctype>
 #include <string>
+#include <string_view>
 
 namespace Cgen
 {
    namespace
    {
       constexpr float TitleHeight = 28.0f;
+      constexpr float FilterHeight = 28.0f;
       constexpr float RowHeight = 24.0f;
       constexpr float RowGap = 2.0f;
       constexpr float RowStride = RowHeight + RowGap;
       constexpr float BlockIndent = 14.0f;
+
+      bool ContainsIgnoreCase(std::string_view haystack, std::string_view needle)
+      {
+         if (needle.empty())
+         {
+            return true;
+         }
+         if (haystack.size() < needle.size())
+         {
+            return false;
+         }
+         for (size_t start = 0; start + needle.size() <= haystack.size(); ++start)
+         {
+            bool match = true;
+            for (size_t index = 0; index < needle.size(); ++index)
+            {
+               const auto left =
+                  static_cast<unsigned char>(haystack[start + index]);
+               const auto right = static_cast<unsigned char>(needle[index]);
+               if (std::tolower(left) != std::tolower(right))
+               {
+                  match = false;
+                  break;
+               }
+            }
+            if (match)
+            {
+               return true;
+            }
+         }
+         return false;
+      }
 
       constexpr BlockType ControlFlowTypes[] = {
          BlockType::End,
@@ -168,15 +203,24 @@ namespace Cgen
       RebuildVisibleRows();
    }
 
+   sf::FloatRect Palette::FilterBounds(void) const
+   {
+      return sf::FloatRect(
+         sf::Vector2f(_bounds.position.x + 6.0f,
+                      _bounds.position.y + TitleHeight + 2.0f),
+         sf::Vector2f(_bounds.size.x - 12.0f, FilterHeight - 4.0f));
+   }
+
    sf::FloatRect Palette::ListBounds(void) const
    {
-      float height = _bounds.size.y - TitleHeight;
+      const float topOffset = TitleHeight + FilterHeight;
+      float height = _bounds.size.y - topOffset;
       if (height < RowHeight)
       {
          height = RowHeight;
       }
       return sf::FloatRect(
-         sf::Vector2f(_bounds.position.x, _bounds.position.y + TitleHeight),
+         sf::Vector2f(_bounds.position.x, _bounds.position.y + topOffset),
          sf::Vector2f(_bounds.size.x, height));
    }
 
@@ -214,6 +258,30 @@ namespace Cgen
    void Palette::RebuildVisibleRows(void)
    {
       _visibleRows.clear();
+      if (!_filterText.empty())
+      {
+         for (size_t groupIndex = 0; groupIndex < PaletteGroupCount; ++groupIndex)
+         {
+            const GroupDef& group = PaletteGroups[groupIndex];
+            for (size_t typeIndex = 0; typeIndex < group.typeCount; ++typeIndex)
+            {
+               const BlockType blockType = group.pTypes[typeIndex];
+               if (!ContainsIgnoreCase(BlockTypeLabel(blockType), _filterText))
+               {
+                  continue;
+               }
+               Row blockRow;
+               blockRow.kind = RowKind::Block;
+               blockRow.groupIndex = static_cast<uint32_t>(groupIndex);
+               blockRow.type = blockType;
+               _visibleRows.push_back(blockRow);
+            }
+         }
+         ClampScroll();
+         RebuildRowBounds();
+         return;
+      }
+
       for (size_t groupIndex = 0; groupIndex < PaletteGroupCount; ++groupIndex)
       {
          Row header;
@@ -275,9 +343,21 @@ namespace Cgen
 
    PaletteClickResult Palette::HandleClick(sf::Vector2f point, BlockType* pOutType)
    {
-      if (!ListBounds().contains(point))
+      if (!_bounds.contains(point))
       {
          return PaletteClickResult::Ignored;
+      }
+
+      if (FilterBounds().contains(point))
+      {
+         _filterFocused = true;
+         return PaletteClickResult::Consumed;
+      }
+      _filterFocused = false;
+
+      if (!ListBounds().contains(point))
+      {
+         return PaletteClickResult::Consumed;
       }
 
       for (size_t index = 0; index < _visibleRows.size(); ++index)
@@ -309,6 +389,69 @@ namespace Cgen
       return PaletteClickResult::Consumed;
    }
 
+   bool Palette::HandleTextEntered(uint32_t unicode)
+   {
+      if (!_filterFocused)
+      {
+         return false;
+      }
+      if ((unicode == 8) || (unicode == 127))
+      {
+         if (!_filterText.empty())
+         {
+            _filterText.pop_back();
+            _scrollRows = 0;
+            RebuildVisibleRows();
+         }
+         return true;
+      }
+      if ((unicode >= 32) && (unicode < 127))
+      {
+         _filterText.push_back(static_cast<char>(unicode));
+         _scrollRows = 0;
+         RebuildVisibleRows();
+         return true;
+      }
+      return false;
+   }
+
+   bool Palette::HandleKey(sf::Keyboard::Key keyCode)
+   {
+      if (!_filterFocused)
+      {
+         return false;
+      }
+      if (keyCode == sf::Keyboard::Key::Escape)
+      {
+         if (!_filterText.empty())
+         {
+            _filterText.clear();
+            _scrollRows = 0;
+            RebuildVisibleRows();
+         }
+         else
+         {
+            _filterFocused = false;
+         }
+         return true;
+      }
+      if ((keyCode == sf::Keyboard::Key::Backspace) ||
+          (keyCode == sf::Keyboard::Key::Delete))
+      {
+         return true;
+      }
+      return false;
+   }
+
+   void Palette::BlurFilter(void)
+   {
+      _filterFocused = false;
+   }
+
+   bool Palette::IsFilterFocused(void) const
+   {
+      return _filterFocused;
+   }
    bool Palette::HandleWheel(float delta, sf::Vector2f point)
    {
       if (!_bounds.contains(point))
@@ -360,6 +503,44 @@ namespace Cgen
       title.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                      _bounds.position.y + 6.0f));
       pTarget->draw(title);
+
+      const sf::FloatRect filterBounds = FilterBounds();
+      sf::RectangleShape filterBox;
+      filterBox.setPosition(filterBounds.position);
+      filterBox.setSize(filterBounds.size);
+      if (_filterFocused)
+      {
+         filterBox.setFillColor(sf::Color(50, 60, 80));
+      }
+      else
+      {
+         filterBox.setFillColor(sf::Color(40, 44, 52));
+      }
+      filterBox.setOutlineColor(sf::Color(100, 120, 150));
+      filterBox.setOutlineThickness(1.0f);
+      pTarget->draw(filterBox);
+
+      std::string filterDisplay = _filterText;
+      if (filterDisplay.empty() && (!_filterFocused))
+      {
+         filterDisplay = "Filter...";
+      }
+      else if (_filterFocused)
+      {
+         filterDisplay.push_back('_');
+      }
+      sf::Text filterText(*_pFont, filterDisplay, 12);
+      if (_filterText.empty() && (!_filterFocused))
+      {
+         filterText.setFillColor(sf::Color(140, 140, 140));
+      }
+      else
+      {
+         filterText.setFillColor(sf::Color(230, 230, 200));
+      }
+      filterText.setPosition(sf::Vector2f(filterBounds.position.x + 6.0f,
+                                          filterBounds.position.y + 4.0f));
+      pTarget->draw(filterText);
 
       const sf::FloatRect listBounds = ListBounds();
       const sf::Vector2u targetSize = pTarget->getSize();

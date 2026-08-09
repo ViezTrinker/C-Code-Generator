@@ -339,6 +339,22 @@ TEST(CCodegenTest, EmitsCastScanfFloatAssertComment)
    EXPECT_NE(output.source.find("assert(1);"), std::string::npos);
 }
 
+TEST(CCodegenTest, EmitsSnippetForSelectedBlocks)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId litId = document.AddNode(Cgen::BlockType::Literal, 120.0f, 40.0f);
+   document.FindNodeMutable(litId)->properties["value"] = "7";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", endId, "In", nullptr)));
+
+   const std::string literalSnippet = Cgen::GenerateCSnippet(document, litId);
+   EXPECT_NE(literalSnippet.find("7"), std::string::npos);
+
+   const std::string startSnippet = Cgen::GenerateCSnippet(document, startId);
+   EXPECT_NE(startSnippet.find("main"), std::string::npos);
+}
+
 TEST(CCodegenTest, EmitsFileIoAndStructFields)
 {
    Cgen::GraphDocument document;

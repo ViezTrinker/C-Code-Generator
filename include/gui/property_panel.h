@@ -115,6 +115,7 @@ namespace Cgen
 
       void RebuildFields(void);
       void RebuildHelpLines(std::string_view helpText);
+      void RebuildPreviewLines(std::string_view previewText);
       void CommitActiveField(void);
       float FieldsStartY(void) const;
 
@@ -125,6 +126,7 @@ namespace Cgen
       NodeId _selectedNodeId = 0;
       std::vector<Field> _fields;
       std::vector<std::string> _helpLines;
+      std::vector<std::string> _previewLines;
       int32_t _activeFieldIndex = -1;
    };
 } // namespace Cgen

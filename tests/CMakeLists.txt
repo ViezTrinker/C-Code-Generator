@@ -19,6 +19,8 @@ set(CGEN_TEST_SOURCES
    test_cgen_serializer.cpp
    test_document_history.cpp
    test_graph_document.cpp
+   test_graph_layout.cpp
+   test_graph_validator.cpp
    test_result.cpp
 )
 

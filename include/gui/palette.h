@@ -1,14 +1,16 @@
 /*!
  *\file palette.h
- *\brief Left-side block palette with collapsible groups.
+ *\brief Left-side block palette with collapsible groups and filter.
  */
 #ifndef PALETTE_H
 #define PALETTE_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Keyboard.hpp>
 
 #include "model/block_type.h"
 
@@ -52,7 +54,7 @@ namespace Cgen
       bool Contains(sf::Vector2f point) const;
 
       /*!
-       *\brief Handles a click: toggle a group or select a block to place.
+       *\brief Handles a click: filter focus, toggle a group, or place a block.
        *
        *\param[in] point Mouse position.
        *\param[out] pOutType Block type when result is PlaceBlock.
@@ -68,6 +70,32 @@ namespace Cgen
        *\return true if handled.
        */
       bool HandleWheel(float delta, sf::Vector2f point);
+
+      /*!
+       *\brief Handles typed characters for the filter field.
+       *
+       *\param[in] unicode Entered codepoint.
+       *\return true if handled.
+       */
+      bool HandleTextEntered(uint32_t unicode);
+
+      /*!
+       *\brief Handles keys for the filter field.
+       *
+       *\param[in] keyCode Key code.
+       *\return true if handled.
+       */
+      bool HandleKey(sf::Keyboard::Key keyCode);
+
+      /*!
+       *\brief Clears filter keyboard focus.
+       */
+      void BlurFilter(void);
+
+      /*!
+       *\brief Returns true when the filter field is focused.
+       */
+      bool IsFilterFocused(void) const;
 
       /*!
        *\brief Draws the palette.
@@ -97,12 +125,15 @@ namespace Cgen
       uint32_t VisibleRowCapacity(void) const;
       uint32_t MaxScrollRows(void) const;
       sf::FloatRect ListBounds(void) const;
+      sf::FloatRect FilterBounds(void) const;
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
       std::vector<bool> _groupExpanded;
       std::vector<Row> _visibleRows;
       uint32_t _scrollRows = 0;
+      std::string _filterText;
+      bool _filterFocused = false;
    };
 } // namespace Cgen
 

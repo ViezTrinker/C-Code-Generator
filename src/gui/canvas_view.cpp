@@ -4,15 +4,35 @@
  */
 #include "gui/canvas_view.h"
 
+#include <algorithm>
 #include <cmath>
 
+#include <SFML/Window/Keyboard.hpp>
+
 #include "gui/block_placement.h"
+#include "model/graph_layout.h"
 
 namespace Cgen
 {
    namespace
    {
       constexpr float PortRadius = 6.0f;
+      constexpr float MarqueeThreshold = 4.0f;
+
+      bool IsShiftHeld(void)
+      {
+         return sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) ||
+                sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RShift);
+      }
+
+      sf::FloatRect NormalizeRect(sf::Vector2f a, sf::Vector2f b)
+      {
+         const float left = std::min(a.x, b.x);
+         const float top = std::min(a.y, b.y);
+         const float width = std::fabs(a.x - b.x);
+         const float height = std::fabs(a.y - b.y);
+         return sf::FloatRect(sf::Vector2f(left, top), sf::Vector2f(width, height));
+      }
    } // namespace
 
    CanvasView::CanvasView(const sf::Font& font)
@@ -28,11 +48,13 @@ namespace Cgen
    void CanvasView::SetDocument(GraphDocument* pDocument)
    {
       _pDocument = pDocument;
-      _selectedNodeId = 0;
+      ClearSelection();
       _wireStart.reset();
       _isDraggingNode = false;
       _isPanning = false;
+      _isMarquee = false;
       _dragCheckpointTaken = false;
+      _pasteCascade = 0;
    }
 
    void CanvasView::SetHistory(DocumentHistory* pHistory)
@@ -45,14 +67,194 @@ namespace Cgen
       return _bounds.contains(point);
    }
 
+   void CanvasView::ClearSelection(void)
+   {
+      _selectedNodeIds.clear();
+   }
+
+   void CanvasView::AddToSelection(NodeId nodeId)
+   {
+      if ((nodeId == 0) || IsNodeSelected(nodeId))
+      {
+         return;
+      }
+      _selectedNodeIds.push_back(nodeId);
+   }
+
+   void CanvasView::RemoveFromSelection(NodeId nodeId)
+   {
+      for (size_t index = 0; index < _selectedNodeIds.size(); ++index)
+      {
+         if (_selectedNodeIds[index] == nodeId)
+         {
+            _selectedNodeIds.erase(_selectedNodeIds.begin() +
+                                   static_cast<std::ptrdiff_t>(index));
+            return;
+         }
+      }
+   }
+
+   void CanvasView::ToggleSelection(NodeId nodeId)
+   {
+      if (IsNodeSelected(nodeId))
+      {
+         RemoveFromSelection(nodeId);
+      }
+      else
+      {
+         AddToSelection(nodeId);
+      }
+   }
+
+   bool CanvasView::IsNodeSelected(NodeId nodeId) const
+   {
+      for (size_t index = 0; index < _selectedNodeIds.size(); ++index)
+      {
+         if (_selectedNodeIds[index] == nodeId)
+         {
+            return true;
+         }
+      }
+      return false;
+   }
+
    NodeId CanvasView::GetSelectedNodeId(void) const
    {
-      return _selectedNodeId;
+      if (_selectedNodeIds.empty())
+      {
+         return 0;
+      }
+      return _selectedNodeIds.back();
+   }
+
+   const std::vector<NodeId>& CanvasView::GetSelectedNodeIds(void) const
+   {
+      return _selectedNodeIds;
    }
 
    void CanvasView::SetSelectedNodeId(NodeId nodeId)
    {
-      _selectedNodeId = nodeId;
+      ClearSelection();
+      if (nodeId != 0)
+      {
+         _selectedNodeIds.push_back(nodeId);
+      }
+   }
+
+   void CanvasView::SetSelectedNodeIds(const std::vector<NodeId>& nodeIds)
+   {
+      _selectedNodeIds = nodeIds;
+   }
+
+   void CanvasView::CenterOnNode(NodeId nodeId)
+   {
+      if (_pDocument == nullptr)
+      {
+         return;
+      }
+      const Node* pNode = _pDocument->FindNode(nodeId);
+      if (pNode == nullptr)
+      {
+         return;
+      }
+      const float zoom = _pDocument->GetViewportZoom();
+      const float centerWorldX = pNode->posX + (BlockNodeWidth * 0.5f);
+      const float centerWorldY = pNode->posY + (BlockNodeHeight * 0.5f);
+      const float viewW = _bounds.size.x / zoom;
+      const float viewH = _bounds.size.y / zoom;
+      _pDocument->SetViewport(centerWorldX - (viewW * 0.5f),
+                              centerWorldY - (viewH * 0.5f),
+                              zoom);
+   }
+
+   void CanvasView::SelectAll(void)
+   {
+      ClearSelection();
+      if (_pDocument == nullptr)
+      {
+         return;
+      }
+      for (const Node& node : _pDocument->GetNodes())
+      {
+         _selectedNodeIds.push_back(node.id);
+      }
+   }
+
+   void CanvasView::CopySelection(void)
+   {
+      if (_pDocument == nullptr)
+      {
+         return;
+      }
+      CopySelectionToClipboard(*_pDocument, _selectedNodeIds, &_clipboard);
+      _pasteCascade = 0;
+   }
+
+   void CanvasView::PasteClipboard(void)
+   {
+      if ((_pDocument == nullptr) || (!_clipboard.hasContent) ||
+          _clipboard.nodes.empty())
+      {
+         return;
+      }
+      ++_pasteCascade;
+
+      float minX = _clipboard.nodes.front().posX;
+      float minY = _clipboard.nodes.front().posY;
+      float maxX = minX;
+      float maxY = minY;
+      for (size_t index = 0; index < _clipboard.nodes.size(); ++index)
+      {
+         const ClipboardNode& item = _clipboard.nodes[index];
+         if (item.posX < minX)
+         {
+            minX = item.posX;
+         }
+         if (item.posY < minY)
+         {
+            minY = item.posY;
+         }
+         if (item.posX > maxX)
+         {
+            maxX = item.posX;
+         }
+         if (item.posY > maxY)
+         {
+            maxY = item.posY;
+         }
+      }
+      const float groupWidth = (maxX - minX) + BlockNodeWidth + BlockPlacementGap;
+      const float groupHeight = (maxY - minY) + BlockNodeHeight + BlockPlacementGap;
+      const float cascade = static_cast<float>(_pasteCascade);
+      const float preferredOffsetX = groupWidth * cascade;
+      const float preferredOffsetY = groupHeight * cascade;
+
+      WorldPosition preferred;
+      preferred.x = _clipboard.nodes.front().posX + preferredOffsetX;
+      preferred.y = _clipboard.nodes.front().posY + preferredOffsetY;
+      const WorldPosition freeOrigin =
+         FindFreeBlockWorldPosition(preferred, _pDocument->GetNodes());
+      const float adjustedOffsetX = freeOrigin.x - _clipboard.nodes.front().posX;
+      const float adjustedOffsetY = freeOrigin.y - _clipboard.nodes.front().posY;
+
+      PushCheckpoint();
+      std::vector<NodeId> pasted;
+      if (!PasteClipboardIntoDocument(
+             _pDocument, _clipboard, adjustedOffsetX, adjustedOffsetY, &pasted))
+      {
+         return;
+      }
+      _selectedNodeIds = pasted;
+   }
+
+   void CanvasView::TidyLayout(void)
+   {
+      if (_pDocument == nullptr)
+      {
+         return;
+      }
+      PushCheckpoint();
+      ApplyAutoLayout(_pDocument);
    }
 
    void CanvasView::PushCheckpoint(void)
@@ -227,7 +429,7 @@ namespace Cgen
       const WorldPosition world =
          FindFreeBlockWorldPosition(preferred, _pDocument->GetNodes());
       const NodeId id = _pDocument->AddNode(blockType, world.x, world.y);
-      _selectedNodeId = id;
+      SetSelectedNodeId(id);
    }
 
    bool CanvasView::HandleMousePress(sf::Mouse::Button button, sf::Vector2f screenPoint)
@@ -242,6 +444,7 @@ namespace Cgen
       if (button == sf::Mouse::Button::Middle)
       {
          _isPanning = true;
+         _isMarquee = false;
          return true;
       }
 
@@ -277,15 +480,30 @@ namespace Cgen
       }
 
       const NodeId hitNode = HitTestNode(world);
-      _selectedNodeId = hitNode;
       if (hitNode != 0)
       {
+         if (IsShiftHeld())
+         {
+            ToggleSelection(hitNode);
+         }
+         else if (!IsNodeSelected(hitNode))
+         {
+            SetSelectedNodeId(hitNode);
+         }
          _isDraggingNode = true;
          _dragCheckpointTaken = false;
+         _isMarquee = false;
       }
       else
       {
-         _isPanning = true;
+         if (!IsShiftHeld())
+         {
+            ClearSelection();
+         }
+         _isMarquee = true;
+         _marqueeStartWorld = world;
+         _marqueeEndWorld = world;
+         _isDraggingNode = false;
       }
       return true;
    }
@@ -310,8 +528,35 @@ namespace Cgen
             }
             _wireStart.reset();
          }
+         if (_isMarquee && (_pDocument != nullptr))
+         {
+            const sf::FloatRect rect =
+               NormalizeRect(_marqueeStartWorld, _marqueeEndWorld);
+            const float dragSize =
+               std::fabs(_marqueeEndWorld.x - _marqueeStartWorld.x) +
+               std::fabs(_marqueeEndWorld.y - _marqueeStartWorld.y);
+            if (dragSize >= MarqueeThreshold)
+            {
+               if (!IsShiftHeld())
+               {
+                  ClearSelection();
+               }
+               for (const Node& node : _pDocument->GetNodes())
+               {
+                  const sf::FloatRect bounds = NodeBounds(node);
+                  const sf::Vector2f center(
+                     bounds.position.x + (bounds.size.x * 0.5f),
+                     bounds.position.y + (bounds.size.y * 0.5f));
+                  if (rect.contains(center))
+                  {
+                     AddToSelection(node.id);
+                  }
+               }
+            }
+         }
          _isDraggingNode = false;
          _isPanning = false;
+         _isMarquee = false;
          _dragCheckpointTaken = false;
          return true;
       }
@@ -343,21 +588,33 @@ namespace Cgen
          return;
       }
 
-      if (_isDraggingNode && (_selectedNodeId != 0))
+      if (_isMarquee)
+      {
+         _marqueeEndWorld = world;
+         return;
+      }
+
+      if (_isDraggingNode && (!_selectedNodeIds.empty()))
       {
          if (!_dragCheckpointTaken)
          {
             PushCheckpoint();
             _dragCheckpointTaken = true;
          }
-         Node* pNode = _pDocument->FindNodeMutable(_selectedNodeId);
-         if (pNode != nullptr)
+         const float zoom = _pDocument->GetViewportZoom();
+         const float deltaX = delta.x / zoom;
+         const float deltaY = delta.y / zoom;
+         for (size_t index = 0; index < _selectedNodeIds.size(); ++index)
          {
-            const float zoom = _pDocument->GetViewportZoom();
-            pNode->posX += delta.x / zoom;
-            pNode->posY += delta.y / zoom;
-            _pDocument->SetDirty(true);
+            Node* pNode = _pDocument->FindNodeMutable(_selectedNodeIds[index]);
+            if (pNode == nullptr)
+            {
+               continue;
+            }
+            pNode->posX += deltaX;
+            pNode->posY += deltaY;
          }
+         _pDocument->SetDirty(true);
       }
    }
 
@@ -389,11 +646,36 @@ namespace Cgen
 
    void CanvasView::DeleteSelection(void)
    {
-      if (_selectedNodeId == 0)
+      if (_selectedNodeIds.empty() || (_pDocument == nullptr))
       {
          return;
       }
-      DeleteNode(_selectedNodeId);
+      std::vector<NodeId> toDelete = _selectedNodeIds;
+      bool anyDeletable = false;
+      for (size_t index = 0; index < toDelete.size(); ++index)
+      {
+         const Node* pNode = _pDocument->FindNode(toDelete[index]);
+         if ((pNode != nullptr) && (pNode->type != BlockType::Start))
+         {
+            anyDeletable = true;
+            break;
+         }
+      }
+      if (!anyDeletable)
+      {
+         return;
+      }
+      PushCheckpoint();
+      for (size_t index = 0; index < toDelete.size(); ++index)
+      {
+         const Node* pNode = _pDocument->FindNode(toDelete[index]);
+         if ((pNode == nullptr) || (pNode->type == BlockType::Start))
+         {
+            continue;
+         }
+         _pDocument->RemoveNode(toDelete[index]);
+      }
+      ClearSelection();
    }
 
    void CanvasView::DeleteEdge(EdgeId edgeId)
@@ -424,10 +706,7 @@ namespace Cgen
       PushCheckpoint();
       if (IsOk(_pDocument->RemoveNode(nodeId)))
       {
-         if (_selectedNodeId == nodeId)
-         {
-            _selectedNodeId = 0;
-         }
+         RemoveFromSelection(nodeId);
       }
    }
 
@@ -536,7 +815,7 @@ namespace Cgen
          sf::RectangleShape shape;
          shape.setPosition(topLeft);
          shape.setSize(sf::Vector2f(BlockNodeWidth * zoom, BlockNodeHeight * zoom));
-         if (node.id == _selectedNodeId)
+         if (IsNodeSelected(node.id))
          {
             shape.setFillColor(sf::Color(70, 90, 130));
             shape.setOutlineColor(sf::Color(255, 220, 100));
@@ -578,6 +857,23 @@ namespace Cgen
             }
             pTarget->draw(circle);
          }
+      }
+
+      if (_isMarquee)
+      {
+         const sf::FloatRect worldRect =
+            NormalizeRect(_marqueeStartWorld, _marqueeEndWorld);
+         const sf::Vector2f topLeft = WorldToScreen(worldRect.position);
+         const sf::Vector2f bottomRight = WorldToScreen(sf::Vector2f(
+            worldRect.position.x + worldRect.size.x,
+            worldRect.position.y + worldRect.size.y));
+         sf::RectangleShape marquee;
+         marquee.setPosition(topLeft);
+         marquee.setSize(sf::Vector2f(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y));
+         marquee.setFillColor(sf::Color(80, 140, 220, 40));
+         marquee.setOutlineColor(sf::Color(120, 180, 255));
+         marquee.setOutlineThickness(1.0f);
+         pTarget->draw(marquee);
       }
 
       pTarget->setView(previousView);

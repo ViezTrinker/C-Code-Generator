@@ -1360,4 +1360,88 @@ namespace Cgen
       }
       return output;
    }
+
+   std::string GenerateCSnippet(const GraphDocument& document, NodeId nodeId)
+   {
+      const Node* pNode = document.FindNode(nodeId);
+      if (pNode == nullptr)
+      {
+         return std::string();
+      }
+
+      std::ostringstream stream;
+      std::string diagnostics;
+      EmitContext context;
+      context.pDocument = &document;
+      context.pOut = &stream;
+      context.pDiagnostics = &diagnostics;
+      context.indentLevel = 0;
+
+      if (IsExpressionBlock(pNode->type))
+      {
+         return EmitExpression(&context, nodeId);
+      }
+
+      if ((pNode->type == BlockType::If) || (pNode->type == BlockType::ElseIf))
+      {
+         const std::string condExpr = EmitInputExpression(&context, nodeId, "Cond");
+         return std::string("if (") + condExpr + ") { ... }";
+      }
+      if (pNode->type == BlockType::While)
+      {
+         const std::string condExpr = EmitInputExpression(&context, nodeId, "Cond");
+         return std::string("while (") + condExpr + ") { ... }";
+      }
+      if (pNode->type == BlockType::For)
+      {
+         const std::string iterator = GetProperty(*pNode, "iterator", "i");
+         const std::string start = GetProperty(*pNode, "start", "0");
+         const std::string end = GetProperty(*pNode, "end", "10");
+         const std::string typeName = GetProperty(*pNode, "type", "int32_t");
+         return std::string("for (") + typeName + " " + iterator + " = " + start +
+                "; " + iterator + " < " + end + "; ++" + iterator + ") { ... }";
+      }
+      if (pNode->type == BlockType::Switch)
+      {
+         const std::string valueExpr = EmitInputExpression(&context, nodeId, "Value");
+         return std::string("switch (") + valueExpr + ") { ... }";
+      }
+      if (pNode->type == BlockType::FunctionDef)
+      {
+         const std::string name = GetProperty(*pNode, "name", "func");
+         const std::string returnType = GetProperty(*pNode, "returnType", "void");
+         const std::string params = GetProperty(*pNode, "params", "void");
+         return returnType + " " + name + "(" + params + ") { ... }";
+      }
+      if (pNode->type == BlockType::Start)
+      {
+         return "int main(void) { ... }";
+      }
+      if (pNode->type == BlockType::End)
+      {
+         return "/* end */";
+      }
+
+      EmitSingleStatement(&context, *pNode);
+      std::string text = stream.str();
+      while ((!text.empty()) &&
+             ((text.back() == '\n') || (text.back() == '\r') || (text.back() == ' ')))
+      {
+         text.pop_back();
+      }
+      for (size_t index = 0; index < text.size(); ++index)
+      {
+         if ((text[index] == '\n') || (text[index] == '\r'))
+         {
+            text[index] = ' ';
+         }
+      }
+      constexpr size_t MaxPreviewLength = 120;
+      if (text.size() > MaxPreviewLength)
+      {
+         text.resize(MaxPreviewLength - 3);
+         text.append("...");
+      }
+      return text;
+   }
 } // namespace Cgen

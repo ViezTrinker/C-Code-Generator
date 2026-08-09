@@ -29,6 +29,15 @@ namespace Cgen
     *\return Generated source and status.
     */
    CodegenOutput GenerateCSource(const GraphDocument& document);
+
+   /*!
+    *\brief Emits a short C preview for one selected block.
+    *
+    *\param[in] document Flowchart document.
+    *\param[in] nodeId Node to preview.
+    *\return Preview text (may be empty).
+    */
+   std::string GenerateCSnippet(const GraphDocument& document, NodeId nodeId);
 } // namespace Cgen
 
 #endif // C_CODEGEN_H

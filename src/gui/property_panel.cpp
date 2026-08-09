@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include "codegen/c_codegen.h"
 #include "model/block_type.h"
 
 namespace Cgen
@@ -15,9 +16,12 @@ namespace Cgen
       constexpr float TitleHeight = 28.0f;
       constexpr float TypeLabelHeight = 18.0f;
       constexpr float HelpLineHeight = 15.0f;
-      constexpr float HelpBottomGap = 10.0f;
+      constexpr float HelpBottomGap = 6.0f;
+      constexpr float PreviewLineHeight = 15.0f;
+      constexpr float PreviewBottomGap = 10.0f;
       constexpr float FieldRowHeight = 44.0f;
       constexpr unsigned int HelpCharacterSize = 12;
+      constexpr unsigned int PreviewCharacterSize = 12;
    } // namespace
 
    PropertyPanel::PropertyPanel(const sf::Font& font)
@@ -73,6 +77,11 @@ namespace Cgen
       {
          cursorY += static_cast<float>(_helpLines.size()) * HelpLineHeight;
          cursorY += HelpBottomGap;
+      }
+      if (!_previewLines.empty())
+      {
+         cursorY += static_cast<float>(_previewLines.size()) * PreviewLineHeight;
+         cursorY += PreviewBottomGap;
       }
       return cursorY;
    }
@@ -138,10 +147,60 @@ namespace Cgen
       }
    }
 
+   void PropertyPanel::RebuildPreviewLines(std::string_view previewText)
+   {
+      _previewLines.clear();
+      if (previewText.empty())
+      {
+         return;
+      }
+      _previewLines.push_back("C:");
+      std::string body(previewText);
+      const float maxWidth = _bounds.size.x - 16.0f;
+      if ((_pFont == nullptr) || (maxWidth < 20.0f))
+      {
+         _previewLines.push_back(body);
+         return;
+      }
+
+      std::string currentLine;
+      for (size_t index = 0; index < body.size(); ++index)
+      {
+         currentLine.push_back(body[index]);
+         sf::Text measure(*_pFont, currentLine, PreviewCharacterSize);
+         if (measure.getLocalBounds().size.x > maxWidth)
+         {
+            if (currentLine.size() <= 1)
+            {
+               _previewLines.push_back(currentLine);
+               currentLine.clear();
+               continue;
+            }
+            char last = currentLine.back();
+            currentLine.pop_back();
+            if (!currentLine.empty())
+            {
+               _previewLines.push_back(currentLine);
+            }
+            currentLine.clear();
+            currentLine.push_back(last);
+         }
+         if (_previewLines.size() >= 4)
+         {
+            break;
+         }
+      }
+      if ((!currentLine.empty()) && (_previewLines.size() < 4))
+      {
+         _previewLines.push_back(currentLine);
+      }
+   }
+
    void PropertyPanel::RebuildFields(void)
    {
       _fields.clear();
       _helpLines.clear();
+      _previewLines.clear();
       if ((_pDocument == nullptr) || (_selectedNodeId == 0))
       {
          return;
@@ -153,6 +212,7 @@ namespace Cgen
       }
 
       RebuildHelpLines(BlockTypeHelpText(pNode->type));
+      RebuildPreviewLines(GenerateCSnippet(*_pDocument, _selectedNodeId));
 
       float cursorY = FieldsStartY();
       for (PropertyMap::const_iterator iterator = pNode->properties.begin();
@@ -198,6 +258,7 @@ namespace Cgen
       }
       pNode->properties[field.key] = field.value;
       _pDocument->SetDirty(true);
+      RebuildPreviewLines(GenerateCSnippet(*_pDocument, _selectedNodeId));
    }
 
    bool PropertyPanel::HandleClick(sf::Vector2f point)
@@ -323,6 +384,19 @@ namespace Cgen
          helpLine.setPosition(sf::Vector2f(_bounds.position.x + 8.0f, helpY));
          pTarget->draw(helpLine);
          helpY += HelpLineHeight;
+      }
+      if (!_helpLines.empty())
+      {
+         helpY += HelpBottomGap;
+      }
+
+      for (size_t lineIndex = 0; lineIndex < _previewLines.size(); ++lineIndex)
+      {
+         sf::Text previewLine(*_pFont, _previewLines[lineIndex], PreviewCharacterSize);
+         previewLine.setFillColor(sf::Color(180, 200, 255));
+         previewLine.setPosition(sf::Vector2f(_bounds.position.x + 8.0f, helpY));
+         pTarget->draw(previewLine);
+         helpY += PreviewLineHeight;
       }
 
       float labelY = FieldsStartY();

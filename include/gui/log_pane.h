@@ -13,6 +13,9 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
+#include "model/graph_validator.h"
+#include "model/node.h"
+
 namespace Cgen
 {
    /*!
@@ -75,17 +78,26 @@ namespace Cgen
       void SetText(std::string_view text);
 
       /*!
+       *\brief Shows validation issues as clickable lines.
+       *
+       *\param[in] report Validation report.
+       *\param[in] footer Extra text appended after the issue list.
+       */
+      void SetValidationReport(const ValidationReport& report, std::string_view footer);
+
+      /*!
        *\brief Returns the current log body text.
        */
       const std::string& GetText(void) const;
 
       /*!
-       *\brief Focuses the input line if enabled.
+       *\brief Focuses the input line if enabled, or jumps an issue line.
        *
        *\param[in] point Click position.
+       *\param[out] pOutJumpNodeId Optional node id when an issue line is clicked.
        *\return true if the click was handled.
        */
-      bool HandleClick(sf::Vector2f point);
+      bool HandleClick(sf::Vector2f point, NodeId* pOutJumpNodeId);
 
       /*!
        *\brief Scrolls the log when the wheel is used over this pane.
@@ -146,14 +158,17 @@ namespace Cgen
 
    private:
       void RebuildLines(void);
+      void ClearLineNodeIds(void);
       void ClampScroll(void);
       uint32_t VisibleLineCapacity(void) const;
       sf::FloatRect BodyBounds(void) const;
       std::string BuildVisibleText(void) const;
+      uint32_t VisibleStartLineIndex(void) const;
 
       std::string _title;
       std::string _text;
       std::vector<std::string> _lines;
+      std::vector<NodeId> _lineNodeIds;
       std::string _inputLine;
       std::string _pendingInput;
       bool _hasPendingInput = false;

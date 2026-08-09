@@ -4,6 +4,8 @@
  */
 #include "gui/log_pane.h"
 
+#include <sstream>
+
 namespace Cgen
 {
    namespace
@@ -68,8 +70,15 @@ namespace Cgen
       return height;
    }
 
+   void LogPane::ClearLineNodeIds(void)
+   {
+      _lineNodeIds.clear();
+      _lineNodeIds.resize(_lines.size(), 0);
+   }
+
    void LogPane::RebuildLines(void)
    {
+      std::vector<NodeId> previousIds = _lineNodeIds;
       _lines.clear();
       std::string current;
       for (size_t index = 0; index < _text.size(); ++index)
@@ -88,6 +97,15 @@ namespace Cgen
       if ((!current.empty()) || _lines.empty())
       {
          _lines.push_back(current);
+      }
+      _lineNodeIds.clear();
+      _lineNodeIds.resize(_lines.size(), 0);
+      const size_t copyCount =
+         (previousIds.size() < _lineNodeIds.size()) ? previousIds.size()
+                                                    : _lineNodeIds.size();
+      for (size_t index = 0; index < copyCount; ++index)
+      {
+         _lineNodeIds[index] = previousIds[index];
       }
    }
 
@@ -115,6 +133,7 @@ namespace Cgen
       _text.clear();
       _lines.clear();
       _lines.push_back(std::string());
+      ClearLineNodeIds();
       _scrollFromBottom = 0;
       _stickToBottom = true;
    }
@@ -144,20 +163,135 @@ namespace Cgen
       ClampScroll();
    }
 
+   void LogPane::SetValidationReport(const ValidationReport& report,
+                                     std::string_view footer)
+   {
+      std::ostringstream stream;
+      _lines.clear();
+      _lineNodeIds.clear();
+
+      if (report.issues.empty())
+      {
+         stream << "Validation: no issues.\n";
+         _lines.push_back("Validation: no issues.");
+         _lineNodeIds.push_back(0);
+      }
+      else
+      {
+         stream << "Validation issues (click a line to jump):\n";
+         _lines.push_back("Validation issues (click a line to jump):");
+         _lineNodeIds.push_back(0);
+         for (size_t index = 0; index < report.issues.size(); ++index)
+         {
+            const ValidationIssue& issue = report.issues[index];
+            const char* pSeverity =
+               (issue.severity == ValidationSeverity::Error) ? "error" : "warning";
+            std::ostringstream lineStream;
+            lineStream << "  [" << pSeverity << "] " << issue.message;
+            if (issue.nodeId != 0)
+            {
+               lineStream << "  (node " << issue.nodeId << ")";
+            }
+            const std::string line = lineStream.str();
+            stream << line << "\n";
+            _lines.push_back(line);
+            _lineNodeIds.push_back(issue.nodeId);
+         }
+      }
+
+      if (!footer.empty())
+      {
+         stream << footer;
+         std::string footerText(footer);
+         std::string current;
+         for (size_t index = 0; index < footerText.size(); ++index)
+         {
+            const char character = footerText[index];
+            if (character == '\n')
+            {
+               _lines.push_back(current);
+               _lineNodeIds.push_back(0);
+               current.clear();
+            }
+            else if (character != '\r')
+            {
+               current.push_back(character);
+            }
+         }
+         if (!current.empty())
+         {
+            _lines.push_back(current);
+            _lineNodeIds.push_back(0);
+         }
+      }
+
+      _text = stream.str();
+      _scrollFromBottom = 0;
+      _stickToBottom = true;
+      ClampScroll();
+   }
+
    const std::string& LogPane::GetText(void) const
    {
       return _text;
    }
 
-   bool LogPane::HandleClick(sf::Vector2f point)
+   uint32_t LogPane::VisibleStartLineIndex(void) const
    {
+      const uint32_t capacity = VisibleLineCapacity();
+      const auto lineCount = static_cast<uint32_t>(_lines.size());
+      uint32_t endIndex = lineCount;
+      if (_scrollFromBottom < endIndex)
+      {
+         endIndex = lineCount - _scrollFromBottom;
+      }
+      uint32_t startIndex = 0;
+      if (endIndex > capacity)
+      {
+         startIndex = endIndex - capacity;
+      }
+      return startIndex;
+   }
+
+   bool LogPane::HandleClick(sf::Vector2f point, NodeId* pOutJumpNodeId)
+   {
+      if (pOutJumpNodeId != nullptr)
+      {
+         *pOutJumpNodeId = 0;
+      }
       if (!_bounds.contains(point))
       {
          return false;
       }
+
       if (_inputMode == LogInputMode::Enabled)
       {
-         _inputFocused = true;
+         if (_inputBounds.contains(point))
+         {
+            _inputFocused = true;
+            return true;
+         }
+         _inputFocused = false;
+      }
+
+      const sf::FloatRect body = BodyBounds();
+      if (body.contains(point) && (!_lineNodeIds.empty()))
+      {
+         const float relativeY = point.y - body.position.y;
+         if (relativeY >= 0.0f)
+         {
+            const auto lineOffset = static_cast<uint32_t>(relativeY / LineHeight);
+            const uint32_t startIndex = VisibleStartLineIndex();
+            const uint32_t lineIndex = startIndex + lineOffset;
+            if (lineIndex < _lineNodeIds.size())
+            {
+               const NodeId jumpId = _lineNodeIds[lineIndex];
+               if ((jumpId != 0) && (pOutJumpNodeId != nullptr))
+               {
+                  *pOutJumpNodeId = jumpId;
+               }
+            }
+         }
       }
       return true;
    }

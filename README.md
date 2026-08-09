@@ -146,12 +146,14 @@ History lines look like `X 2026-8-9 14:37:05` (`X` = you won, `O` = AI won, `D` 
 
 ## Usage
 
-- Place blocks from the left **Blocks** panel (separated from the canvas)
+- Place blocks from the left **Blocks** panel (filter box finds blocks by name)
 - Drag nodes; connect amber **control** ports and blue **data** ports
+- **Shift+click** / marquee multi-select; **Ctrl+A** select all; **Ctrl+C** / **Ctrl+V** copy/paste
 - Right-click a block for **Delete Block**, or a wired port for **Delete Wire**
-- **Delete** / **Backspace** removes the selected block (not Start); **Ctrl+Z** undoes, **Ctrl+Y** redoes
-- Edit properties on the right (click a field, type, Enter to commit)
-- **Generate C** writes `build_out/<cgen-name>.c` and opens a scrollable source view (Esc closes it)
+- **Delete** / **Backspace** removes selected blocks (not Start); **Ctrl+Z** undoes, **Ctrl+Y** redoes
+- **Tidy** / **Ctrl+L** auto-layouts control flow left-to-right
+- Edit properties on the right (Enter commits); each selection shows a short **C:** preview
+- **Generate C** validates the graph (click an issue in Compiler to jump), writes `build_out/<cgen-name>.c`, and opens a scrollable source view (Esc closes it)
 - **Build** runs `gcc`; logs appear in the Compiler pane
 - **Run** starts the program in the background and streams stdout into Program Output; type into the input line at the bottom of that pane for `scanf` / Enter prompts; **Stop** kills a running program
 - **?** / **F1** opens in-app help

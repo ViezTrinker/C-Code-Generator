@@ -63,6 +63,7 @@ namespace Cgen
       void OpenCanvasContextMenu(sf::Vector2f screenPoint);
       void HandleContextMenuClick(sf::Vector2f screenPoint);
       void SyncSelectionUi(void);
+      void JumpToValidationNode(NodeId nodeId);
       void UpdateTitle(void);
       bool LoadFont(void);
       bool PromptOpenPath(std::string* pOutPath);

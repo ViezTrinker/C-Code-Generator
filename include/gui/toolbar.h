@@ -27,6 +27,7 @@ namespace Cgen
       Build,
       Run,
       Stop,
+      Tidy,
       Help
    };
 

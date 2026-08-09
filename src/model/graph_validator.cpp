@@ -1,0 +1,477 @@
+/*!
+ *\file graph_validator.cpp
+ *\brief Flowchart validation: reachability, names, Break scope, ports.
+ */
+#include "model/graph_validator.h"
+
+#include <cctype>
+#include <queue>
+#include <set>
+#include <sstream>
+#include <string_view>
+#include <unordered_set>
+
+#include "model/block_type.h"
+#include "model/c_type.h"
+#include "model/edge.h"
+#include "model/port.h"
+
+namespace Cgen
+{
+   namespace
+   {
+      std::string GetProperty(const Node& node, std::string_view key, std::string_view fallback)
+      {
+         const auto found = node.properties.find(std::string(key));
+         if (found == node.properties.end())
+         {
+            return std::string(fallback);
+         }
+         return found->second;
+      }
+
+      bool IsRootishType(BlockType blockType)
+      {
+         return (blockType == BlockType::Start) || (blockType == BlockType::FunctionDef) ||
+                (blockType == BlockType::StructDecl) || (blockType == BlockType::GlobalDecl) ||
+                (blockType == BlockType::Comment);
+      }
+
+      bool IsStatementLike(BlockType blockType)
+      {
+         if (IsExpressionBlock(blockType))
+         {
+            return false;
+         }
+         if (IsRootishType(blockType))
+         {
+            return false;
+         }
+         return true;
+      }
+
+      void AddIssue(ValidationReport* pReport,
+                   ValidationSeverity severity,
+                   NodeId nodeId,
+                   std::string_view message)
+      {
+         if (pReport == nullptr)
+         {
+            return;
+         }
+         ValidationIssue issue;
+         issue.severity = severity;
+         issue.nodeId = nodeId;
+         issue.message = std::string(message);
+         pReport->issues.push_back(issue);
+      }
+
+      void CollectControlReachable(const GraphDocument& document,
+                                  NodeId rootId,
+                                  std::unordered_set<NodeId>* pVisited)
+      {
+         if ((pVisited == nullptr) || (rootId == 0))
+         {
+            return;
+         }
+         std::queue<NodeId> pending;
+         pending.push(rootId);
+         pVisited->insert(rootId);
+         while (!pending.empty())
+         {
+            const NodeId currentId = pending.front();
+            pending.pop();
+            const Node* pNode = document.FindNode(currentId);
+            if (pNode == nullptr)
+            {
+               continue;
+            }
+            for (const Port& port : pNode->ports)
+            {
+               if ((port.kind != PortKind::Control) ||
+                   (port.direction != PortDirection::Out))
+               {
+                  continue;
+               }
+               const Edge* pEdge =
+                  document.FindOutgoingEdge(currentId, port.name);
+               if (pEdge == nullptr)
+               {
+                  continue;
+               }
+               if (pVisited->find(pEdge->toNodeId) != pVisited->end())
+               {
+                  continue;
+               }
+               pVisited->insert(pEdge->toNodeId);
+               pending.push(pEdge->toNodeId);
+            }
+         }
+      }
+
+      void CollectDeclaredNames(const GraphDocument& document, std::set<std::string>* pNames)
+      {
+         if (pNames == nullptr)
+         {
+            return;
+         }
+         for (const Node& node : document.GetNodes())
+         {
+            if ((node.type == BlockType::VariableDecl) ||
+                (node.type == BlockType::GlobalDecl) ||
+                (node.type == BlockType::ArrayDecl))
+            {
+               const std::string name = GetProperty(node, "name", "");
+               if (!name.empty())
+               {
+                  pNames->insert(name);
+               }
+            }
+            if (node.type == BlockType::FunctionDef)
+            {
+               const std::string params = GetProperty(node, "params", "");
+               std::string token;
+               for (size_t index = 0; index <= params.size(); ++index)
+               {
+                  const char character =
+                     (index < params.size()) ? params[index] : ',';
+                  if ((character == ',') || (character == ';'))
+                  {
+                     // Take last identifier-like word in the param clause.
+                     std::string word;
+                     for (size_t charIndex = 0; charIndex < token.size(); ++charIndex)
+                     {
+                        const char tokenChar = token[charIndex];
+                        if ((std::isalnum(static_cast<unsigned char>(tokenChar)) != 0) ||
+                            (tokenChar == '_'))
+                        {
+                           word.push_back(tokenChar);
+                        }
+                        else if (!word.empty())
+                        {
+                           word.clear();
+                        }
+                     }
+                     if ((!word.empty()) && (word != "void") && (word != "int32_t") &&
+                         (word != "int") && (word != "char") && (word != "float") &&
+                         (word != "double") && (word != "FILE") && (word != "size_t") &&
+                         (word != "uint32_t") && (word != "uint64_t") &&
+                         (word != "int64_t") && (word != "uint8_t") && (word != "int8_t"))
+                     {
+                        pNames->insert(word);
+                     }
+                     token.clear();
+                  }
+                  else if (character != ' ')
+                  {
+                     token.push_back(character);
+                  }
+                  else if (!token.empty())
+                  {
+                     token.push_back(character);
+                  }
+               }
+            }
+         }
+      }
+
+      bool PortRequiresData(BlockType blockType, std::string_view portName)
+      {
+         if (portName == "Cond")
+         {
+            return (blockType == BlockType::If) || (blockType == BlockType::ElseIf) ||
+                   (blockType == BlockType::While) || (blockType == BlockType::Assert);
+         }
+         if (portName == "Value")
+         {
+            return (blockType == BlockType::Assign) ||
+                   (blockType == BlockType::CompoundAssign) ||
+                   (blockType == BlockType::FieldStore) ||
+                   (blockType == BlockType::IndexAssign) ||
+                   (blockType == BlockType::Return);
+         }
+         if ((portName == "Left") || (portName == "Right"))
+         {
+            return (blockType == BlockType::Add) || (blockType == BlockType::Sub) ||
+                   (blockType == BlockType::Mul) || (blockType == BlockType::Div) ||
+                   (blockType == BlockType::Mod) || (blockType == BlockType::Equal) ||
+                   (blockType == BlockType::NotEqual) || (blockType == BlockType::Less) ||
+                   (blockType == BlockType::LessEqual) ||
+                   (blockType == BlockType::Greater) ||
+                   (blockType == BlockType::GreaterEqual) || (blockType == BlockType::And) ||
+                   (blockType == BlockType::Or);
+         }
+         if (portName == "Index")
+         {
+            return (blockType == BlockType::IndexAssign) ||
+                   (blockType == BlockType::IndexLoad);
+         }
+         return false;
+      }
+
+      bool IsInsideLoop(const GraphDocument& document, NodeId nodeId)
+      {
+         std::unordered_set<NodeId> visited;
+         std::queue<NodeId> pending;
+         pending.push(nodeId);
+         visited.insert(nodeId);
+         while (!pending.empty())
+         {
+            const NodeId currentId = pending.front();
+            pending.pop();
+            for (const Edge& edge : document.GetEdges())
+            {
+               if (edge.toNodeId != currentId)
+               {
+                  continue;
+               }
+               const Node* pFrom = document.FindNode(edge.fromNodeId);
+               if (pFrom == nullptr)
+               {
+                  continue;
+               }
+               const Port* pPort = FindPort(*pFrom, edge.fromPort);
+               if ((pPort == nullptr) || (pPort->kind != PortKind::Control))
+               {
+                  continue;
+               }
+               if ((pFrom->type == BlockType::While) || (pFrom->type == BlockType::For))
+               {
+                  if ((edge.fromPort == "Body") || (edge.fromPort == "Next"))
+                  {
+                     return true;
+                  }
+               }
+               if (visited.find(edge.fromNodeId) == visited.end())
+               {
+                  visited.insert(edge.fromNodeId);
+                  pending.push(edge.fromNodeId);
+               }
+            }
+         }
+         return false;
+      }
+
+   } // namespace
+
+   ValidationReport ValidateGraph(const GraphDocument& document)
+   {
+      ValidationReport report;
+
+      for (const Edge& edge : document.GetEdges())
+      {
+         if (document.FindNode(edge.fromNodeId) == nullptr)
+         {
+            AddIssue(&report,
+                     ValidationSeverity::Error,
+                     0,
+                     "Dangling edge: missing from-node.");
+         }
+         if (document.FindNode(edge.toNodeId) == nullptr)
+         {
+            AddIssue(&report,
+                     ValidationSeverity::Error,
+                     0,
+                     "Dangling edge: missing to-node.");
+         }
+      }
+
+      const Node* pStart = nullptr;
+      for (const Node& node : document.GetNodes())
+      {
+         if (node.type == BlockType::Start)
+         {
+            pStart = &node;
+            break;
+         }
+      }
+      if (pStart == nullptr)
+      {
+         AddIssue(&report, ValidationSeverity::Error, 0, "Document has no Start block.");
+         return report;
+      }
+
+      std::unordered_set<NodeId> fromStart;
+      CollectControlReachable(document, pStart->id, &fromStart);
+      bool foundEnd = false;
+      for (const NodeId nodeId : fromStart)
+      {
+         const Node* pNode = document.FindNode(nodeId);
+         if ((pNode != nullptr) && (pNode->type == BlockType::End))
+         {
+            foundEnd = true;
+            break;
+         }
+      }
+      if (!foundEnd)
+      {
+         AddIssue(&report,
+                  ValidationSeverity::Error,
+                  pStart->id,
+                  "No End block reachable from Start along control flow.");
+      }
+
+      std::unordered_set<NodeId> reachable;
+      CollectControlReachable(document, pStart->id, &reachable);
+      for (const Node& node : document.GetNodes())
+      {
+         if (node.type == BlockType::FunctionDef)
+         {
+            CollectControlReachable(document, node.id, &reachable);
+         }
+      }
+
+      for (const Node& node : document.GetNodes())
+      {
+         if (!IsStatementLike(node.type))
+         {
+            continue;
+         }
+         if (reachable.find(node.id) == reachable.end())
+         {
+            std::ostringstream stream;
+            stream << "Unreachable " << BlockTypeLabel(node.type)
+                   << " block (not connected from Start or a Function).";
+            AddIssue(&report, ValidationSeverity::Warning, node.id, stream.str());
+         }
+      }
+
+      for (const Node& node : document.GetNodes())
+      {
+         for (const Port& port : node.ports)
+         {
+            if ((port.kind != PortKind::Data) || (port.direction != PortDirection::In))
+            {
+               continue;
+            }
+            if (!PortRequiresData(node.type, port.name))
+            {
+               continue;
+            }
+            if (document.FindIncomingEdge(node.id, port.name) == nullptr)
+            {
+               std::ostringstream stream;
+               stream << BlockTypeLabel(node.type) << " is missing required input '"
+                      << port.name << "'.";
+               AddIssue(&report, ValidationSeverity::Error, node.id, stream.str());
+            }
+         }
+      }
+
+      std::set<std::string> declaredNames;
+      CollectDeclaredNames(document, &declaredNames);
+
+      for (const Node& node : document.GetNodes())
+      {
+         if (node.type == BlockType::VariableRef)
+         {
+            const std::string name = GetProperty(node, "name", "");
+            if ((!name.empty()) && (declaredNames.find(name) == declaredNames.end()))
+            {
+               AddIssue(&report,
+                        ValidationSeverity::Error,
+                        node.id,
+                        "VariableRef uses undeclared name '" + name + "'.");
+            }
+         }
+
+         if ((node.type == BlockType::Assign) || (node.type == BlockType::Inc) ||
+             (node.type == BlockType::Dec) || (node.type == BlockType::CompoundAssign))
+         {
+            const std::string target = GetProperty(node, "target", "");
+            if ((!target.empty()) && (declaredNames.find(target) == declaredNames.end()))
+            {
+               AddIssue(&report,
+                        ValidationSeverity::Error,
+                        node.id,
+                        std::string(BlockTypeLabel(node.type)) + " target '" + target +
+                           "' is undeclared.");
+            }
+         }
+
+         if ((node.type == BlockType::ScanfInt) || (node.type == BlockType::ScanfChar) ||
+             (node.type == BlockType::ScanfFloat) || (node.type == BlockType::ScanfLine))
+         {
+            const std::string target = GetProperty(node, "target", "");
+            if ((!target.empty()) && (declaredNames.find(target) == declaredNames.end()))
+            {
+               AddIssue(&report,
+                        ValidationSeverity::Error,
+                        node.id,
+                        "Scanf target '" + target + "' is undeclared.");
+            }
+         }
+
+         if ((node.type == BlockType::FileOpen) || (node.type == BlockType::FileClose) ||
+             (node.type == BlockType::FileRead) || (node.type == BlockType::FileWrite) ||
+             (node.type == BlockType::FilePrintf) || (node.type == BlockType::FileGets))
+         {
+            const std::string handle = GetProperty(node, "handle", "");
+            if ((!handle.empty()) && (declaredNames.find(handle) == declaredNames.end()))
+            {
+               AddIssue(&report,
+                        ValidationSeverity::Warning,
+                        node.id,
+                        "File handle '" + handle + "' has no matching VariableDecl.");
+            }
+         }
+
+         if ((node.type == BlockType::Break) || (node.type == BlockType::Continue))
+         {
+            if (!IsInsideLoop(document, node.id))
+            {
+               AddIssue(&report,
+                        ValidationSeverity::Error,
+                        node.id,
+                        std::string(BlockTypeLabel(node.type)) +
+                           " is not inside a While/For Body.");
+            }
+         }
+      }
+
+      for (const Edge& edge : document.GetEdges())
+      {
+         const Node* pFrom = document.FindNode(edge.fromNodeId);
+         const Node* pTo = document.FindNode(edge.toNodeId);
+         if ((pFrom == nullptr) || (pTo == nullptr))
+         {
+            continue;
+         }
+         const Port* pFromPort = FindPort(*pFrom, edge.fromPort);
+         const Port* pToPort = FindPort(*pTo, edge.toPort);
+         if ((pFromPort == nullptr) || (pToPort == nullptr))
+         {
+            continue;
+         }
+         if ((pFromPort->kind != PortKind::Data) || (pToPort->kind != PortKind::Data))
+         {
+            continue;
+         }
+         if (!AreTypesCompatible(pFromPort->dataType, pToPort->dataType))
+         {
+            std::ostringstream stream;
+            stream << "Type mismatch on wire " << edge.fromPort << " -> " << edge.toPort
+                   << ".";
+            AddIssue(&report, ValidationSeverity::Error, edge.toNodeId, stream.str());
+         }
+
+         if (pFrom->type == BlockType::Literal)
+         {
+            CType literalCType;
+            const std::string typeText = GetProperty(*pFrom, "type", "int32_t");
+            if (CTypeFromString(typeText, &literalCType))
+            {
+               if (!AreTypesCompatible(literalCType, pToPort->dataType))
+               {
+                  AddIssue(&report,
+                           ValidationSeverity::Warning,
+                           pFrom->id,
+                           "Literal type property disagrees with destination port type.");
+               }
+            }
+         }
+      }
+
+      return report;
+   }
+} // namespace Cgen

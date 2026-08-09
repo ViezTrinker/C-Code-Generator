@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <SFML/Graphics.hpp>
@@ -92,7 +93,9 @@ namespace Cgen
       };
 
       void RebuildFields(void);
+      void RebuildHelpLines(std::string_view helpText);
       void CommitActiveField(void);
+      float FieldsStartY(void) const;
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
@@ -100,6 +103,7 @@ namespace Cgen
       DocumentHistory* _pHistory = nullptr;
       NodeId _selectedNodeId = 0;
       std::vector<Field> _fields;
+      std::vector<std::string> _helpLines;
       int32_t _activeFieldIndex = -1;
    };
 } // namespace Cgen

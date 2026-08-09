@@ -83,6 +83,14 @@ namespace Cgen
    std::string_view BlockTypeLabel(BlockType blockType);
 
    /*!
+    *\brief Short help text shown in the Properties panel.
+    *
+    *\param[in] blockType Block type.
+    *\return Help description for the block.
+    */
+   std::string_view BlockTypeHelpText(BlockType blockType);
+
+   /*!
     *\brief Returns true if the block is a pure expression (no control flow).
     *
     *\param[in] blockType Block type.

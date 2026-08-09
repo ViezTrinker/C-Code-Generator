@@ -29,6 +29,7 @@ namespace Cgen
          BlockType::Printf,
          BlockType::WaitEnter,
          BlockType::ScanfInt,
+         BlockType::ScanfChar,
          BlockType::ArrayDecl,
          BlockType::IndexAssign,
          BlockType::IndexLoad,

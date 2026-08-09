@@ -402,6 +402,28 @@ namespace Cgen
                (*pContext->pOut) << "}\n";
                break;
             }
+            case BlockType::ScanfChar:
+            {
+               const std::string target = GetProperty(node, "target", "ch");
+               const std::string promptProp =
+                  GetProperty(node, "prompt", "Enter character: ");
+               const std::string promptText = EscapeCString(UnescapeFormat(promptProp));
+               WriteIndent(pContext);
+               (*pContext->pOut) << "printf(\"" << promptText << "\");\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "fflush(stdout);\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "if (scanf(\" %c\", &" << target << ") != 1)\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << target << " = '\\0';\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               break;
+            }
             case BlockType::ArrayDecl:
             {
                const std::string name = GetProperty(node, "name", "buffer");

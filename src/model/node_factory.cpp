@@ -44,6 +44,7 @@ namespace Cgen
          {BlockType::Printf, "Printf", "Printf", false},
          {BlockType::WaitEnter, "WaitEnter", "Wait Enter", false},
          {BlockType::ScanfInt, "ScanfInt", "Scanf Int", false},
+         {BlockType::ScanfChar, "ScanfChar", "Scanf Char", false},
          {BlockType::ArrayDecl, "ArrayDecl", "Array Decl", false},
          {BlockType::IndexAssign, "IndexAssign", "Index Set", false},
          {BlockType::IndexLoad, "IndexLoad", "Index Get", true},
@@ -262,6 +263,12 @@ namespace Cgen
             node.ports.push_back(MakeControlOut("Next"));
             node.properties["target"] = "value";
             node.properties["prompt"] = "Enter value: ";
+            break;
+         case BlockType::ScanfChar:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["target"] = "ch";
+            node.properties["prompt"] = "Enter character: ";
             break;
          case BlockType::ArrayDecl:
             node.ports.push_back(MakeControlIn("In"));

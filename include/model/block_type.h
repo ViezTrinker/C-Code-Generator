@@ -40,6 +40,7 @@ namespace Cgen
       Printf,
       WaitEnter,
       ScanfInt,
+      ScanfChar,
       ArrayDecl,
       IndexAssign,
       IndexLoad,

@@ -111,6 +111,22 @@ Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffe
 "7" | .\build\c_code_generator.exe --codegen examples\prime_number_detector.cgen
 ```
 
+### Tic Tac Toe
+
+[`examples/tic_tac_toe.cgen`](examples/tic_tac_toe.cgen) is a larger interactive example: you (X) vs a random AI (O).
+
+- Randomly chooses who starts
+- You enter **row** and **col** as `1`–`3`
+- Rejects occupied or out-of-range cells
+- Prints the board after every turn
+- After the game: press **`r`** to restart, or any other character to quit
+
+Requires the **Scanf Char** block (for the restart prompt).
+
+```powershell
+.\build\c_code_generator.exe --codegen examples\tic_tac_toe.cgen
+```
+
 ## Usage
 
 - Place blocks from the left **Blocks** panel (separated from the canvas)

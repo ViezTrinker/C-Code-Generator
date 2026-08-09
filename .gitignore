@@ -4,6 +4,7 @@
 /out/
 /third_party/sfml/
 CMakeUserPresets.json
+cmake_test_discovery_*.json
 *.user
 *.exe
 *.obj

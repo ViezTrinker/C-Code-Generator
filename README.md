@@ -58,6 +58,19 @@ cmake --build build
 
 (MSVC multi-config generators may place the exe under `build\Release\`.)
 
+## Unit tests
+
+GoogleTest is included as a git submodule at `third_party/googletest` (pinned to **v1.15.2**).
+
+```powershell
+git submodule update --init --recursive
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target cgen_unit_tests
+ctest --test-dir build --output-on-failure
+```
+
+Disable tests with `-DCGEN_BUILD_TESTS=OFF` if needed.
+
 ## Example projects
 
 ### Add two integers
@@ -143,8 +156,10 @@ Requires the **Scanf Char** block (for the restart prompt).
 ## Layout
 
 - `include/`, `src/` — application code
+- `tests/` — GoogleTest unit tests (`cgen_unit_tests`)
 - `cmake/Dependencies.cmake` — SFML / JSON wiring
 - `third_party/nlohmann/` — vendored JSON header
+- `third_party/googletest/` — GoogleTest submodule (v1.15.2)
 - `third_party/sfml/` — local SFML sources (created by the build script; gitignored)
 - `scripts/build.ps1` — one-shot fetch + build
 - `examples/` — sample `.cgen` projects

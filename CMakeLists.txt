@@ -7,7 +7,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Dependencies.cmake")
 
-set(PROJECT_HEADERS
+option(CGEN_BUILD_TESTS "Build GoogleTest unit tests" ON)
+
+set(CGEN_CORE_HEADERS
    include/model/block_type.h
    include/model/c_type.h
    include/model/edge.h
@@ -17,56 +19,70 @@ set(PROJECT_HEADERS
    include/model/result.h
    include/codegen/c_codegen.h
    include/serialize/cgen_serializer.h
+   include/gui/document_history.h
+)
+
+set(CGEN_CORE_SOURCES
+   src/model/c_type.cpp
+   src/model/graph_document.cpp
+   src/model/node_factory.cpp
+   src/codegen/c_codegen.cpp
+   src/serialize/cgen_serializer.cpp
+   src/gui/document_history.cpp
+)
+
+set(CGEN_APP_HEADERS
    include/build/build_runner.h
    include/build/process_session.h
    include/gui/app.h
    include/gui/canvas_view.h
    include/gui/context_menu.h
-   include/gui/document_history.h
    include/gui/log_pane.h
    include/gui/palette.h
    include/gui/property_panel.h
    include/gui/toolbar.h
 )
 
-set(PROJECT_SOURCES
+set(CGEN_APP_SOURCES
    src/main.cpp
-   src/model/c_type.cpp
-   src/model/graph_document.cpp
-   src/model/node_factory.cpp
-   src/codegen/c_codegen.cpp
-   src/serialize/cgen_serializer.cpp
    src/build/build_runner.cpp
    src/build/process_session.cpp
    src/gui/app.cpp
    src/gui/canvas_view.cpp
    src/gui/context_menu.cpp
-   src/gui/document_history.cpp
    src/gui/log_pane.cpp
    src/gui/palette.cpp
    src/gui/property_panel.cpp
    src/gui/toolbar.cpp
 )
 
-add_executable(c_code_generator
-   ${PROJECT_SOURCES}
-   ${PROJECT_HEADERS}
+add_library(cgen_core STATIC
+   ${CGEN_CORE_SOURCES}
+   ${CGEN_CORE_HEADERS}
 )
 
-target_include_directories(c_code_generator PRIVATE
+target_include_directories(cgen_core PUBLIC
    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_link_libraries(cgen_core PUBLIC
+   nlohmann_json::nlohmann_json
+)
+
+add_executable(c_code_generator
+   ${CGEN_APP_SOURCES}
+   ${CGEN_APP_HEADERS}
+)
+
 target_link_libraries(c_code_generator PRIVATE
+   cgen_core
    SFML::System
    SFML::Window
    SFML::Graphics
-   nlohmann_json::nlohmann_json
 )
 
 if(WIN32)
    target_link_libraries(c_code_generator PRIVATE comdlg32)
-   # TARGET_RUNTIME_DLLS is empty for fully static links; skip copy in that case.
    add_custom_command(TARGET c_code_generator POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E
          $<IF:$<BOOL:$<TARGET_RUNTIME_DLLS:c_code_generator>>,copy_if_different,true>
@@ -74,4 +90,9 @@ if(WIN32)
          $<TARGET_FILE_DIR:c_code_generator>
       COMMAND_EXPAND_LISTS
    )
+endif()
+
+if(CGEN_BUILD_TESTS)
+   enable_testing()
+   add_subdirectory(tests)
 endif()

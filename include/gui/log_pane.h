@@ -113,6 +113,21 @@ namespace Cgen
       bool HandleKey(sf::Keyboard::Key keyCode);
 
       /*!
+       *\brief Focuses the stdin input line when input mode is enabled.
+       */
+      void FocusInput(void);
+
+      /*!
+       *\brief Clears stdin keyboard focus.
+       */
+      void BlurInput(void);
+
+      /*!
+       *\brief Returns true when the stdin line is focused.
+       */
+      bool IsInputFocused(void) const;
+
+      /*!
        *\brief Returns true when Enter submitted a stdin line.
        */
       bool HasPendingInput(void) const;

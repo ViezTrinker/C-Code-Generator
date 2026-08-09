@@ -443,6 +443,8 @@ namespace Cgen
          return;
       }
       _programSessionActive = true;
+      _pProperties->Blur();
+      _pProgramLog->FocusInput();
    }
 
    void App::StopProgram(void)
@@ -634,12 +636,18 @@ namespace Cgen
                   }
                   else if (_pProgramLog->HandleClick(point))
                   {
+                     _pProperties->Blur();
                   }
                   else if (_pProperties->HandleClick(point))
                   {
+                     if (_pProperties->HasKeyboardFocus())
+                     {
+                        _pProgramLog->BlurInput();
+                     }
                   }
                   else if (_pCanvas->HandleMousePress(pMousePress->button, point))
                   {
+                     _pProperties->Blur();
                      SyncSelectionUi();
                   }
                }
@@ -690,7 +698,11 @@ namespace Cgen
             }
             else if (const auto* pText = event->getIf<sf::Event::TextEntered>())
             {
-               if (!_pProgramLog->HandleTextEntered(pText->unicode))
+               if (_pProgramLog->IsInputFocused())
+               {
+                  _pProgramLog->HandleTextEntered(pText->unicode);
+               }
+               else
                {
                   _pProperties->HandleTextEntered(pText->unicode);
                }
@@ -723,10 +735,12 @@ namespace Cgen
                      ShowHelp();
                   }
                }
-               else if (_pProgramLog->HandleKey(pKey->code))
+               else if (_pProgramLog->IsInputFocused() &&
+                        _pProgramLog->HandleKey(pKey->code))
                {
                }
-               else if (_pProperties->HandleKey(pKey->code))
+               else if (_pProperties->HasKeyboardFocus() &&
+                        _pProperties->HandleKey(pKey->code))
                {
                }
                else if ((pKey->code == sf::Keyboard::Key::Delete) ||

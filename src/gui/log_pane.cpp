@@ -153,12 +153,11 @@ namespace Cgen
    {
       if (!_bounds.contains(point))
       {
-         _inputFocused = false;
          return false;
       }
       if (_inputMode == LogInputMode::Enabled)
       {
-         _inputFocused = _inputBounds.contains(point);
+         _inputFocused = true;
       }
       return true;
    }
@@ -244,6 +243,24 @@ namespace Cgen
          return true;
       }
       return false;
+   }
+
+   void LogPane::FocusInput(void)
+   {
+      if (_inputMode == LogInputMode::Enabled)
+      {
+         _inputFocused = true;
+      }
+   }
+
+   void LogPane::BlurInput(void)
+   {
+      _inputFocused = false;
+   }
+
+   bool LogPane::IsInputFocused(void) const
+   {
+      return _inputFocused;
    }
 
    bool LogPane::HasPendingInput(void) const

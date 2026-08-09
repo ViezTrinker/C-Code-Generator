@@ -55,6 +55,17 @@ namespace Cgen
       RebuildFields();
    }
 
+   void PropertyPanel::Blur(void)
+   {
+      CommitActiveField();
+      _activeFieldIndex = -1;
+   }
+
+   bool PropertyPanel::HasKeyboardFocus(void) const
+   {
+      return _activeFieldIndex >= 0;
+   }
+
    float PropertyPanel::FieldsStartY(void) const
    {
       float cursorY = _bounds.position.y + TitleHeight + TypeLabelHeight;

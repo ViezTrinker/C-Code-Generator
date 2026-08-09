@@ -65,6 +65,16 @@ namespace Cgen
       void ReloadFromDocument(void);
 
       /*!
+       *\brief Commits the active field and clears keyboard focus.
+       */
+      void Blur(void);
+
+      /*!
+       *\brief Returns true when a property field is accepting keyboard input.
+       */
+      bool HasKeyboardFocus(void) const;
+
+      /*!
        *\brief Handles a mouse click inside the panel.
        *
        *\param[in] point Mouse position.

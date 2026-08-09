@@ -52,7 +52,7 @@ namespace Cgen
           "Skips to the next loop iteration. Valid only inside a loop body.",
           false},
          {BlockType::Literal, "Literal", "Literal",
-          "Constant value expression. Set value (e.g. 42, 'X', or 0).",
+          "Constant value expression. Set value (e.g. 42, 3.14f, 'X') and type.",
           true},
          {BlockType::VariableDecl, "VariableDecl", "Var Decl",
           "Declares a local variable. Properties: name, type. Optional Init data input.",
@@ -93,6 +93,9 @@ namespace Cgen
          {BlockType::Neg, "Neg", "Neg",
           "Expression: unary minus of Value.",
           true},
+         {BlockType::Cast, "Cast", "Cast",
+          "Casts Value to toType. Property: toType (e.g. int32_t, float, char*).",
+          true},
          {BlockType::Equal, "Equal", "Equal",
           "Expression: Left == Right (1 if equal, else 0).",
           true},
@@ -132,6 +135,9 @@ namespace Cgen
          {BlockType::ScanfChar, "ScanfChar", "Scanf Char",
           "Reads one character with scanf. Properties: target variable, prompt text.",
           false},
+         {BlockType::ScanfFloat, "ScanfFloat", "Scanf Float",
+          "Reads a float with scanf %f. Properties: target variable, prompt text.",
+          false},
          {BlockType::ScanfLine, "ScanfLine", "Scanf Line",
           "Reads a line with fgets. Properties: target buffer, size, prompt.",
           false},
@@ -156,6 +162,33 @@ namespace Cgen
          {BlockType::StrCmp, "StrCmp", "Str Cmp",
           "Expression: strcmp(left, right). Properties: left, right.",
           true},
+         {BlockType::FileOpen, "FileOpen", "File Open",
+          "Opens a file. Properties: handle (FILE*), path, mode (e.g. rb, w).",
+          false},
+         {BlockType::FileRead, "FileRead", "File Read",
+          "fread into buffer. Properties: handle, buffer, size, count.",
+          false},
+         {BlockType::FileWrite, "FileWrite", "File Write",
+          "fwrite from buffer. Properties: handle, buffer, size, count.",
+          false},
+         {BlockType::FileClose, "FileClose", "File Close",
+          "Closes a FILE* handle. Property: handle.",
+          false},
+         {BlockType::Assert, "Assert", "Assert",
+          "assert(Cond). Wire Cond; aborts if zero/false when NDEBUG is unset.",
+          false},
+         {BlockType::Comment, "Comment", "Comment",
+          "Emits a C block comment. Property: text.",
+          false},
+         {BlockType::StructDecl, "StructDecl", "Struct",
+          "File-scope typedef struct. Properties: name, fields (C field list).",
+          false},
+         {BlockType::FieldLoad, "FieldLoad", "Field Get",
+          "Reads object.field or object->field. Properties: object, field, access.",
+          true},
+         {BlockType::FieldStore, "FieldStore", "Field Set",
+          "Writes Value into object.field or object->field. Properties: object, field, access.",
+          false},
          {BlockType::RandomChar, "RandomChar", "Rand Char",
           "Random character expression. Property: set = lower, upper, digit, or special.",
           true},
@@ -433,6 +466,10 @@ namespace Cgen
          case BlockType::Not:
             AddUnaryExpressionPorts(&node);
             break;
+         case BlockType::Cast:
+            AddUnaryExpressionPorts(&node);
+            node.properties["toType"] = "int32_t";
+            break;
          case BlockType::Printf:
             node.ports.push_back(MakeControlIn("In"));
             node.ports.push_back(MakeControlOut("Next"));
@@ -460,6 +497,12 @@ namespace Cgen
             node.ports.push_back(MakeControlOut("Next"));
             node.properties["target"] = "ch";
             node.properties["prompt"] = "Enter character: ";
+            break;
+         case BlockType::ScanfFloat:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["target"] = "value";
+            node.properties["prompt"] = "Enter float: ";
             break;
          case BlockType::ScanfLine:
             node.ports.push_back(MakeControlIn("In"));
@@ -510,6 +553,62 @@ namespace Cgen
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
             node.properties["left"] = "left";
             node.properties["right"] = "right";
+            break;
+         case BlockType::FileOpen:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["handle"] = "fp";
+            node.properties["path"] = "data.bin";
+            node.properties["mode"] = "rb";
+            break;
+         case BlockType::FileRead:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["handle"] = "fp";
+            node.properties["buffer"] = "buffer";
+            node.properties["size"] = "1";
+            node.properties["count"] = "256";
+            break;
+         case BlockType::FileWrite:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["handle"] = "fp";
+            node.properties["buffer"] = "buffer";
+            node.properties["size"] = "1";
+            node.properties["count"] = "256";
+            break;
+         case BlockType::FileClose:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["handle"] = "fp";
+            break;
+         case BlockType::Assert:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.ports.push_back(MakeDataIn("Cond", PrimitiveType::Int32, false));
+            break;
+         case BlockType::Comment:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.properties["text"] = "TODO";
+            break;
+         case BlockType::StructDecl:
+            node.properties["name"] = "Point";
+            node.properties["fields"] = "int32_t x; int32_t y";
+            break;
+         case BlockType::FieldLoad:
+            node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));
+            node.properties["object"] = "point";
+            node.properties["field"] = "x";
+            node.properties["access"] = ".";
+            break;
+         case BlockType::FieldStore:
+            node.ports.push_back(MakeControlIn("In"));
+            node.ports.push_back(MakeControlOut("Next"));
+            node.ports.push_back(MakeDataIn("Value", PrimitiveType::Int32, false));
+            node.properties["object"] = "point";
+            node.properties["field"] = "x";
+            node.properties["access"] = ".";
             break;
          case BlockType::RandomChar:
             node.ports.push_back(MakeDataOut("Value", PrimitiveType::Int32, false));

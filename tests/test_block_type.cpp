@@ -18,6 +18,10 @@ TEST(BlockTypeTest, RoundTripsKnownIds)
    EXPECT_EQ(parsed, Cgen::BlockType::ElseIf);
    ASSERT_TRUE(Cgen::BlockTypeFromString("CompoundAssign", &parsed));
    EXPECT_EQ(parsed, Cgen::BlockType::CompoundAssign);
+   ASSERT_TRUE(Cgen::BlockTypeFromString("Cast", &parsed));
+   EXPECT_EQ(parsed, Cgen::BlockType::Cast);
+   ASSERT_TRUE(Cgen::BlockTypeFromString("StructDecl", &parsed));
+   EXPECT_EQ(parsed, Cgen::BlockType::StructDecl);
 }
 
 TEST(BlockTypeTest, RejectsUnknownId)
@@ -33,6 +37,8 @@ TEST(BlockTypeTest, ExpressionClassification)
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::And));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::Not));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::Neg));
+   EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::Cast));
+   EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::FieldLoad));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::StrLen));
    EXPECT_TRUE(Cgen::IsExpressionBlock(Cgen::BlockType::Random));
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::Printf));
@@ -40,6 +46,8 @@ TEST(BlockTypeTest, ExpressionClassification)
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::ElseIf));
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::Break));
    EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::ScanfInt));
+   EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::StructDecl));
+   EXPECT_FALSE(Cgen::IsExpressionBlock(Cgen::BlockType::Assert));
 }
 
 TEST(BlockTypeTest, EveryBlockHasHelpText)
@@ -69,6 +77,7 @@ TEST(BlockTypeTest, EveryBlockHasHelpText)
       Cgen::BlockType::Div,
       Cgen::BlockType::Mod,
       Cgen::BlockType::Neg,
+      Cgen::BlockType::Cast,
       Cgen::BlockType::Equal,
       Cgen::BlockType::NotEqual,
       Cgen::BlockType::Less,
@@ -82,6 +91,7 @@ TEST(BlockTypeTest, EveryBlockHasHelpText)
       Cgen::BlockType::WaitEnter,
       Cgen::BlockType::ScanfInt,
       Cgen::BlockType::ScanfChar,
+      Cgen::BlockType::ScanfFloat,
       Cgen::BlockType::ScanfLine,
       Cgen::BlockType::ArrayDecl,
       Cgen::BlockType::IndexAssign,
@@ -90,6 +100,15 @@ TEST(BlockTypeTest, EveryBlockHasHelpText)
       Cgen::BlockType::StrCpy,
       Cgen::BlockType::StrNCpy,
       Cgen::BlockType::StrCmp,
+      Cgen::BlockType::FileOpen,
+      Cgen::BlockType::FileRead,
+      Cgen::BlockType::FileWrite,
+      Cgen::BlockType::FileClose,
+      Cgen::BlockType::Assert,
+      Cgen::BlockType::Comment,
+      Cgen::BlockType::StructDecl,
+      Cgen::BlockType::FieldLoad,
+      Cgen::BlockType::FieldStore,
       Cgen::BlockType::RandomChar,
       Cgen::BlockType::ShuffleArray,
       Cgen::BlockType::Malloc,

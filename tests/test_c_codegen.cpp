@@ -282,3 +282,126 @@ TEST(CCodegenTest, EmitsStringsTypedIndexAndCompound)
    EXPECT_NE(output.source.find("++value;"), std::string::npos);
    EXPECT_NE(output.source.find("value += "), std::string::npos);
 }
+
+TEST(CCodegenTest, EmitsCastScanfFloatAssertComment)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId floatDecl =
+      document.AddNode(Cgen::BlockType::VariableDecl, 120.0f, 40.0f);
+   document.FindNodeMutable(floatDecl)->properties["name"] = "value";
+   document.FindNodeMutable(floatDecl)->properties["type"] = "float";
+
+   const Cgen::NodeId scanfFloatId =
+      document.AddNode(Cgen::BlockType::ScanfFloat, 280.0f, 40.0f);
+   document.FindNodeMutable(scanfFloatId)->properties["target"] = "value";
+
+   const Cgen::NodeId litId =
+      document.AddNode(Cgen::BlockType::Literal, 280.0f, 140.0f);
+   document.FindNodeMutable(litId)->properties["value"] = "3";
+   const Cgen::NodeId castId = document.AddNode(Cgen::BlockType::Cast, 400.0f, 140.0f);
+   document.FindNodeMutable(castId)->properties["toType"] = "float";
+   const Cgen::NodeId intDecl =
+      document.AddNode(Cgen::BlockType::VariableDecl, 520.0f, 40.0f);
+   document.FindNodeMutable(intDecl)->properties["name"] = "asFloat";
+   document.FindNodeMutable(intDecl)->properties["type"] = "float";
+
+   const Cgen::NodeId commentId =
+      document.AddNode(Cgen::BlockType::Comment, 680.0f, 40.0f);
+   document.FindNodeMutable(commentId)->properties["text"] = "check value";
+
+   const Cgen::NodeId condLit =
+      document.AddNode(Cgen::BlockType::Literal, 680.0f, 140.0f);
+   document.FindNodeMutable(condLit)->properties["value"] = "1";
+   const Cgen::NodeId assertId =
+      document.AddNode(Cgen::BlockType::Assert, 840.0f, 40.0f);
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 1000.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", floatDecl, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(floatDecl, "Next", scanfFloatId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(scanfFloatId, "Next", intDecl, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(litId, "Value", castId, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(castId, "Result", intDecl, "Init", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(intDecl, "Next", commentId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(commentId, "Next", assertId, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(condLit, "Value", assertId, "Cond", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(assertId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("#include <assert.h>"), std::string::npos);
+   EXPECT_NE(output.source.find("scanf(\"%f\", &value)"), std::string::npos);
+   EXPECT_NE(output.source.find("((float)(3))"), std::string::npos);
+   EXPECT_NE(output.source.find("/* check value */"), std::string::npos);
+   EXPECT_NE(output.source.find("assert(1);"), std::string::npos);
+}
+
+TEST(CCodegenTest, EmitsFileIoAndStructFields)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId structId =
+      document.AddNode(Cgen::BlockType::StructDecl, 40.0f, 200.0f);
+   document.FindNodeMutable(structId)->properties["name"] = "Point";
+   document.FindNodeMutable(structId)->properties["fields"] = "int32_t x; int32_t y";
+
+   const Cgen::NodeId pointDecl =
+      document.AddNode(Cgen::BlockType::VariableDecl, 120.0f, 40.0f);
+   document.FindNodeMutable(pointDecl)->properties["name"] = "point";
+   document.FindNodeMutable(pointDecl)->properties["type"] = "Point";
+
+   const Cgen::NodeId fpDecl =
+      document.AddNode(Cgen::BlockType::VariableDecl, 280.0f, 40.0f);
+   document.FindNodeMutable(fpDecl)->properties["name"] = "fp";
+   document.FindNodeMutable(fpDecl)->properties["type"] = "FILE*";
+
+   const Cgen::NodeId openId =
+      document.AddNode(Cgen::BlockType::FileOpen, 440.0f, 40.0f);
+   const Cgen::NodeId writeId =
+      document.AddNode(Cgen::BlockType::FileWrite, 600.0f, 40.0f);
+   const Cgen::NodeId readId =
+      document.AddNode(Cgen::BlockType::FileRead, 760.0f, 40.0f);
+   const Cgen::NodeId closeId =
+      document.AddNode(Cgen::BlockType::FileClose, 920.0f, 40.0f);
+
+   const Cgen::NodeId fieldVal =
+      document.AddNode(Cgen::BlockType::Literal, 120.0f, 140.0f);
+   document.FindNodeMutable(fieldVal)->properties["value"] = "9";
+   const Cgen::NodeId fieldStore =
+      document.AddNode(Cgen::BlockType::FieldStore, 280.0f, 140.0f);
+   const Cgen::NodeId fieldLoad =
+      document.AddNode(Cgen::BlockType::FieldLoad, 440.0f, 140.0f);
+   const Cgen::NodeId copyDecl =
+      document.AddNode(Cgen::BlockType::VariableDecl, 600.0f, 140.0f);
+   document.FindNodeMutable(copyDecl)->properties["name"] = "copied";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 1080.0f, 40.0f);
+
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", pointDecl, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(pointDecl, "Next", fpDecl, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(fpDecl, "Next", openId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(openId, "Next", writeId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(writeId, "Next", readId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(readId, "Next", closeId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(closeId, "Next", fieldStore, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(fieldVal, "Value", fieldStore, "Value", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(fieldStore, "Next", copyDecl, "In", nullptr)));
+   ASSERT_TRUE(
+      Cgen::IsOk(document.Connect(fieldLoad, "Value", copyDecl, "Init", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(copyDecl, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("typedef struct Point"), std::string::npos);
+   EXPECT_NE(output.source.find("int32_t x;"), std::string::npos);
+   EXPECT_NE(output.source.find("fopen(\"data.bin\", \"rb\")"), std::string::npos);
+   EXPECT_NE(output.source.find("fwrite("), std::string::npos);
+   EXPECT_NE(output.source.find("fread("), std::string::npos);
+   EXPECT_NE(output.source.find("fclose(fp);"), std::string::npos);
+   EXPECT_NE(output.source.find("point.x = 9;"), std::string::npos);
+   EXPECT_NE(output.source.find("point.x"), std::string::npos);
+}

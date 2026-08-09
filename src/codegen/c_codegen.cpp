@@ -188,6 +188,45 @@ namespace Cgen
                 (opText == "/") || (opText == "%");
       }
 
+      std::string SanitizeCommentText(std::string_view text)
+      {
+         std::string result;
+         result.reserve(text.size());
+         for (size_t index = 0; index < text.size(); ++index)
+         {
+            if ((text[index] == '*') && ((index + 1) < text.size()) &&
+                (text[index + 1] == '/'))
+            {
+               result.append("* /");
+               ++index;
+            }
+            else
+            {
+               result.push_back(text[index]);
+            }
+         }
+         return result;
+      }
+
+      std::string FieldAccessPrefix(EmitContext* pContext,
+                                    const Node& node,
+                                    std::string_view blockLabel)
+      {
+         const std::string objectName = GetProperty(node, "object", "point");
+         const std::string fieldName = GetProperty(node, "field", "x");
+         const std::string access = GetProperty(node, "access", ".");
+         if (access == "->")
+         {
+            return objectName + "->" + fieldName;
+         }
+         if (access != ".")
+         {
+            AppendDiag(pContext,
+                       std::string(blockLabel) + " access must be . or ->; using .");
+         }
+         return objectName + "." + fieldName;
+      }
+
       std::string EmitExpression(EmitContext* pContext, NodeId nodeId)
       {
          const auto tempIterator = pContext->temps.find(nodeId);
@@ -248,6 +287,34 @@ namespace Cgen
                const std::string valueExpr =
                   EmitInputExpression(pContext, nodeId, "Value");
                expression = "(-" + valueExpr + ")";
+               break;
+            }
+            case BlockType::Cast:
+            {
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, nodeId, "Value");
+               const std::string toType = GetProperty(*pNode, "toType", "int32_t");
+               expression = "((" + toType + ")(" + valueExpr + "))";
+               break;
+            }
+            case BlockType::FieldLoad:
+            {
+               const std::string objectName = GetProperty(*pNode, "object", "point");
+               const std::string fieldName = GetProperty(*pNode, "field", "x");
+               const std::string access = GetProperty(*pNode, "access", ".");
+               if (access == "->")
+               {
+                  expression = objectName + "->" + fieldName;
+               }
+               else
+               {
+                  if (access != ".")
+                  {
+                     AppendDiag(pContext,
+                                "FieldLoad access must be . or ->; using .");
+                  }
+                  expression = objectName + "." + fieldName;
+               }
                break;
             }
             case BlockType::StrLen:
@@ -607,6 +674,28 @@ namespace Cgen
                (*pContext->pOut) << "}\n";
                break;
             }
+            case BlockType::ScanfFloat:
+            {
+               const std::string target = GetProperty(node, "target", "value");
+               const std::string promptRaw =
+                  GetProperty(node, "prompt", "Enter float: ");
+               const std::string promptText = EscapeCString(UnescapeFormat(promptRaw));
+               WriteIndent(pContext);
+               (*pContext->pOut) << "printf(\"" << promptText << "\");\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "fflush(stdout);\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "if (scanf(\"%f\", &" << target << ") != 1)\n";
+               WriteIndent(pContext);
+               (*pContext->pOut) << "{\n";
+               ++pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << target << " = 0.0f;\n";
+               --pContext->indentLevel;
+               WriteIndent(pContext);
+               (*pContext->pOut) << "}\n";
+               break;
+            }
             case BlockType::ScanfLine:
             {
                const std::string target = GetProperty(node, "target", "buffer");
@@ -671,6 +760,73 @@ namespace Cgen
                                  << countText << ");\n";
                WriteIndent(pContext);
                (*pContext->pOut) << destName << "[(" << countText << ") - 1] = '\\0';\n";
+               break;
+            }
+            case BlockType::FileOpen:
+            {
+               const std::string handleName = GetProperty(node, "handle", "fp");
+               const std::string pathText =
+                  EscapeCString(GetProperty(node, "path", "data.bin"));
+               const std::string modeText =
+                  EscapeCString(GetProperty(node, "mode", "rb"));
+               WriteIndent(pContext);
+               (*pContext->pOut) << handleName << " = fopen(\"" << pathText << "\", \""
+                                 << modeText << "\");\n";
+               break;
+            }
+            case BlockType::FileRead:
+            {
+               const std::string handleName = GetProperty(node, "handle", "fp");
+               const std::string bufferName = GetProperty(node, "buffer", "buffer");
+               const std::string sizeText = GetProperty(node, "size", "1");
+               const std::string countText = GetProperty(node, "count", "256");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "(void)fread(" << bufferName << ", " << sizeText
+                                 << ", " << countText << ", " << handleName << ");\n";
+               break;
+            }
+            case BlockType::FileWrite:
+            {
+               const std::string handleName = GetProperty(node, "handle", "fp");
+               const std::string bufferName = GetProperty(node, "buffer", "buffer");
+               const std::string sizeText = GetProperty(node, "size", "1");
+               const std::string countText = GetProperty(node, "count", "256");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "(void)fwrite(" << bufferName << ", " << sizeText
+                                 << ", " << countText << ", " << handleName << ");\n";
+               break;
+            }
+            case BlockType::FileClose:
+            {
+               const std::string handleName = GetProperty(node, "handle", "fp");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "fclose(" << handleName << ");\n";
+               break;
+            }
+            case BlockType::Assert:
+            {
+               const std::string condExpr =
+                  EmitInputExpression(pContext, node.id, "Cond");
+               WriteIndent(pContext);
+               (*pContext->pOut) << "assert(" << condExpr << ");\n";
+               break;
+            }
+            case BlockType::Comment:
+            {
+               const std::string commentText =
+                  SanitizeCommentText(GetProperty(node, "text", "TODO"));
+               WriteIndent(pContext);
+               (*pContext->pOut) << "/* " << commentText << " */\n";
+               break;
+            }
+            case BlockType::FieldStore:
+            {
+               const std::string leftSide =
+                  FieldAccessPrefix(pContext, node, "FieldStore");
+               const std::string valueExpr =
+                  EmitInputExpression(pContext, node.id, "Value");
+               WriteIndent(pContext);
+               (*pContext->pOut) << leftSide << " = " << valueExpr << ";\n";
                break;
             }
             case BlockType::ShuffleArray:
@@ -958,6 +1114,48 @@ namespace Cgen
          }
       }
 
+      void EmitStructDecls(EmitContext* pContext)
+      {
+         const std::vector<Node>& nodes = pContext->pDocument->GetNodes();
+         for (size_t index = 0; index < nodes.size(); ++index)
+         {
+            const Node& node = nodes[index];
+            if (node.type != BlockType::StructDecl)
+            {
+               continue;
+            }
+            const std::string name = GetProperty(node, "name", "Point");
+            const std::string fields = GetProperty(node, "fields", "int32_t x; int32_t y");
+            (*pContext->pOut) << "typedef struct " << name << "\n{\n";
+            std::string fieldLine;
+            for (size_t charIndex = 0; charIndex <= fields.size(); ++charIndex)
+            {
+               const bool atEnd = (charIndex == fields.size());
+               const char character = atEnd ? ';' : fields[charIndex];
+               if (character == ';')
+               {
+                  size_t start = 0;
+                  while ((start < fieldLine.size()) &&
+                         ((fieldLine[start] == ' ') || (fieldLine[start] == '\t') ||
+                          (fieldLine[start] == '\n') || (fieldLine[start] == '\r')))
+                  {
+                     ++start;
+                  }
+                  if (start < fieldLine.size())
+                  {
+                     (*pContext->pOut) << "   " << fieldLine.substr(start) << ";\n";
+                  }
+                  fieldLine.clear();
+               }
+               else if (!atEnd)
+               {
+                  fieldLine.push_back(character);
+               }
+            }
+            (*pContext->pOut) << "} " << name << ";\n\n";
+         }
+      }
+
       void EmitFunctions(EmitContext* pContext)
       {
          const std::vector<Node>& nodes = pContext->pDocument->GetNodes();
@@ -1035,11 +1233,17 @@ namespace Cgen
          DocumentContainsBlockType(document, BlockType::StrCpy) ||
          DocumentContainsBlockType(document, BlockType::StrNCpy) ||
          DocumentContainsBlockType(document, BlockType::StrCmp);
+      const bool usesAssert =
+         DocumentContainsBlockType(document, BlockType::Assert);
 
       stream << "/* Generated by c_code_generator */\n";
       stream << "#include <stdint.h>\n";
       stream << "#include <stdio.h>\n";
       stream << "#include <stdlib.h>\n";
+      if (usesAssert)
+      {
+         stream << "#include <assert.h>\n";
+      }
       if (usesStringHeader)
       {
          stream << "#include <string.h>\n";
@@ -1060,6 +1264,7 @@ namespace Cgen
 
       EmitGlobals(&context);
       stream << "\n";
+      EmitStructDecls(&context);
       EmitFunctions(&context);
 
       const Node* pStart = FindStartNode(document);

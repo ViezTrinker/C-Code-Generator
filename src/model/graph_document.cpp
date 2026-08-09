@@ -290,4 +290,24 @@ namespace Cgen
    {
       _nextEdgeId = nextEdgeId;
    }
+
+   GraphSnapshot GraphDocument::CaptureGraph(void) const
+   {
+      GraphSnapshot snapshot;
+      snapshot.nodes = _nodes;
+      snapshot.edges = _edges;
+      snapshot.nextNodeId = _nextNodeId;
+      snapshot.nextEdgeId = _nextEdgeId;
+      snapshot.dirty = _dirty;
+      return snapshot;
+   }
+
+   void GraphDocument::RestoreGraph(const GraphSnapshot& snapshot)
+   {
+      _nodes = snapshot.nodes;
+      _edges = snapshot.edges;
+      _nextNodeId = snapshot.nextNodeId;
+      _nextEdgeId = snapshot.nextEdgeId;
+      _dirty = snapshot.dirty;
+   }
 } // namespace Cgen

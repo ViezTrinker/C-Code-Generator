@@ -55,14 +55,18 @@ namespace Cgen
       constexpr float BottomHeight = 180.0f;
       constexpr float LeftWidth = 170.0f;
       constexpr float RightWidth = 240.0f;
+      constexpr float PanelGap = 4.0f;
 
       _pToolbar->SetBounds(
          sf::FloatRect(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(width, ToolbarHeight)));
-      _pPalette->SetBounds(sf::FloatRect(sf::Vector2f(0.0f, ToolbarHeight),
-                                         sf::Vector2f(LeftWidth, height - ToolbarHeight - BottomHeight)));
+      _pPalette->SetBounds(sf::FloatRect(
+         sf::Vector2f(0.0f, ToolbarHeight),
+         sf::Vector2f(LeftWidth, height - ToolbarHeight - BottomHeight)));
+      const float canvasX = LeftWidth + PanelGap;
+      const float canvasWidth = width - LeftWidth - RightWidth - (PanelGap * 2.0f);
       _pCanvas->SetBounds(sf::FloatRect(
-         sf::Vector2f(LeftWidth, ToolbarHeight),
-         sf::Vector2f(width - LeftWidth - RightWidth, height - ToolbarHeight - BottomHeight)));
+         sf::Vector2f(canvasX, ToolbarHeight),
+         sf::Vector2f(canvasWidth, height - ToolbarHeight - BottomHeight)));
       _pProperties->SetBounds(sf::FloatRect(
          sf::Vector2f(width - RightWidth, ToolbarHeight),
          sf::Vector2f(RightWidth, height - ToolbarHeight - BottomHeight)));
@@ -70,6 +74,11 @@ namespace Cgen
                                             sf::Vector2f(width * 0.5f, BottomHeight)));
       _pCompilerLog->SetBounds(sf::FloatRect(sf::Vector2f(width * 0.5f, height - BottomHeight),
                                              sf::Vector2f(width * 0.5f, BottomHeight)));
+      const sf::FloatRect overlayBounds(
+         sf::Vector2f(0.0f, ToolbarHeight),
+         sf::Vector2f(width, height - ToolbarHeight - BottomHeight));
+      _pSourceLog->SetBounds(overlayBounds);
+      _pHelpLog->SetBounds(overlayBounds);
    }
 
    void App::UpdateTitle(void)
@@ -87,8 +96,27 @@ namespace Cgen
       _window.setTitle(title);
    }
 
+   void App::SyncSelectionUi(void)
+   {
+      NodeId selectedId = _pCanvas->GetSelectedNodeId();
+      if ((selectedId != 0) && (_document.FindNode(selectedId) == nullptr))
+      {
+         selectedId = 0;
+         _pCanvas->SetSelectedNodeId(0);
+      }
+      _pProperties->SetSelection(&_document, selectedId);
+      UpdateTitle();
+   }
+
    void App::NewDocument(void)
    {
+      CloseSourceView();
+      CloseHelpView();
+      if (_pContextMenu != nullptr)
+      {
+         _pContextMenu->Close();
+      }
+      _history.Clear();
       _document.Reset();
       _pCanvas->SetDocument(&_document);
       _pProperties->SetSelection(&_document, 0);
@@ -176,6 +204,13 @@ namespace Cgen
       }
       _pCanvas->SetDocument(&_document);
       _pProperties->SetSelection(&_document, 0);
+      CloseSourceView();
+      CloseHelpView();
+      if (_pContextMenu != nullptr)
+      {
+         _pContextMenu->Close();
+      }
+      _history.Clear();
       _pCompilerLog->SetText("Loaded " + path + "\n");
       UpdateTitle();
    }
@@ -223,6 +258,140 @@ namespace Cgen
          return;
       }
       _pCompilerLog->Append("Wrote " + _buildRunner.GetSourcePath() + "\n");
+      ShowGeneratedSource();
+   }
+
+   void App::ShowGeneratedSource(void)
+   {
+      CloseHelpView();
+      if (_pContextMenu != nullptr)
+      {
+         _pContextMenu->Close();
+      }
+      std::string display;
+      display.append("// ");
+      display.append(_buildRunner.GetSourcePath());
+      display.append("\n");
+      display.append("// Press Esc to close this view.\n\n");
+      display.append(_lastGeneratedSource);
+      _pSourceLog->SetText(display);
+      _sourceViewVisible = true;
+   }
+
+   void App::CloseSourceView(void)
+   {
+      _sourceViewVisible = false;
+   }
+
+   void App::ShowHelp(void)
+   {
+      CloseSourceView();
+      if (_pContextMenu != nullptr)
+      {
+         _pContextMenu->Close();
+      }
+      _pHelpLog->SetText(
+         "C Code Generator — Help\n"
+         "Press Esc or ? again to close.\n\n"
+         "Editing\n"
+         "- Click a block in the left Blocks panel to place it on the canvas.\n"
+         "- Drag blocks to move them. Middle-drag or empty-drag pans the canvas.\n"
+         "- Mouse wheel zooms the canvas.\n"
+         "- Drag from an output port to an input port to wire blocks.\n"
+         "- Amber ports = control flow, blue ports = data.\n"
+         "- Click a block, then edit its properties on the right (Enter commits).\n\n"
+         "Delete\n"
+         "- Select a block and press Delete or Backspace.\n"
+         "- Right-click a block → Delete Block (Start cannot be deleted).\n"
+         "- Right-click a wired port → Delete Wire.\n\n"
+         "Undo\n"
+         "- Ctrl+Z undoes the last graph edit (place, delete, wire, move, property).\n"
+         "- Ctrl+Y redoes the last undone edit.\n\n"
+         "File & build\n"
+         "- Ctrl+N New, Ctrl+O Open, Ctrl+S Save (.cgen).\n"
+         "- Generate C writes build_out/<name>.c and shows the source.\n"
+         "- Build compiles with gcc. Run executes; type input in Program Output.\n"
+         "- Stop terminates a running program.\n\n"
+         "Help\n"
+         "- Toolbar ? or F1 opens this help.\n");
+      _helpViewVisible = true;
+   }
+
+   void App::CloseHelpView(void)
+   {
+      _helpViewVisible = false;
+   }
+
+   void App::UndoEdit(void)
+   {
+      if (!_history.Undo(&_document))
+      {
+         return;
+      }
+      SyncSelectionUi();
+   }
+
+   void App::RedoEdit(void)
+   {
+      if (!_history.Redo(&_document))
+      {
+         return;
+      }
+      SyncSelectionUi();
+   }
+
+   void App::DeleteSelectedBlock(void)
+   {
+      _pCanvas->DeleteSelection();
+      SyncSelectionUi();
+   }
+
+   void App::OpenCanvasContextMenu(sf::Vector2f screenPoint)
+   {
+      CanvasHitInfo hit;
+      if (!_pCanvas->QueryHit(screenPoint, &hit))
+      {
+         return;
+      }
+      if (hit.kind == CanvasHitKind::Wire)
+      {
+         _pContextMenu->OpenDeleteWire(screenPoint, hit.edgeId);
+         return;
+      }
+      if (hit.kind == CanvasHitKind::Node)
+      {
+         const Node* pNode = _document.FindNode(hit.nodeId);
+         if ((pNode == nullptr) || (pNode->type == BlockType::Start))
+         {
+            _pContextMenu->Close();
+            return;
+         }
+         _pCanvas->SetSelectedNodeId(hit.nodeId);
+         SyncSelectionUi();
+         _pContextMenu->OpenDeleteBlock(screenPoint, hit.nodeId);
+         return;
+      }
+      _pContextMenu->Close();
+   }
+
+   void App::HandleContextMenuClick(sf::Vector2f screenPoint)
+   {
+      NodeId nodeId = 0;
+      EdgeId edgeId = 0;
+      const ContextMenuAction action =
+         _pContextMenu->HitTest(screenPoint, &nodeId, &edgeId);
+      _pContextMenu->Close();
+      if (action == ContextMenuAction::DeleteBlock)
+      {
+         _pCanvas->DeleteNode(nodeId);
+         SyncSelectionUi();
+         return;
+      }
+      if (action == ContextMenuAction::DeleteWire)
+      {
+         _pCanvas->DeleteEdge(edgeId);
+         SyncSelectionUi();
+      }
    }
 
    void App::BuildCode(void)
@@ -347,6 +516,16 @@ namespace Cgen
          case ToolbarAction::Stop:
             StopProgram();
             break;
+         case ToolbarAction::Help:
+            if (_helpViewVisible)
+            {
+               CloseHelpView();
+            }
+            else
+            {
+               ShowHelp();
+            }
+            break;
          case ToolbarAction::None:
             break;
       }
@@ -368,14 +547,23 @@ namespace Cgen
                                                LogInputMode::Enabled);
       _pCompilerLog =
          std::make_unique<LogPane>("Compiler", _font, LogInputMode::Disabled);
+      _pSourceLog = std::make_unique<LogPane>("Generated C (Esc to close)",
+                                              _font,
+                                              LogInputMode::Disabled);
+      _pHelpLog = std::make_unique<LogPane>("Help (Esc to close)",
+                                            _font,
+                                            LogInputMode::Disabled);
+      _pContextMenu = std::make_unique<ContextMenu>(_font);
 
       _pCanvas->SetDocument(&_document);
+      _pCanvas->SetHistory(&_history);
+      _pProperties->SetHistory(&_history);
       Layout();
       UpdateTitle();
-      _pCompilerLog->SetText("Ready. Place blocks from the left palette.\n"
+      _pCompilerLog->SetText("Ready. Click ? for keyboard shortcuts and editing help.\n"
+                             "Place blocks from the left Blocks panel.\n"
                              "Connect amber ports for control flow, blue for data.\n"
-                             "Right-click a port to delete its wire.\n"
-                             "Use Run to execute; type program input in Program Output.\n");
+                             "Delete/Backspace removes the selected block; Ctrl+Z / Ctrl+Y undo/redo.\n");
 
       while (_window.isOpen())
       {
@@ -401,7 +589,35 @@ namespace Cgen
                const ToolbarAction action = _pToolbar->HitTest(point);
                if (action != ToolbarAction::None)
                {
+                  if (_pContextMenu->IsOpen())
+                  {
+                     _pContextMenu->Close();
+                  }
                   HandleToolbar(action);
+               }
+               else if (_pContextMenu->IsOpen())
+               {
+                  if (_pContextMenu->Contains(point))
+                  {
+                     HandleContextMenuClick(point);
+                  }
+                  else
+                  {
+                     _pContextMenu->Close();
+                  }
+               }
+               else if (_helpViewVisible && _pHelpLog->Contains(point))
+               {
+               }
+               else if (_sourceViewVisible && _pSourceLog->Contains(point))
+               {
+               }
+               else if (pMousePress->button == sf::Mouse::Button::Right)
+               {
+                  if (_pCanvas->Contains(point))
+                  {
+                     OpenCanvasContextMenu(point);
+                  }
                }
                else
                {
@@ -409,8 +625,10 @@ namespace Cgen
                   if (_pPalette->HitTest(point, &placeType))
                   {
                      _pCanvas->PlaceBlock(placeType, point);
-                     _pProperties->SetSelection(&_document, _pCanvas->GetSelectedNodeId());
-                     UpdateTitle();
+                     SyncSelectionUi();
+                  }
+                  else if (_pPalette->Contains(point))
+                  {
                   }
                   else if (_pProgramLog->HandleClick(point))
                   {
@@ -420,38 +638,50 @@ namespace Cgen
                   }
                   else if (_pCanvas->HandleMousePress(pMousePress->button, point))
                   {
-                     _pProperties->SetSelection(&_document, _pCanvas->GetSelectedNodeId());
-                     UpdateTitle();
+                     SyncSelectionUi();
                   }
                }
             }
             else if (const auto* pMouseRelease = event->getIf<sf::Event::MouseButtonReleased>())
             {
-               const sf::Vector2f point(static_cast<float>(pMouseRelease->position.x),
-                                        static_cast<float>(pMouseRelease->position.y));
-               _pCanvas->HandleMouseRelease(pMouseRelease->button, point);
+               if ((!_sourceViewVisible) && (!_helpViewVisible))
+               {
+                  const sf::Vector2f point(static_cast<float>(pMouseRelease->position.x),
+                                           static_cast<float>(pMouseRelease->position.y));
+                  _pCanvas->HandleMouseRelease(pMouseRelease->button, point);
+                  SyncSelectionUi();
+               }
             }
             else if (const auto* pMouseMove = event->getIf<sf::Event::MouseMoved>())
             {
-               const sf::Vector2f point(static_cast<float>(pMouseMove->position.x),
-                                        static_cast<float>(pMouseMove->position.y));
-               _pCanvas->HandleMouseMove(point);
-               if (_document.IsDirty())
+               if ((!_sourceViewVisible) && (!_helpViewVisible))
                {
-                  UpdateTitle();
+                  const sf::Vector2f point(static_cast<float>(pMouseMove->position.x),
+                                           static_cast<float>(pMouseMove->position.y));
+                  _pCanvas->HandleMouseMove(point);
+                  if (_document.IsDirty())
+                  {
+                     UpdateTitle();
+                  }
                }
             }
             else if (const auto* pWheel = event->getIf<sf::Event::MouseWheelScrolled>())
             {
                const sf::Vector2f point(static_cast<float>(pWheel->position.x),
                                         static_cast<float>(pWheel->position.y));
-               if (_pProgramLog->HandleWheel(pWheel->delta, point))
+               if (_helpViewVisible && _pHelpLog->HandleWheel(pWheel->delta, point))
+               {
+               }
+               else if (_sourceViewVisible && _pSourceLog->HandleWheel(pWheel->delta, point))
+               {
+               }
+               else if (_pProgramLog->HandleWheel(pWheel->delta, point))
                {
                }
                else if (_pCompilerLog->HandleWheel(pWheel->delta, point))
                {
                }
-               else
+               else if ((!_sourceViewVisible) && (!_helpViewVisible))
                {
                   _pCanvas->HandleWheel(pWheel->delta, point);
                }
@@ -465,30 +695,60 @@ namespace Cgen
             }
             else if (const auto* pKey = event->getIf<sf::Event::KeyPressed>())
             {
-               if (_pProgramLog->HandleKey(pKey->code))
+               if (pKey->code == sf::Keyboard::Key::Escape)
+               {
+                  if (_pContextMenu->IsOpen())
+                  {
+                     _pContextMenu->Close();
+                  }
+                  else if (_helpViewVisible)
+                  {
+                     CloseHelpView();
+                  }
+                  else if (_sourceViewVisible)
+                  {
+                     CloseSourceView();
+                  }
+               }
+               else if (pKey->code == sf::Keyboard::Key::F1)
+               {
+                  if (_helpViewVisible)
+                  {
+                     CloseHelpView();
+                  }
+                  else
+                  {
+                     ShowHelp();
+                  }
+               }
+               else if (_pProgramLog->HandleKey(pKey->code))
                {
                }
                else if (_pProperties->HandleKey(pKey->code))
                {
                }
-               else if (pKey->code == sf::Keyboard::Key::Delete)
+               else if ((pKey->code == sf::Keyboard::Key::Delete) ||
+                        (pKey->code == sf::Keyboard::Key::Backspace))
                {
-                  _pCanvas->DeleteSelection();
-                  _pProperties->SetSelection(&_document, _pCanvas->GetSelectedNodeId());
-                  UpdateTitle();
+                  DeleteSelectedBlock();
                }
-               else if ((pKey->code == sf::Keyboard::Key::S) &&
-                        (pKey->control))
+               else if ((pKey->code == sf::Keyboard::Key::Z) && (pKey->control))
+               {
+                  UndoEdit();
+               }
+               else if ((pKey->code == sf::Keyboard::Key::Y) && (pKey->control))
+               {
+                  RedoEdit();
+               }
+               else if ((pKey->code == sf::Keyboard::Key::S) && (pKey->control))
                {
                   SaveDocument();
                }
-               else if ((pKey->code == sf::Keyboard::Key::O) &&
-                        (pKey->control))
+               else if ((pKey->code == sf::Keyboard::Key::O) && (pKey->control))
                {
                   OpenDocument();
                }
-               else if ((pKey->code == sf::Keyboard::Key::N) &&
-                        (pKey->control))
+               else if ((pKey->code == sf::Keyboard::Key::N) && (pKey->control))
                {
                   NewDocument();
                }
@@ -499,11 +759,20 @@ namespace Cgen
 
          _window.clear(sf::Color(20, 22, 26));
          _pToolbar->Draw(&_window);
-         _pPalette->Draw(&_window);
          _pCanvas->Draw(&_window);
+         _pPalette->Draw(&_window);
          _pProperties->Draw(&_window);
          _pProgramLog->Draw(&_window);
          _pCompilerLog->Draw(&_window);
+         if (_sourceViewVisible)
+         {
+            _pSourceLog->Draw(&_window);
+         }
+         if (_helpViewVisible)
+         {
+            _pHelpLog->Draw(&_window);
+         }
+         _pContextMenu->Draw(&_window);
          _window.display();
       }
       StopProgram();

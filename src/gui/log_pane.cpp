@@ -36,6 +36,11 @@ namespace Cgen
       ClampScroll();
    }
 
+   bool LogPane::Contains(sf::Vector2f point) const
+   {
+      return _bounds.contains(point);
+   }
+
    sf::FloatRect LogPane::BodyBounds(void) const
    {
       float bottom = _bounds.position.y + _bounds.size.y - 8.0f;
@@ -231,6 +236,11 @@ namespace Cgen
       if (keyCode == sf::Keyboard::Key::Escape)
       {
          _inputFocused = false;
+         return true;
+      }
+      if ((keyCode == sf::Keyboard::Key::Backspace) ||
+          (keyCode == sf::Keyboard::Key::Delete))
+      {
          return true;
       }
       return false;

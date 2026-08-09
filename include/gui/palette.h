@@ -34,6 +34,13 @@ namespace Cgen
       void SetBounds(const sf::FloatRect& bounds);
 
       /*!
+       *\brief Returns true if the point lies inside the palette.
+       *
+       *\param[in] point Mouse position.
+       */
+      bool Contains(sf::Vector2f point) const;
+
+      /*!
        *\brief Hit-tests a click and returns a block type to place.
        *
        *\param[in] point Mouse position.

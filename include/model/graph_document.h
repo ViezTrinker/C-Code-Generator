@@ -17,6 +17,18 @@
 namespace Cgen
 {
    /*!
+    *\brief Serializable graph contents used for undo checkpoints.
+    */
+   struct GraphSnapshot
+   {
+      std::vector<Node> nodes;
+      std::vector<Edge> edges;
+      NodeId nextNodeId = 1;
+      EdgeId nextEdgeId = 1;
+      bool dirty = false;
+   };
+
+   /*!
     *\brief Complete editable flowchart document.
     */
    class GraphDocument
@@ -199,6 +211,20 @@ namespace Cgen
        *\param[in] nextEdgeId Counter value.
        */
       void SetNextEdgeId(EdgeId nextEdgeId);
+
+      /*!
+       *\brief Captures nodes, edges, and id counters (viewport excluded).
+       *
+       *\return Graph snapshot for undo.
+       */
+      GraphSnapshot CaptureGraph(void) const;
+
+      /*!
+       *\brief Restores nodes, edges, and id counters from a snapshot.
+       *
+       *\param[in] snapshot Previously captured graph state.
+       */
+      void RestoreGraph(const GraphSnapshot& snapshot);
 
    private:
       std::vector<Node> _nodes;

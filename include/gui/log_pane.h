@@ -49,6 +49,13 @@ namespace Cgen
       void SetBounds(const sf::FloatRect& bounds);
 
       /*!
+       *\brief Returns true if the point lies inside the pane bounds.
+       *
+       *\param[in] point Mouse position.
+       */
+      bool Contains(sf::Vector2f point) const;
+
+      /*!
        *\brief Clears log text and resets scroll to the bottom.
        */
       void Clear(void);

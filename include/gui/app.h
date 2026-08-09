@@ -14,6 +14,8 @@
 #include "build/build_runner.h"
 #include "build/process_session.h"
 #include "gui/canvas_view.h"
+#include "gui/context_menu.h"
+#include "gui/document_history.h"
 #include "gui/log_pane.h"
 #include "gui/palette.h"
 #include "gui/property_panel.h"
@@ -51,6 +53,16 @@ namespace Cgen
       void RunProgram(void);
       void StopProgram(void);
       void PollProgramSession(void);
+      void ShowGeneratedSource(void);
+      void CloseSourceView(void);
+      void ShowHelp(void);
+      void CloseHelpView(void);
+      void UndoEdit(void);
+      void RedoEdit(void);
+      void DeleteSelectedBlock(void);
+      void OpenCanvasContextMenu(sf::Vector2f screenPoint);
+      void HandleContextMenuClick(sf::Vector2f screenPoint);
+      void SyncSelectionUi(void);
       void UpdateTitle(void);
       bool LoadFont(void);
       bool PromptOpenPath(std::string* pOutPath);
@@ -59,15 +71,21 @@ namespace Cgen
       sf::RenderWindow _window;
       sf::Font _font;
       GraphDocument _document;
+      DocumentHistory _history;
       BuildRunner _buildRunner;
       ProcessSession _programSession;
       bool _programSessionActive = false;
+      bool _sourceViewVisible = false;
+      bool _helpViewVisible = false;
       std::unique_ptr<Toolbar> _pToolbar;
       std::unique_ptr<Palette> _pPalette;
       std::unique_ptr<CanvasView> _pCanvas;
       std::unique_ptr<PropertyPanel> _pProperties;
       std::unique_ptr<LogPane> _pProgramLog;
       std::unique_ptr<LogPane> _pCompilerLog;
+      std::unique_ptr<LogPane> _pSourceLog;
+      std::unique_ptr<LogPane> _pHelpLog;
+      std::unique_ptr<ContextMenu> _pContextMenu;
       std::string _lastGeneratedSource;
    };
 } // namespace Cgen

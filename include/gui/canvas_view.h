@@ -5,15 +5,38 @@
 #ifndef CANVAS_VIEW_H
 #define CANVAS_VIEW_H
 
+#include <cstdint>
 #include <optional>
 #include <string>
 
 #include <SFML/Graphics.hpp>
 
+#include "gui/document_history.h"
 #include "model/graph_document.h"
 
 namespace Cgen
 {
+   /*!
+    *\brief Kind of object under a canvas query point.
+    */
+   enum class CanvasHitKind: uint8_t
+   {
+      None = 0,
+      Empty,
+      Node,
+      Wire
+   };
+
+   /*!
+    *\brief Result of querying the canvas under the cursor.
+    */
+   struct CanvasHitInfo
+   {
+      CanvasHitKind kind = CanvasHitKind::None;
+      NodeId nodeId = 0;
+      EdgeId edgeId = 0;
+   };
+
    /*!
     *\brief Interactive graph canvas.
     */
@@ -42,9 +65,30 @@ namespace Cgen
       void SetDocument(GraphDocument* pDocument);
 
       /*!
+       *\brief Binds the undo history used before edits.
+       *
+       *\param[in,out] pHistory History pointer, or nullptr.
+       */
+      void SetHistory(DocumentHistory* pHistory);
+
+      /*!
+       *\brief Returns true if the point lies inside the canvas bounds.
+       *
+       *\param[in] point Screen position.
+       */
+      bool Contains(sf::Vector2f point) const;
+
+      /*!
        *\brief Returns the selected node id, or 0.
        */
       NodeId GetSelectedNodeId(void) const;
+
+      /*!
+       *\brief Sets the selected node id.
+       *
+       *\param[in] nodeId Node id, or 0 to clear.
+       */
+      void SetSelectedNodeId(NodeId nodeId);
 
       /*!
        *\brief Places a block at the current mouse world position.
@@ -53,6 +97,15 @@ namespace Cgen
        *\param[in] screenPoint Screen mouse position.
        */
       void PlaceBlock(BlockType blockType, sf::Vector2f screenPoint);
+
+      /*!
+       *\brief Queries what lies under a screen point.
+       *
+       *\param[in] screenPoint Screen position.
+       *\param[out] pOutHit Hit details.
+       *\return true if the point is inside the canvas.
+       */
+      bool QueryHit(sf::Vector2f screenPoint, CanvasHitInfo* pOutHit) const;
 
       /*!
        *\brief Handles mouse button press.
@@ -93,6 +146,20 @@ namespace Cgen
       void DeleteSelection(void);
 
       /*!
+       *\brief Removes an edge by id with an undo checkpoint.
+       *
+       *\param[in] edgeId Edge to remove.
+       */
+      void DeleteEdge(EdgeId edgeId);
+
+      /*!
+       *\brief Removes a node by id with an undo checkpoint.
+       *
+       *\param[in] nodeId Node to remove.
+       */
+      void DeleteNode(NodeId nodeId);
+
+      /*!
        *\brief Draws the canvas.
        *
        *\param[in,out] pTarget Render target.
@@ -115,13 +182,16 @@ namespace Cgen
       sf::Vector2f PortWorldPosition(const Node& node, size_t portIndex) const;
       bool HitTestPort(sf::Vector2f worldPoint, PortHit* pOutHit) const;
       NodeId HitTestNode(sf::Vector2f worldPoint) const;
+      void PushCheckpoint(void);
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
       GraphDocument* _pDocument = nullptr;
+      DocumentHistory* _pHistory = nullptr;
       NodeId _selectedNodeId = 0;
       bool _isPanning = false;
       bool _isDraggingNode = false;
+      bool _dragCheckpointTaken = false;
       sf::Vector2f _lastScreenPoint {};
       std::optional<PortHit> _wireStart;
       sf::Vector2f _wirePreviewWorld {};

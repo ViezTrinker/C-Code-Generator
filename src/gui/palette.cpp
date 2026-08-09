@@ -73,6 +73,11 @@ namespace Cgen
       }
    }
 
+   bool Palette::Contains(sf::Vector2f point) const
+   {
+      return _bounds.contains(point);
+   }
+
    bool Palette::HitTest(sf::Vector2f point, BlockType* pOutType) const
    {
       if (pOutType == nullptr)
@@ -100,6 +105,8 @@ namespace Cgen
       background.setPosition(_bounds.position);
       background.setSize(_bounds.size);
       background.setFillColor(sf::Color(35, 38, 44));
+      background.setOutlineColor(sf::Color(70, 76, 90));
+      background.setOutlineThickness(1.0f);
       pTarget->draw(background);
 
       sf::Text title(*_pFont, "Blocks", 16);

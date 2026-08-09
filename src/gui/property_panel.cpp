@@ -19,6 +19,11 @@ namespace Cgen
       RebuildFields();
    }
 
+   void PropertyPanel::SetHistory(DocumentHistory* pHistory)
+   {
+      _pHistory = pHistory;
+   }
+
    void PropertyPanel::SetSelection(GraphDocument* pDocument, NodeId selectedNodeId)
    {
       CommitActiveField();
@@ -72,6 +77,15 @@ namespace Cgen
          return;
       }
       const Field& field = _fields[static_cast<size_t>(_activeFieldIndex)];
+      const auto found = pNode->properties.find(field.key);
+      if ((found != pNode->properties.end()) && (found->second == field.value))
+      {
+         return;
+      }
+      if (_pHistory != nullptr)
+      {
+         _pHistory->PushCheckpoint(*_pDocument);
+      }
       pNode->properties[field.key] = field.value;
       _pDocument->SetDirty(true);
    }
@@ -139,6 +153,11 @@ namespace Cgen
       {
          RebuildFields();
          _activeFieldIndex = -1;
+         return true;
+      }
+      if ((keyCode == sf::Keyboard::Key::Backspace) ||
+          (keyCode == sf::Keyboard::Key::Delete))
+      {
          return true;
       }
       return false;

@@ -21,6 +21,8 @@ set(PROJECT_HEADERS
    include/build/process_session.h
    include/gui/app.h
    include/gui/canvas_view.h
+   include/gui/context_menu.h
+   include/gui/document_history.h
    include/gui/log_pane.h
    include/gui/palette.h
    include/gui/property_panel.h
@@ -38,6 +40,8 @@ set(PROJECT_SOURCES
    src/build/process_session.cpp
    src/gui/app.cpp
    src/gui/canvas_view.cpp
+   src/gui/context_menu.cpp
+   src/gui/document_history.cpp
    src/gui/log_pane.cpp
    src/gui/palette.cpp
    src/gui/property_panel.cpp

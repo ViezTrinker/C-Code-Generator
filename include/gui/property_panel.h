@@ -12,6 +12,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Event.hpp>
 
+#include "gui/document_history.h"
 #include "model/graph_document.h"
 
 namespace Cgen
@@ -35,6 +36,13 @@ namespace Cgen
        *\param[in] bounds Pixel bounds.
        */
       void SetBounds(const sf::FloatRect& bounds);
+
+      /*!
+       *\brief Binds undo history used before property commits.
+       *
+       *\param[in,out] pHistory History pointer, or nullptr.
+       */
+      void SetHistory(DocumentHistory* pHistory);
 
       /*!
        *\brief Syncs UI with the selected node.
@@ -89,6 +97,7 @@ namespace Cgen
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
       GraphDocument* _pDocument = nullptr;
+      DocumentHistory* _pHistory = nullptr;
       NodeId _selectedNodeId = 0;
       std::vector<Field> _fields;
       int32_t _activeFieldIndex = -1;

@@ -30,11 +30,37 @@ namespace Cgen
       _pDocument = pDocument;
       _selectedNodeId = 0;
       _wireStart.reset();
+      _isDraggingNode = false;
+      _isPanning = false;
+      _dragCheckpointTaken = false;
+   }
+
+   void CanvasView::SetHistory(DocumentHistory* pHistory)
+   {
+      _pHistory = pHistory;
+   }
+
+   bool CanvasView::Contains(sf::Vector2f point) const
+   {
+      return _bounds.contains(point);
    }
 
    NodeId CanvasView::GetSelectedNodeId(void) const
    {
       return _selectedNodeId;
+   }
+
+   void CanvasView::SetSelectedNodeId(NodeId nodeId)
+   {
+      _selectedNodeId = nodeId;
+   }
+
+   void CanvasView::PushCheckpoint(void)
+   {
+      if ((_pHistory != nullptr) && (_pDocument != nullptr))
+      {
+         _pHistory->PushCheckpoint(*_pDocument);
+      }
    }
 
    sf::Vector2f CanvasView::ScreenToWorld(sf::Vector2f screenPoint) const
@@ -140,6 +166,46 @@ namespace Cgen
       return 0;
    }
 
+   bool CanvasView::QueryHit(sf::Vector2f screenPoint, CanvasHitInfo* pOutHit) const
+   {
+      if ((pOutHit == nullptr) || (_pDocument == nullptr) || (!_bounds.contains(screenPoint)))
+      {
+         return false;
+      }
+
+      pOutHit->kind = CanvasHitKind::Empty;
+      pOutHit->nodeId = 0;
+      pOutHit->edgeId = 0;
+
+      const sf::Vector2f world = ScreenToWorld(screenPoint);
+      PortHit portHit;
+      if (HitTestPort(world, &portHit))
+      {
+         const Edge* pOutgoing =
+            _pDocument->FindOutgoingEdge(portHit.nodeId, portHit.portName);
+         const Edge* pIncoming =
+            _pDocument->FindIncomingEdge(portHit.nodeId, portHit.portName);
+         const Edge* pEdge = (pOutgoing != nullptr) ? pOutgoing : pIncoming;
+         if (pEdge != nullptr)
+         {
+            pOutHit->kind = CanvasHitKind::Wire;
+            pOutHit->edgeId = pEdge->id;
+            pOutHit->nodeId = portHit.nodeId;
+            return true;
+         }
+      }
+
+      const NodeId hitNode = HitTestNode(world);
+      if (hitNode != 0)
+      {
+         pOutHit->kind = CanvasHitKind::Node;
+         pOutHit->nodeId = hitNode;
+         return true;
+      }
+
+      return true;
+   }
+
    void CanvasView::PlaceBlock(BlockType blockType, sf::Vector2f screenPoint)
    {
       if (_pDocument == nullptr)
@@ -153,6 +219,7 @@ namespace Cgen
             _bounds.position.y + (_bounds.size.y * 0.5f));
          screenPoint = centerScreen;
       }
+      PushCheckpoint();
       const sf::Vector2f world = ScreenToWorld(screenPoint);
       const NodeId id = _pDocument->AddNode(blockType, world.x, world.y);
       _selectedNodeId = id;
@@ -175,24 +242,6 @@ namespace Cgen
 
       if (button == sf::Mouse::Button::Right)
       {
-         PortHit hit;
-         if (HitTestPort(world, &hit))
-         {
-            const std::vector<Edge>& edges = _pDocument->GetEdges();
-            for (size_t index = 0; index < edges.size(); ++index)
-            {
-               const Edge& edge = edges[index];
-               const bool matchesFrom =
-                  (edge.fromNodeId == hit.nodeId) && (edge.fromPort == hit.portName);
-               const bool matchesTo =
-                  (edge.toNodeId == hit.nodeId) && (edge.toPort == hit.portName);
-               if (matchesFrom || matchesTo)
-               {
-                  _pDocument->RemoveEdge(edge.id);
-                  return true;
-               }
-            }
-         }
          return true;
       }
 
@@ -211,6 +260,7 @@ namespace Cgen
          }
          else if (_wireStart.has_value())
          {
+            PushCheckpoint();
             _pDocument->Connect(_wireStart->nodeId,
                                 _wireStart->portName,
                                 portHit.nodeId,
@@ -226,6 +276,7 @@ namespace Cgen
       if (hitNode != 0)
       {
          _isDraggingNode = true;
+         _dragCheckpointTaken = false;
       }
       else
       {
@@ -236,11 +287,8 @@ namespace Cgen
 
    bool CanvasView::HandleMouseRelease(sf::Mouse::Button button, sf::Vector2f screenPoint)
    {
-      (void)screenPoint;
       if (button == sf::Mouse::Button::Left)
       {
-         _isDraggingNode = false;
-         _isPanning = false;
          if (_wireStart.has_value())
          {
             const sf::Vector2f world = ScreenToWorld(screenPoint);
@@ -248,6 +296,7 @@ namespace Cgen
             if (HitTestPort(world, &portHit) &&
                 (portHit.direction == PortDirection::In))
             {
+               PushCheckpoint();
                _pDocument->Connect(_wireStart->nodeId,
                                    _wireStart->portName,
                                    portHit.nodeId,
@@ -256,6 +305,9 @@ namespace Cgen
             }
             _wireStart.reset();
          }
+         _isDraggingNode = false;
+         _isPanning = false;
+         _dragCheckpointTaken = false;
          return true;
       }
       if (button == sf::Mouse::Button::Middle)
@@ -288,6 +340,11 @@ namespace Cgen
 
       if (_isDraggingNode && (_selectedNodeId != 0))
       {
+         if (!_dragCheckpointTaken)
+         {
+            PushCheckpoint();
+            _dragCheckpointTaken = true;
+         }
          Node* pNode = _pDocument->FindNodeMutable(_selectedNodeId);
          if (pNode != nullptr)
          {
@@ -327,13 +384,45 @@ namespace Cgen
 
    void CanvasView::DeleteSelection(void)
    {
-      if ((_pDocument == nullptr) || (_selectedNodeId == 0))
+      if (_selectedNodeId == 0)
       {
          return;
       }
-      if (IsOk(_pDocument->RemoveNode(_selectedNodeId)))
+      DeleteNode(_selectedNodeId);
+   }
+
+   void CanvasView::DeleteEdge(EdgeId edgeId)
+   {
+      if (_pDocument == nullptr)
       {
-         _selectedNodeId = 0;
+         return;
+      }
+      PushCheckpoint();
+      _pDocument->RemoveEdge(edgeId);
+   }
+
+   void CanvasView::DeleteNode(NodeId nodeId)
+   {
+      if (_pDocument == nullptr)
+      {
+         return;
+      }
+      const Node* pNode = _pDocument->FindNode(nodeId);
+      if (pNode == nullptr)
+      {
+         return;
+      }
+      if (pNode->type == BlockType::Start)
+      {
+         return;
+      }
+      PushCheckpoint();
+      if (IsOk(_pDocument->RemoveNode(nodeId)))
+      {
+         if (_selectedNodeId == nodeId)
+         {
+            _selectedNodeId = 0;
+         }
       }
    }
 
@@ -343,6 +432,26 @@ namespace Cgen
       {
          return;
       }
+
+      const sf::View previousView = pTarget->getView();
+      const auto targetSize = pTarget->getSize();
+      if ((targetSize.x == 0u) || (targetSize.y == 0u) ||
+          (_bounds.size.x <= 0.0f) || (_bounds.size.y <= 0.0f))
+      {
+         return;
+      }
+
+      sf::View clipView;
+      clipView.setSize(_bounds.size);
+      clipView.setCenter(sf::Vector2f(
+         _bounds.position.x + (_bounds.size.x * 0.5f),
+         _bounds.position.y + (_bounds.size.y * 0.5f)));
+      clipView.setViewport(sf::FloatRect(
+         sf::Vector2f(_bounds.position.x / static_cast<float>(targetSize.x),
+                      _bounds.position.y / static_cast<float>(targetSize.y)),
+         sf::Vector2f(_bounds.size.x / static_cast<float>(targetSize.x),
+                      _bounds.size.y / static_cast<float>(targetSize.y))));
+      pTarget->setView(clipView);
 
       sf::RectangleShape background;
       background.setPosition(_bounds.position);
@@ -465,5 +574,7 @@ namespace Cgen
             pTarget->draw(circle);
          }
       }
+
+      pTarget->setView(previousView);
    }
 } // namespace Cgen

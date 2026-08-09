@@ -113,13 +113,15 @@ Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffe
 
 ## Usage
 
-- Place blocks from the left palette
+- Place blocks from the left **Blocks** panel (separated from the canvas)
 - Drag nodes; connect amber **control** ports and blue **data** ports
-- Right-click a port to remove its wire; Delete removes the selected node
+- Right-click a block for **Delete Block**, or a wired port for **Delete Wire**
+- **Delete** / **Backspace** removes the selected block (not Start); **Ctrl+Z** undoes, **Ctrl+Y** redoes
 - Edit properties on the right (click a field, type, Enter to commit)
-- **Generate C** writes `build_out/<cgen-name>.c` (e.g. `add_two_integers.cgen` → `add_two_integers.c`; unsaved docs use `untitled.c`)
+- **Generate C** writes `build_out/<cgen-name>.c` and opens a scrollable source view (Esc closes it)
 - **Build** runs `gcc`; logs appear in the Compiler pane
-- **Run** starts the program in the background and streams stdout into Program Output; type into the input line at the bottom of that pane for `scanf` / Enter prompts; **Stop** kills infinite loops
+- **Run** starts the program in the background and streams stdout into Program Output; type into the input line at the bottom of that pane for `scanf` / Enter prompts; **Stop** kills a running program
+- **?** / **F1** opens in-app help
 - **Save/Open** uses the `.cgen` (CGEN 1 + JSON) project format
 
 ## Layout

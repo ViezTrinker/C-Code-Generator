@@ -94,3 +94,109 @@ TEST(GraphValidatorTest, ReportsBreakOutsideLoop)
    }
    EXPECT_TRUE(found);
 }
+
+TEST(GraphValidatorTest, WarnsUnusedDeclaration)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId declId =
+      document.AddNode(Cgen::BlockType::VariableDecl, 200.0f, 40.0f);
+   document.FindNodeMutable(declId)->properties["name"] = "orphan";
+   document.FindNodeMutable(declId)->properties["type"] = "int32_t";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", declId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(declId, "Next", endId, "In", nullptr)));
+
+   const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+   bool found = false;
+   for (size_t index = 0; index < report.issues.size(); ++index)
+   {
+      if ((report.issues[index].nodeId == declId) &&
+          (report.issues[index].severity == Cgen::ValidationSeverity::Warning) &&
+          (report.issues[index].message.find("Unused declaration") != std::string::npos))
+      {
+         found = true;
+         break;
+      }
+   }
+   EXPECT_TRUE(found);
+}
+
+TEST(GraphValidatorTest, ReportsMissingSwitchValue)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId switchId =
+      document.AddNode(Cgen::BlockType::Switch, 200.0f, 40.0f);
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", switchId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(switchId, "Default", endId, "In", nullptr)));
+
+   const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+   bool found = false;
+   for (size_t index = 0; index < report.issues.size(); ++index)
+   {
+      if ((report.issues[index].nodeId == switchId) &&
+          (report.issues[index].severity == Cgen::ValidationSeverity::Error) &&
+          (report.issues[index].message.find("Value") != std::string::npos))
+      {
+         found = true;
+         break;
+      }
+   }
+   EXPECT_TRUE(found);
+}
+
+TEST(GraphValidatorTest, WarnsMissingSwitchDefault)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId switchId =
+      document.AddNode(Cgen::BlockType::Switch, 200.0f, 40.0f);
+   const Cgen::NodeId litId =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 200.0f);
+   document.FindNodeMutable(litId)->properties["value"] = "1";
+   document.FindNodeMutable(litId)->properties["type"] = "int32_t";
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", switchId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(litId, "Value", switchId, "Value", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(switchId, "Cases", endId, "In", nullptr)));
+
+   const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+   bool found = false;
+   for (size_t index = 0; index < report.issues.size(); ++index)
+   {
+      if ((report.issues[index].nodeId == switchId) &&
+          (report.issues[index].severity == Cgen::ValidationSeverity::Warning) &&
+          (report.issues[index].message.find("Default") != std::string::npos))
+      {
+         found = true;
+         break;
+      }
+   }
+   EXPECT_TRUE(found);
+}
+
+TEST(GraphValidatorTest, WarnsUnreachableEnd)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 400.0f, 40.0f);
+   const Cgen::NodeId orphanEndId =
+      document.AddNode(Cgen::BlockType::End, 400.0f, 200.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", endId, "In", nullptr)));
+
+   const Cgen::ValidationReport report = Cgen::ValidateGraph(document);
+   bool found = false;
+   for (size_t index = 0; index < report.issues.size(); ++index)
+   {
+      if ((report.issues[index].nodeId == orphanEndId) &&
+          (report.issues[index].severity == Cgen::ValidationSeverity::Warning) &&
+          (report.issues[index].message.find("Unreachable End") != std::string::npos))
+      {
+         found = true;
+         break;
+      }
+   }
+   EXPECT_TRUE(found);
+}

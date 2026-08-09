@@ -28,7 +28,9 @@ namespace Cgen
       Run,
       Stop,
       Tidy,
-      Help
+      Help,
+      FitAll,
+      FitSelection
    };
 
    /*!

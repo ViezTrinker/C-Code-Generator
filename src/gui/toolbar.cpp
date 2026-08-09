@@ -17,16 +17,18 @@ namespace Cgen
       _buttons.push_back({ToolbarAction::Run, "Run", {}});
       _buttons.push_back({ToolbarAction::Stop, "Stop", {}});
       _buttons.push_back({ToolbarAction::Tidy, "Tidy", {}});
+      _buttons.push_back({ToolbarAction::FitAll, "Fit", {}});
+      _buttons.push_back({ToolbarAction::FitSelection, "Fit Sel", {}});
       _buttons.push_back({ToolbarAction::Help, "?", {}});
    }
 
    void Toolbar::SetBounds(const sf::FloatRect& bounds)
    {
       _bounds = bounds;
-      constexpr float ButtonWidth = 84.0f;
+      constexpr float ButtonWidth = 72.0f;
       constexpr float HelpButtonWidth = 36.0f;
       constexpr float ButtonHeight = 28.0f;
-      constexpr float Gap = 5.0f;
+      constexpr float Gap = 4.0f;
       float cursorX = bounds.position.x + 8.0f;
       const float cursorY = bounds.position.y + 6.0f;
       for (size_t index = 0; index < _buttons.size(); ++index)

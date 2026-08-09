@@ -338,12 +338,15 @@ namespace Cgen
          "- Ctrl+Z undoes up to 64 graph edits (place, delete, wire, tidy, property commit).\n"
          "- Each Enter-committed property change is one undo step; a node drag is one step.\n"
          "- Ctrl+Y redoes the last undone edit.\n"
-         "- Tidy or Ctrl+L auto-layouts control flow left-to-right.\n\n"
+         "- Tidy or Ctrl+L auto-layouts control flow left-to-right.\n"
+         "- Fit / Ctrl+0 fits all blocks; Fit Sel / Ctrl+Shift+0 fits the selection.\n"
+         "- Bottom-right minimap: click or drag to jump around large graphs.\n\n"
          "File & build\n"
          "- Ctrl+N New, Ctrl+O Open, Ctrl+S Save (.cgen).\n"
          "- Generate C validates the graph (click issues to jump), writes .c, shows source.\n"
          "- Build compiles with gcc. Run executes; type input in Program Output.\n"
-         "- Stop terminates a running program.\n\n"
+         "- Stop terminates a running program.\n"
+         "- CLI: --codegen writes only; add --compile or --run as needed.\n\n"
          "Help\n"
          "- Toolbar ? or F1 opens this help.\n");
       _helpViewVisible = true;
@@ -555,6 +558,12 @@ namespace Cgen
          case ToolbarAction::Tidy:
             _pCanvas->TidyLayout();
             SyncSelectionUi();
+            break;
+         case ToolbarAction::FitAll:
+            _pCanvas->FitAllNodes();
+            break;
+         case ToolbarAction::FitSelection:
+            _pCanvas->FitSelection();
             break;
          case ToolbarAction::Help:
             if (_helpViewVisible)
@@ -865,6 +874,15 @@ namespace Cgen
                {
                   _pCanvas->TidyLayout();
                   SyncSelectionUi();
+               }
+               else if ((pKey->code == sf::Keyboard::Key::Num0) && (pKey->control) &&
+                        (pKey->shift))
+               {
+                  _pCanvas->FitSelection();
+               }
+               else if ((pKey->code == sf::Keyboard::Key::Num0) && (pKey->control))
+               {
+                  _pCanvas->FitAllNodes();
                }
                else if (_pCanvas->HandlePanKey(pKey->code))
                {

@@ -54,7 +54,11 @@ cmake --build build
 .\build\c_code_generator.exe
 .\build\c_code_generator.exe --self-test
 .\build\c_code_generator.exe --codegen examples\add_two_integers.cgen
+.\build\c_code_generator.exe --codegen examples\add_two_integers.cgen --compile
+.\build\c_code_generator.exe --codegen examples\add_two_integers.cgen --run
 ```
+
+`--codegen` writes C into `build_out/` only. Add `--compile` to invoke gcc, or `--run` to compile and execute (stdin is only needed with `--run`). Validation errors abort the write; warnings print to stderr.
 
 (MSVC multi-config generators may place the exe under `build\Release\`.)
 
@@ -90,10 +94,10 @@ sum=18
 [`examples/live_clock.cgen`](examples/live_clock.cgen) declares year/month/day/hour/minute/second, fills them with a **Local Time** block each loop iteration, prints `YYYY-MM-DD HH:MM:SS`, then **Sleep**s 1 second in an infinite `while (1)` loop.
 
 ```powershell
-.\build\c_code_generator.exe --codegen examples\live_clock.cgen
+.\build\c_code_generator.exe --codegen examples\live_clock.cgen --run
 ```
 
-This runs until you stop it (Ctrl+C). In the GUI, use **Open** → Build → Run and watch the Program Output pane.
+This runs until you stop it (Ctrl+C). Without `--run`, codegen only writes the `.c` file. In the GUI, use **Open** → Build → Run and watch the Program Output pane.
 
 ### Password generator
 
@@ -108,7 +112,7 @@ Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffe
 
 ```powershell
 # Headless (pipe answers: total digits specials uppers)
-"16`n3`n2`n3" | .\build\c_code_generator.exe --codegen examples\password_generator.cgen
+"16`n3`n2`n3" | .\build\c_code_generator.exe --codegen examples\password_generator.cgen --run
 ```
 
 ### Prime number detector
@@ -120,8 +124,8 @@ Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffe
 - Values `< 2` are treated as not prime
 
 ```powershell
-"8" | .\build\c_code_generator.exe --codegen examples\prime_number_detector.cgen
-"7" | .\build\c_code_generator.exe --codegen examples\prime_number_detector.cgen
+"8" | .\build\c_code_generator.exe --codegen examples\prime_number_detector.cgen --run
+"7" | .\build\c_code_generator.exe --codegen examples\prime_number_detector.cgen --run
 ```
 
 ### Tic Tac Toe
@@ -139,7 +143,7 @@ Lowercase count is `total - digits - specials - uppers`. It fills a `char` buffe
 Uses **File Open** / **File Gets** / **File Printf** / **File Close**, **Local Time**, and **Scanf Char**.
 
 ```powershell
-.\build\c_code_generator.exe --codegen examples\tic_tac_toe.cgen
+.\build\c_code_generator.exe --codegen examples\tic_tac_toe.cgen --run
 ```
 
 History lines look like `X 2026-8-9 14:37:05` (`X` = you won, `O` = AI won, `D` = draw).
@@ -157,7 +161,7 @@ History lines look like `X 2026-8-9 14:37:05` (`X` = you won, `O` = AI won, `D` 
 
 ```powershell
 python scripts\generate_dungeon_log.py
-"HeroName`n`n1`n2`n1.5`n3`n4`nx`n" | .\build\c_code_generator.exe --codegen examples\dungeon_log.cgen
+"HeroName`n`n1`n2`n1.5`n3`n4`nx`n" | .\build\c_code_generator.exe --codegen examples\dungeon_log.cgen --run
 ```
 
 A checked-in C snapshot lives at [`examples/build_out/dungeon_log.c`](examples/build_out/dungeon_log.c).
@@ -173,8 +177,10 @@ A checked-in C snapshot lives at [`examples/build_out/dungeon_log.c`](examples/b
 - Right-click a block for **Delete Block**, or a wired port for **Delete Wire**
 - **Delete** / **Backspace** removes selected blocks (not Start); **Ctrl+Z** / **Ctrl+Y** undo/redo (up to 64 steps)
 - **Tidy** / **Ctrl+L** auto-layouts control flow left-to-right
+- **Fit** / **Ctrl+0** fits the whole graph; **Fit Sel** / **Ctrl+Shift+0** fits the selection; use the bottom-right **minimap** to jump
 - Edit properties on the right (Enter commits; each commit is one undo step); each selection shows a short **C:** preview
-- **Generate C** validates the graph (click an issue in Compiler to jump), writes `build_out/<cgen-name>.c`, and opens a scrollable source view (Esc closes it)
+- **Generate C** validates the graph (unused decls, unwired Switch Value, missing Switch Default, unreachable End, … — click an issue in Compiler to jump), writes `build_out/<cgen-name>.c`, and opens a scrollable source view (Esc closes it)
+- CLI `--codegen` writes only; `--compile` / `--run` are optional
 - **Build** runs `gcc`; logs appear in the Compiler pane
 - **Run** starts the program in the background and streams stdout into Program Output; type into the input line at the bottom of that pane for `scanf` / Enter prompts; **Stop** kills a running program
 - **?** / **F1** opens in-app help

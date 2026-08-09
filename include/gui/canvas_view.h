@@ -112,6 +112,16 @@ namespace Cgen
       void CenterOnNode(NodeId nodeId);
 
       /*!
+       *\brief Zooms and pans so all nodes fit in the canvas.
+       */
+      void FitAllNodes(void);
+
+      /*!
+       *\brief Zooms and pans so the current selection fits (or all if empty).
+       */
+      void FitSelection(void);
+
+      /*!
        *\brief Selects every node in the document.
        */
       void SelectAll(void);
@@ -242,6 +252,10 @@ namespace Cgen
       void ZoomAtScreenPoint(float delta, sf::Vector2f screenPoint);
       void DrawFunctionRegions(sf::RenderTarget* pTarget) const;
       void DrawStickyFunctionHeaders(sf::RenderTarget* pTarget) const;
+      void DrawMinimap(sf::RenderTarget* pTarget) const;
+      sf::FloatRect MinimapScreenRect(void) const;
+      bool HandleMinimapPress(sf::Vector2f screenPoint);
+      void FitNodes(const std::vector<NodeId>& nodeIds);
       void CollectFunctionBodyBounds(NodeId functionId,
                                     float* pOutMinX,
                                     float* pOutMinY,
@@ -259,6 +273,7 @@ namespace Cgen
       bool _isDraggingNode = false;
       bool _isMarquee = false;
       bool _dragCheckpointTaken = false;
+      bool _isMinimapDragging = false;
       sf::Vector2f _lastScreenPoint {};
       sf::Vector2f _marqueeStartWorld {};
       sf::Vector2f _marqueeEndWorld {};

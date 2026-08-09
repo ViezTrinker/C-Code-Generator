@@ -175,6 +175,89 @@ namespace Cgen
          }
       }
 
+      void InsertNamedProperty(const Node& node,
+                               std::string_view key,
+                               std::set<std::string>* pNames)
+      {
+         if (pNames == nullptr)
+         {
+            return;
+         }
+         const std::string value = GetProperty(node, key, "");
+         if (!value.empty())
+         {
+            pNames->insert(value);
+         }
+      }
+
+      void CollectUsedNames(const GraphDocument& document, std::set<std::string>* pNames)
+      {
+         if (pNames == nullptr)
+         {
+            return;
+         }
+
+         for (const Node& node : document.GetNodes())
+         {
+            if (node.type == BlockType::VariableRef)
+            {
+               InsertNamedProperty(node, "name", pNames);
+            }
+            if ((node.type == BlockType::Assign) || (node.type == BlockType::Inc) ||
+                (node.type == BlockType::Dec) || (node.type == BlockType::CompoundAssign))
+            {
+               InsertNamedProperty(node, "target", pNames);
+            }
+            if ((node.type == BlockType::ScanfInt) || (node.type == BlockType::ScanfChar) ||
+                (node.type == BlockType::ScanfFloat) || (node.type == BlockType::ScanfLine))
+            {
+               InsertNamedProperty(node, "target", pNames);
+            }
+            if ((node.type == BlockType::FieldLoad) || (node.type == BlockType::FieldStore))
+            {
+               InsertNamedProperty(node, "object", pNames);
+            }
+            if ((node.type == BlockType::IndexAssign) || (node.type == BlockType::IndexLoad) ||
+                (node.type == BlockType::ShuffleArray))
+            {
+               InsertNamedProperty(node, "array", pNames);
+            }
+            if (node.type == BlockType::StrLen)
+            {
+               InsertNamedProperty(node, "buffer", pNames);
+            }
+            if ((node.type == BlockType::StrCpy) || (node.type == BlockType::StrNCpy) ||
+                (node.type == BlockType::StrCmp))
+            {
+               InsertNamedProperty(node, "dest", pNames);
+               InsertNamedProperty(node, "src", pNames);
+               InsertNamedProperty(node, "left", pNames);
+               InsertNamedProperty(node, "right", pNames);
+            }
+            if ((node.type == BlockType::FileOpen) || (node.type == BlockType::FileClose) ||
+                (node.type == BlockType::FileRead) || (node.type == BlockType::FileWrite) ||
+                (node.type == BlockType::FilePrintf) || (node.type == BlockType::FileGets))
+            {
+               InsertNamedProperty(node, "handle", pNames);
+               InsertNamedProperty(node, "buffer", pNames);
+               InsertNamedProperty(node, "target", pNames);
+            }
+            if (node.type == BlockType::Call)
+            {
+               InsertNamedProperty(node, "storeTo", pNames);
+            }
+            if (node.type == BlockType::LocalTime)
+            {
+               InsertNamedProperty(node, "year", pNames);
+               InsertNamedProperty(node, "month", pNames);
+               InsertNamedProperty(node, "day", pNames);
+               InsertNamedProperty(node, "hour", pNames);
+               InsertNamedProperty(node, "minute", pNames);
+               InsertNamedProperty(node, "second", pNames);
+            }
+         }
+      }
+
       bool PortRequiresData(BlockType blockType, std::string_view portName)
       {
          if (portName == "Cond")
@@ -188,7 +271,8 @@ namespace Cgen
                    (blockType == BlockType::CompoundAssign) ||
                    (blockType == BlockType::FieldStore) ||
                    (blockType == BlockType::IndexAssign) ||
-                   (blockType == BlockType::Return);
+                   (blockType == BlockType::Return) ||
+                   (blockType == BlockType::Switch);
          }
          if ((portName == "Left") || (portName == "Right"))
          {
@@ -309,6 +393,36 @@ namespace Cgen
                   ValidationSeverity::Error,
                   pStart->id,
                   "No End block reachable from Start along control flow.");
+      }
+
+      for (const Node& node : document.GetNodes())
+      {
+         if (node.type != BlockType::End)
+         {
+            continue;
+         }
+         if (fromStart.find(node.id) == fromStart.end())
+         {
+            AddIssue(&report,
+                     ValidationSeverity::Warning,
+                     node.id,
+                     "Unreachable End (not on Start control-flow path).");
+         }
+      }
+
+      for (const Node& node : document.GetNodes())
+      {
+         if (node.type != BlockType::Switch)
+         {
+            continue;
+         }
+         if (document.FindOutgoingEdge(node.id, "Default") == nullptr)
+         {
+            AddIssue(&report,
+                     ValidationSeverity::Warning,
+                     node.id,
+                     "Switch has no Default arm.");
+         }
       }
 
       std::unordered_set<NodeId> reachable;
@@ -469,6 +583,30 @@ namespace Cgen
                            "Literal type property disagrees with destination port type.");
                }
             }
+         }
+      }
+
+      std::set<std::string> usedNames;
+      CollectUsedNames(document, &usedNames);
+      for (const Node& node : document.GetNodes())
+      {
+         if ((node.type != BlockType::VariableDecl) &&
+             (node.type != BlockType::GlobalDecl) &&
+             (node.type != BlockType::ArrayDecl))
+         {
+            continue;
+         }
+         const std::string name = GetProperty(node, "name", "");
+         if (name.empty())
+         {
+            continue;
+         }
+         if (usedNames.find(name) == usedNames.end())
+         {
+            AddIssue(&report,
+                     ValidationSeverity::Warning,
+                     node.id,
+                     "Unused declaration '" + name + "'.");
          }
       }
 

@@ -25,6 +25,11 @@ namespace Cgen
       constexpr float KeyPanPixels = 64.0f;
       constexpr float MinViewportZoom = 0.15f;
       constexpr float MaxViewportZoom = 2.5f;
+      constexpr float FitPaddingWorld = 48.0f;
+      constexpr float MinimapWidth = 176.0f;
+      constexpr float MinimapHeight = 120.0f;
+      constexpr float MinimapMargin = 10.0f;
+      constexpr float MinimapContentPad = 24.0f;
 
       bool IsShiftHeld(void)
       {
@@ -184,6 +189,102 @@ namespace Cgen
       _pDocument->SetViewport(centerWorldX - (viewW * 0.5f),
                               centerWorldY - (viewH * 0.5f),
                               zoom);
+   }
+
+   void CanvasView::FitNodes(const std::vector<NodeId>& nodeIds)
+   {
+      if ((_pDocument == nullptr) || nodeIds.empty() || (_bounds.size.x <= 1.0f) ||
+          (_bounds.size.y <= 1.0f))
+      {
+         return;
+      }
+
+      float minX = 0.0f;
+      float minY = 0.0f;
+      float maxX = 0.0f;
+      float maxY = 0.0f;
+      bool hasBounds = false;
+      for (size_t index = 0; index < nodeIds.size(); ++index)
+      {
+         const Node* pNode = _pDocument->FindNode(nodeIds[index]);
+         if (pNode == nullptr)
+         {
+            continue;
+         }
+         const float nodeHeight = ComputeBlockNodeHeight(*pNode);
+         const float nodeMaxX = pNode->posX + BlockNodeWidth;
+         const float nodeMaxY = pNode->posY + nodeHeight;
+         if (!hasBounds)
+         {
+            minX = pNode->posX;
+            minY = pNode->posY;
+            maxX = nodeMaxX;
+            maxY = nodeMaxY;
+            hasBounds = true;
+         }
+         else
+         {
+            minX = std::min(minX, pNode->posX);
+            minY = std::min(minY, pNode->posY);
+            maxX = std::max(maxX, nodeMaxX);
+            maxY = std::max(maxY, nodeMaxY);
+         }
+      }
+      if (!hasBounds)
+      {
+         return;
+      }
+
+      minX -= FitPaddingWorld;
+      minY -= FitPaddingWorld;
+      maxX += FitPaddingWorld;
+      maxY += FitPaddingWorld;
+
+      const float worldWidth = std::max(1.0f, maxX - minX);
+      const float worldHeight = std::max(1.0f, maxY - minY);
+      float zoom = std::min(_bounds.size.x / worldWidth, _bounds.size.y / worldHeight);
+      if (zoom < MinViewportZoom)
+      {
+         zoom = MinViewportZoom;
+      }
+      if (zoom > MaxViewportZoom)
+      {
+         zoom = MaxViewportZoom;
+      }
+
+      const float viewW = _bounds.size.x / zoom;
+      const float viewH = _bounds.size.y / zoom;
+      const float centerX = (minX + maxX) * 0.5f;
+      const float centerY = (minY + maxY) * 0.5f;
+      _pDocument->SetViewport(centerX - (viewW * 0.5f),
+                              centerY - (viewH * 0.5f),
+                              zoom);
+   }
+
+   void CanvasView::FitAllNodes(void)
+   {
+      if (_pDocument == nullptr)
+      {
+         return;
+      }
+      std::vector<NodeId> nodeIds;
+      const std::vector<Node>& nodes = _pDocument->GetNodes();
+      nodeIds.reserve(nodes.size());
+      for (size_t index = 0; index < nodes.size(); ++index)
+      {
+         nodeIds.push_back(nodes[index].id);
+      }
+      FitNodes(nodeIds);
+   }
+
+   void CanvasView::FitSelection(void)
+   {
+      if (_selectedNodeIds.empty())
+      {
+         FitAllNodes();
+         return;
+      }
+      FitNodes(_selectedNodeIds);
    }
 
    void CanvasView::SelectAll(void)
@@ -481,6 +582,7 @@ namespace Cgen
       {
          _isPanning = true;
          _isMarquee = false;
+         _isMinimapDragging = false;
          return true;
       }
 
@@ -494,11 +596,17 @@ namespace Cgen
          return false;
       }
 
+      if (HandleMinimapPress(screenPoint))
+      {
+         return true;
+      }
+
       if (IsSpaceHeld())
       {
          _isPanning = true;
          _isMarquee = false;
          _isDraggingNode = false;
+         _isMinimapDragging = false;
          return true;
       }
 
@@ -605,6 +713,7 @@ namespace Cgen
          _isDraggingNode = false;
          _isPanning = false;
          _isMarquee = false;
+         _isMinimapDragging = false;
          _dragCheckpointTaken = false;
          return true;
       }
@@ -626,6 +735,12 @@ namespace Cgen
       _lastScreenPoint = screenPoint;
       const sf::Vector2f world = ScreenToWorld(screenPoint);
       _wirePreviewWorld = world;
+
+      if (_isMinimapDragging)
+      {
+         HandleMinimapPress(screenPoint);
+         return;
+      }
 
       PortHit hoverHit;
       if (HitTestPort(world, &hoverHit))
@@ -1257,5 +1372,199 @@ namespace Cgen
 
       DrawStickyFunctionHeaders(pTarget);
       pTarget->setView(previousView);
+      DrawMinimap(pTarget);
+   }
+
+   sf::FloatRect CanvasView::MinimapScreenRect(void) const
+   {
+      return sf::FloatRect(
+         sf::Vector2f(_bounds.position.x + _bounds.size.x - MinimapMargin - MinimapWidth,
+                      _bounds.position.y + _bounds.size.y - MinimapMargin - MinimapHeight),
+         sf::Vector2f(MinimapWidth, MinimapHeight));
+   }
+
+   bool CanvasView::HandleMinimapPress(sf::Vector2f screenPoint)
+   {
+      if (_pDocument == nullptr)
+      {
+         return false;
+      }
+      const sf::FloatRect minimap = MinimapScreenRect();
+      if (!minimap.contains(screenPoint))
+      {
+         if (!_isMinimapDragging)
+         {
+            return false;
+         }
+         screenPoint.x = std::clamp(screenPoint.x,
+                                    minimap.position.x,
+                                    minimap.position.x + minimap.size.x);
+         screenPoint.y = std::clamp(screenPoint.y,
+                                    minimap.position.y,
+                                    minimap.position.y + minimap.size.y);
+      }
+
+      float minX = 0.0f;
+      float minY = 0.0f;
+      float maxX = 0.0f;
+      float maxY = 0.0f;
+      bool hasBounds = false;
+      const std::vector<Node>& nodes = _pDocument->GetNodes();
+      for (size_t index = 0; index < nodes.size(); ++index)
+      {
+         const Node& node = nodes[index];
+         const float nodeHeight = ComputeBlockNodeHeight(node);
+         const float nodeMaxX = node.posX + BlockNodeWidth;
+         const float nodeMaxY = node.posY + nodeHeight;
+         if (!hasBounds)
+         {
+            minX = node.posX;
+            minY = node.posY;
+            maxX = nodeMaxX;
+            maxY = nodeMaxY;
+            hasBounds = true;
+         }
+         else
+         {
+            minX = std::min(minX, node.posX);
+            minY = std::min(minY, node.posY);
+            maxX = std::max(maxX, nodeMaxX);
+            maxY = std::max(maxY, nodeMaxY);
+         }
+      }
+      if (!hasBounds)
+      {
+         minX = _pDocument->GetViewportX();
+         minY = _pDocument->GetViewportY();
+         maxX = minX + (_bounds.size.x / std::max(0.01f, _pDocument->GetViewportZoom()));
+         maxY = minY + (_bounds.size.y / std::max(0.01f, _pDocument->GetViewportZoom()));
+      }
+      minX -= MinimapContentPad;
+      minY -= MinimapContentPad;
+      maxX += MinimapContentPad;
+      maxY += MinimapContentPad;
+
+      const float worldWidth = std::max(1.0f, maxX - minX);
+      const float worldHeight = std::max(1.0f, maxY - minY);
+      const float localX = (screenPoint.x - minimap.position.x) / minimap.size.x;
+      const float localY = (screenPoint.y - minimap.position.y) / minimap.size.y;
+      const float centerWorldX = minX + (localX * worldWidth);
+      const float centerWorldY = minY + (localY * worldHeight);
+      const float zoom = _pDocument->GetViewportZoom();
+      const float viewW = _bounds.size.x / zoom;
+      const float viewH = _bounds.size.y / zoom;
+      _pDocument->SetViewport(centerWorldX - (viewW * 0.5f),
+                              centerWorldY - (viewH * 0.5f),
+                              zoom);
+      _isMinimapDragging = true;
+      _isPanning = false;
+      _isMarquee = false;
+      _isDraggingNode = false;
+      return true;
+   }
+
+   void CanvasView::DrawMinimap(sf::RenderTarget* pTarget) const
+   {
+      if ((pTarget == nullptr) || (_pDocument == nullptr))
+      {
+         return;
+      }
+
+      const sf::FloatRect minimap = MinimapScreenRect();
+      sf::RectangleShape background;
+      background.setPosition(minimap.position);
+      background.setSize(minimap.size);
+      background.setFillColor(sf::Color(18, 20, 26, 210));
+      background.setOutlineColor(sf::Color(110, 120, 140));
+      background.setOutlineThickness(1.0f);
+      pTarget->draw(background);
+
+      float minX = 0.0f;
+      float minY = 0.0f;
+      float maxX = 0.0f;
+      float maxY = 0.0f;
+      bool hasBounds = false;
+      const std::vector<Node>& nodes = _pDocument->GetNodes();
+      for (size_t index = 0; index < nodes.size(); ++index)
+      {
+         const Node& node = nodes[index];
+         const float nodeHeight = ComputeBlockNodeHeight(node);
+         const float nodeMaxX = node.posX + BlockNodeWidth;
+         const float nodeMaxY = node.posY + nodeHeight;
+         if (!hasBounds)
+         {
+            minX = node.posX;
+            minY = node.posY;
+            maxX = nodeMaxX;
+            maxY = nodeMaxY;
+            hasBounds = true;
+         }
+         else
+         {
+            minX = std::min(minX, node.posX);
+            minY = std::min(minY, node.posY);
+            maxX = std::max(maxX, nodeMaxX);
+            maxY = std::max(maxY, nodeMaxY);
+         }
+      }
+      if (!hasBounds)
+      {
+         minX = _pDocument->GetViewportX();
+         minY = _pDocument->GetViewportY();
+         maxX = minX + (_bounds.size.x / std::max(0.01f, _pDocument->GetViewportZoom()));
+         maxY = minY + (_bounds.size.y / std::max(0.01f, _pDocument->GetViewportZoom()));
+      }
+      minX -= MinimapContentPad;
+      minY -= MinimapContentPad;
+      maxX += MinimapContentPad;
+      maxY += MinimapContentPad;
+
+      const float worldWidth = std::max(1.0f, maxX - minX);
+      const float worldHeight = std::max(1.0f, maxY - minY);
+      const float scaleX = minimap.size.x / worldWidth;
+      const float scaleY = minimap.size.y / worldHeight;
+
+      for (size_t index = 0; index < nodes.size(); ++index)
+      {
+         const Node& node = nodes[index];
+         const float nodeHeight = ComputeBlockNodeHeight(node);
+         sf::RectangleShape nodeShape;
+         nodeShape.setPosition(sf::Vector2f(
+            minimap.position.x + ((node.posX - minX) * scaleX),
+            minimap.position.y + ((node.posY - minY) * scaleY)));
+         nodeShape.setSize(sf::Vector2f(std::max(2.0f, BlockNodeWidth * scaleX),
+                                        std::max(2.0f, nodeHeight * scaleY)));
+         if (node.type == BlockType::FunctionDef)
+         {
+            nodeShape.setFillColor(sf::Color(140, 100, 200));
+         }
+         else if (node.type == BlockType::Start)
+         {
+            nodeShape.setFillColor(sf::Color(80, 180, 100));
+         }
+         else if (node.type == BlockType::End)
+         {
+            nodeShape.setFillColor(sf::Color(200, 90, 90));
+         }
+         else
+         {
+            nodeShape.setFillColor(sf::Color(150, 160, 180));
+         }
+         pTarget->draw(nodeShape);
+      }
+
+      const float zoom = std::max(0.01f, _pDocument->GetViewportZoom());
+      const float viewX = _pDocument->GetViewportX();
+      const float viewY = _pDocument->GetViewportY();
+      const float viewW = _bounds.size.x / zoom;
+      const float viewH = _bounds.size.y / zoom;
+      sf::RectangleShape viewport;
+      viewport.setPosition(sf::Vector2f(minimap.position.x + ((viewX - minX) * scaleX),
+                                        minimap.position.y + ((viewY - minY) * scaleY)));
+      viewport.setSize(sf::Vector2f(viewW * scaleX, viewH * scaleY));
+      viewport.setFillColor(sf::Color(90, 160, 255, 45));
+      viewport.setOutlineColor(sf::Color(120, 190, 255));
+      viewport.setOutlineThickness(1.0f);
+      pTarget->draw(viewport);
    }
 } // namespace Cgen

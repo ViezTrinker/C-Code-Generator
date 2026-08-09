@@ -11,6 +11,7 @@ add_subdirectory(
 )
 
 set(CGEN_TEST_SOURCES
+   test_block_placement.cpp
    test_block_type.cpp
    test_c_type.cpp
    test_c_codegen.cpp

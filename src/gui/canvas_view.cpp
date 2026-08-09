@@ -6,12 +6,12 @@
 
 #include <cmath>
 
+#include "gui/block_placement.h"
+
 namespace Cgen
 {
    namespace
    {
-      constexpr float NodeWidth = 140.0f;
-      constexpr float NodeHeight = 56.0f;
       constexpr float PortRadius = 6.0f;
    } // namespace
 
@@ -94,7 +94,7 @@ namespace Cgen
    sf::FloatRect CanvasView::NodeBounds(const Node& node) const
    {
       return sf::FloatRect(sf::Vector2f(node.posX, node.posY),
-                           sf::Vector2f(NodeWidth, NodeHeight));
+                           sf::Vector2f(BlockNodeWidth, BlockNodeHeight));
    }
 
    sf::Vector2f CanvasView::PortWorldPosition(const Node& node, size_t portIndex) const
@@ -114,7 +114,7 @@ namespace Cgen
       {
          return sf::Vector2f(node.posX, node.posY + offsetY);
       }
-      return sf::Vector2f(node.posX + NodeWidth, node.posY + offsetY);
+      return sf::Vector2f(node.posX + BlockNodeWidth, node.posY + offsetY);
    }
 
    bool CanvasView::HitTestPort(sf::Vector2f worldPoint, PortHit* pOutHit) const
@@ -220,7 +220,12 @@ namespace Cgen
          screenPoint = centerScreen;
       }
       PushCheckpoint();
-      const sf::Vector2f world = ScreenToWorld(screenPoint);
+      const sf::Vector2f preferredScreen = ScreenToWorld(screenPoint);
+      WorldPosition preferred;
+      preferred.x = preferredScreen.x;
+      preferred.y = preferredScreen.y;
+      const WorldPosition world =
+         FindFreeBlockWorldPosition(preferred, _pDocument->GetNodes());
       const NodeId id = _pDocument->AddNode(blockType, world.x, world.y);
       _selectedNodeId = id;
    }
@@ -530,7 +535,7 @@ namespace Cgen
          const float zoom = _pDocument->GetViewportZoom();
          sf::RectangleShape shape;
          shape.setPosition(topLeft);
-         shape.setSize(sf::Vector2f(NodeWidth * zoom, NodeHeight * zoom));
+         shape.setSize(sf::Vector2f(BlockNodeWidth * zoom, BlockNodeHeight * zoom));
          if (node.id == _selectedNodeId)
          {
             shape.setFillColor(sf::Color(70, 90, 130));

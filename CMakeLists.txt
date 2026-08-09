@@ -20,6 +20,7 @@ set(CGEN_CORE_HEADERS
    include/codegen/c_codegen.h
    include/serialize/cgen_serializer.h
    include/gui/document_history.h
+   include/gui/block_placement.h
 )
 
 set(CGEN_CORE_SOURCES
@@ -29,6 +30,7 @@ set(CGEN_CORE_SOURCES
    src/codegen/c_codegen.cpp
    src/serialize/cgen_serializer.cpp
    src/gui/document_history.cpp
+   src/gui/block_placement.cpp
 )
 
 set(CGEN_APP_HEADERS

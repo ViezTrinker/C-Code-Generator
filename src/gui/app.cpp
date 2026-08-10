@@ -956,6 +956,8 @@ namespace Cgen
             _pHelpLog->Draw(&_window);
          }
          _pContextMenu->Draw(&_window);
+         _pToolbar->DrawHoverTip(&_window);
+         _pPalette->DrawHoverTip(&_window);
          _window.display();
       }
       StopProgram();

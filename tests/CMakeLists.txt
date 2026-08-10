@@ -22,6 +22,7 @@ set(CGEN_TEST_SOURCES
    test_graph_align.cpp
    test_graph_layout.cpp
    test_graph_validator.cpp
+   test_hover_tooltip.cpp
    test_result.cpp
 )
 

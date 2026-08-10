@@ -116,6 +116,13 @@ namespace Cgen
        */
       void Draw(sf::RenderTarget* pTarget) const;
 
+      /*!
+       *\brief Draws the hover help tip above other UI.
+       *
+       *\param[in,out] pTarget Render target.
+       */
+      void DrawHoverTip(sf::RenderTarget* pTarget) const;
+
    private:
       enum class RowKind: uint8_t
       {
@@ -165,6 +172,7 @@ namespace Cgen
       BlockType _selectedBlockType = BlockType::End;
       bool _hasSelectedGroup = false;
       uint32_t _selectedGroupIndex = 0;
+      sf::Vector2f _hoverPoint {};
    };
 } // namespace Cgen
 

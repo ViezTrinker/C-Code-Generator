@@ -4,6 +4,9 @@
  */
 #include "gui/palette.h"
 
+#include "gui/hover_tooltip.h"
+#include "gui/hover_tooltip_text.h"
+
 #include <cctype>
 #include <string>
 #include <string_view>
@@ -456,6 +459,7 @@ namespace Cgen
 
    void Palette::HandleMouseMove(sf::Vector2f point)
    {
+      _hoverPoint = point;
       Row hitRow;
       if (!FindRowAtPoint(point, &hitRow))
       {
@@ -752,5 +756,22 @@ namespace Cgen
       }
 
       pTarget->setView(previousView);
+   }
+
+   void Palette::DrawHoverTip(sf::RenderTarget* pTarget) const
+   {
+      if ((pTarget == nullptr) || (_pFont == nullptr) || (!_hasHover))
+      {
+         return;
+      }
+
+      const PaletteRowTipKind tipKind = (_hoverKind == RowKind::GroupHeader)
+                                           ? PaletteRowTipKind::GroupHeader
+                                           : PaletteRowTipKind::Block;
+      const std::string_view tipText =
+         PaletteRowHoverTipText(tipKind, _hoverType);
+
+      constexpr float TooltipMaxWidth = 320.0f;
+      DrawHoverTooltip(pTarget, *_pFont, _hoverPoint, tipText, TooltipMaxWidth);
    }
 } // namespace Cgen

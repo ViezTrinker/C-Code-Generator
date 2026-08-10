@@ -12,30 +12,10 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "gui/toolbar_action.h"
+
 namespace Cgen
 {
-   /*!
-    *\brief Toolbar action identifiers.
-    */
-   enum class ToolbarAction: uint8_t
-   {
-      None = 0,
-      NewDocument,
-      Open,
-      Save,
-      Generate,
-      Build,
-      Run,
-      Stop,
-      Tidy,
-      Help,
-      FitAll,
-      FitSelection,
-      Snap,
-      AlignLeft,
-      AlignTop
-   };
-
    /*!
     *\brief Horizontal button toolbar.
     */
@@ -83,11 +63,19 @@ namespace Cgen
        */
       void Draw(sf::RenderTarget* pTarget) const;
 
+      /*!
+       *\brief Draws the hover tooltip above other UI.
+       *
+       *\param[in,out] pTarget Render target.
+       */
+      void DrawHoverTip(sf::RenderTarget* pTarget) const;
+
    private:
       struct Button
       {
          ToolbarAction action = ToolbarAction::None;
          std::string label;
+         std::string tooltip;
          sf::FloatRect bounds {};
       };
 
@@ -97,6 +85,7 @@ namespace Cgen
       ToolbarAction _hoveredAction = ToolbarAction::None;
       ToolbarAction _pressedAction = ToolbarAction::None;
       ToolbarAction _activeAction = ToolbarAction::None;
+      sf::Vector2f _hoverPoint {};
    };
 } // namespace Cgen
 

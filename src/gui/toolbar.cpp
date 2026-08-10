@@ -4,6 +4,9 @@
  */
 #include "gui/toolbar.h"
 
+#include "gui/hover_tooltip.h"
+#include "gui/hover_tooltip_text.h"
+
 namespace Cgen
 {
    namespace
@@ -15,25 +18,68 @@ namespace Cgen
       const sf::Color ButtonActiveFill(55, 95, 145);
       const sf::Color ButtonOutline(100, 110, 130);
       const sf::Color ButtonActiveOutline(150, 190, 240);
+      constexpr float TooltipMaxWidth = 280.0f;
    } // namespace
 
    Toolbar::Toolbar(const sf::Font& font)
       : _pFont(&font)
    {
-      _buttons.push_back({ToolbarAction::NewDocument, "New", {}});
-      _buttons.push_back({ToolbarAction::Open, "Open", {}});
-      _buttons.push_back({ToolbarAction::Save, "Save", {}});
-      _buttons.push_back({ToolbarAction::Generate, "Generate C", {}});
-      _buttons.push_back({ToolbarAction::Build, "Build", {}});
-      _buttons.push_back({ToolbarAction::Run, "Run", {}});
-      _buttons.push_back({ToolbarAction::Stop, "Stop", {}});
-      _buttons.push_back({ToolbarAction::Tidy, "Tidy", {}});
-      _buttons.push_back({ToolbarAction::Snap, "Snap", {}});
-      _buttons.push_back({ToolbarAction::AlignLeft, "AlignL", {}});
-      _buttons.push_back({ToolbarAction::AlignTop, "AlignT", {}});
-      _buttons.push_back({ToolbarAction::FitAll, "Fit", {}});
-      _buttons.push_back({ToolbarAction::FitSelection, "Fit Sel", {}});
-      _buttons.push_back({ToolbarAction::Help, "?", {}});
+      _buttons.push_back(
+         {ToolbarAction::NewDocument, "New",
+          std::string(ToolbarActionTooltipText(ToolbarAction::NewDocument)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Open, "Open",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Open)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Save, "Save",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Save)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Generate, "Generate C",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Generate)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Build, "Build",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Build)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Run, "Run",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Run)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Stop, "Stop",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Stop)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Tidy, "Tidy",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Tidy)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Snap, "Snap",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Snap)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::AlignLeft, "AlignL",
+          std::string(ToolbarActionTooltipText(ToolbarAction::AlignLeft)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::AlignTop, "AlignT",
+          std::string(ToolbarActionTooltipText(ToolbarAction::AlignTop)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::FitAll, "Fit",
+          std::string(ToolbarActionTooltipText(ToolbarAction::FitAll)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::FitSelection, "Fit Sel",
+          std::string(ToolbarActionTooltipText(ToolbarAction::FitSelection)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::Help, "?",
+          std::string(ToolbarActionTooltipText(ToolbarAction::Help)),
+          {}});
    }
 
    void Toolbar::SetBounds(const sf::FloatRect& bounds)
@@ -58,6 +104,7 @@ namespace Cgen
 
    void Toolbar::HandleMouseMove(sf::Vector2f point)
    {
+      _hoverPoint = point;
       _hoveredAction = ToolbarAction::None;
       for (size_t index = 0; index < _buttons.size(); ++index)
       {
@@ -86,6 +133,7 @@ namespace Cgen
          _pressedAction = _buttons[index].action;
          _activeAction = _buttons[index].action;
          _hoveredAction = _buttons[index].action;
+         _hoverPoint = point;
          return _buttons[index].action;
       }
       return ToolbarAction::None;
@@ -137,6 +185,28 @@ namespace Cgen
          label.setPosition(sf::Vector2f(button.bounds.position.x + 10.0f,
                                         button.bounds.position.y + 4.0f));
          pTarget->draw(label);
+      }
+   }
+
+   void Toolbar::DrawHoverTip(sf::RenderTarget* pTarget) const
+   {
+      if ((pTarget == nullptr) || (_pFont == nullptr) ||
+          (_hoveredAction == ToolbarAction::None))
+      {
+         return;
+      }
+      for (size_t index = 0; index < _buttons.size(); ++index)
+      {
+         if (_buttons[index].action != _hoveredAction)
+         {
+            continue;
+         }
+         DrawHoverTooltip(pTarget,
+                          *_pFont,
+                          _hoverPoint,
+                          _buttons[index].tooltip,
+                          TooltipMaxWidth);
+         return;
       }
    }
 } // namespace Cgen

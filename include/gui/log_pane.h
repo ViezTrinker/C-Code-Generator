@@ -13,6 +13,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
+#include "gui/ui_theme.h"
 #include "model/graph_validator.h"
 #include "model/node.h"
 
@@ -50,6 +51,13 @@ namespace Cgen
        *\param[in] bounds Pixel bounds.
        */
       void SetBounds(const sf::FloatRect& bounds);
+
+      /*!
+       *\brief Applies a UI color theme.
+       *
+       *\param[in] theme Theme palette.
+       */
+      void SetTheme(const UiTheme& theme);
 
       /*!
        *\brief Returns true if the point lies inside the pane bounds.
@@ -182,6 +190,7 @@ namespace Cgen
        */
       uint32_t _scrollFromBottom = 0;
       bool _stickToBottom = true;
+      UiTheme _theme = GetUiTheme(UiThemeId::Dark);
    };
 } // namespace Cgen
 

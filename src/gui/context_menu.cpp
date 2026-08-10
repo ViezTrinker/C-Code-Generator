@@ -17,6 +17,11 @@ namespace Cgen
    {
    }
 
+   void ContextMenu::SetTheme(const UiTheme& theme)
+   {
+      _theme = theme;
+   }
+
    void ContextMenu::Close(void)
    {
       _isOpen = false;
@@ -112,8 +117,8 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(_bounds.position);
       background.setSize(_bounds.size);
-      background.setFillColor(sf::Color(45, 50, 60));
-      background.setOutlineColor(sf::Color(140, 150, 170));
+      background.setFillColor(_theme.menuBackground);
+      background.setOutlineColor(_theme.menuOutline);
       background.setOutlineThickness(1.0f);
       pTarget->draw(background);
 
@@ -121,7 +126,7 @@ namespace Cgen
       {
          const Item& item = _items[index];
          sf::Text label(*_pFont, item.label, 14);
-         label.setFillColor(sf::Color::White);
+         label.setFillColor(_theme.textPrimary);
          label.setPosition(sf::Vector2f(item.bounds.position.x + 10.0f,
                                         item.bounds.position.y + 5.0f));
          pTarget->draw(label);

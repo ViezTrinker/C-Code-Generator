@@ -38,6 +38,11 @@ namespace Cgen
       ClampScroll();
    }
 
+   void LogPane::SetTheme(const UiTheme& theme)
+   {
+      _theme = theme;
+   }
+
    bool LogPane::Contains(sf::Vector2f point) const
    {
       return _bounds.contains(point);
@@ -449,13 +454,13 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(_bounds.position);
       background.setSize(_bounds.size);
-      background.setFillColor(sf::Color(28, 30, 34));
-      background.setOutlineColor(sf::Color(70, 74, 80));
+      background.setFillColor(_theme.panelBackground);
+      background.setOutlineColor(_theme.panelOutline);
       background.setOutlineThickness(1.0f);
       pTarget->draw(background);
 
       sf::Text titleText(*_pFont, _title, 14);
-      titleText.setFillColor(sf::Color(220, 220, 220));
+      titleText.setFillColor(_theme.textSecondary);
       titleText.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                          _bounds.position.y + 4.0f));
       pTarget->draw(titleText);
@@ -463,7 +468,7 @@ namespace Cgen
       const sf::FloatRect body = BodyBounds();
       const std::string visible = BuildVisibleText();
       sf::Text bodyText(*_pFont, visible, BodyCharacterSize);
-      bodyText.setFillColor(sf::Color(190, 200, 190));
+      bodyText.setFillColor(_theme.textHelp);
       bodyText.setPosition(sf::Vector2f(body.position.x, body.position.y));
       pTarget->draw(bodyText);
 
@@ -474,13 +479,13 @@ namespace Cgen
          inputBox.setSize(_inputBounds.size);
          if (_inputFocused)
          {
-            inputBox.setFillColor(sf::Color(50, 60, 80));
+            inputBox.setFillColor(_theme.inputFillFocused);
          }
          else
          {
-            inputBox.setFillColor(sf::Color(40, 44, 52));
+            inputBox.setFillColor(_theme.inputFill);
          }
-         inputBox.setOutlineColor(sf::Color(100, 120, 150));
+         inputBox.setOutlineColor(_theme.inputOutline);
          inputBox.setOutlineThickness(1.0f);
          pTarget->draw(inputBox);
 
@@ -491,7 +496,7 @@ namespace Cgen
             inputDisplay.push_back('_');
          }
          sf::Text inputText(*_pFont, inputDisplay, 13);
-         inputText.setFillColor(sf::Color(230, 230, 200));
+         inputText.setFillColor(_theme.textInput);
          inputText.setPosition(sf::Vector2f(_inputBounds.position.x + 6.0f,
                                             _inputBounds.position.y + 4.0f));
          pTarget->draw(inputText);

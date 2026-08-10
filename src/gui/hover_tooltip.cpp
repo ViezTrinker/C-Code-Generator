@@ -22,7 +22,8 @@ namespace Cgen
                          const sf::Font& font,
                          sf::Vector2f anchor,
                          std::string_view text,
-                         float maxWidth)
+                         float maxWidth,
+                         const UiTheme& theme)
    {
       if ((pTarget == nullptr) || text.empty())
       {
@@ -82,8 +83,8 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(position);
       background.setSize(sf::Vector2f(boxWidth, boxHeight));
-      background.setFillColor(sf::Color(20, 20, 28, 230));
-      background.setOutlineColor(sf::Color(160, 175, 200));
+      background.setFillColor(theme.tipBackground);
+      background.setOutlineColor(theme.tipOutline);
       background.setOutlineThickness(1.0f);
       pTarget->draw(background);
 
@@ -91,7 +92,7 @@ namespace Cgen
       for (size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
       {
          sf::Text line(font, lines[lineIndex], TooltipCharacterSize);
-         line.setFillColor(sf::Color(230, 235, 245));
+         line.setFillColor(theme.tipText);
          line.setPosition(sf::Vector2f(position.x + TooltipPadX, textY));
          pTarget->draw(line);
          textY += TooltipLineHeight;

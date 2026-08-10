@@ -11,6 +11,7 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "gui/ui_theme.h"
 #include "model/edge.h"
 #include "model/node.h"
 
@@ -38,6 +39,13 @@ namespace Cgen
        *\param[in] font Font for labels.
        */
       explicit ContextMenu(const sf::Font& font);
+
+      /*!
+       *\brief Applies a UI color theme.
+       *
+       *\param[in] theme Theme palette.
+       */
+      void SetTheme(const UiTheme& theme);
 
       /*!
        *\brief Closes the menu if open.
@@ -108,6 +116,7 @@ namespace Cgen
       sf::Vector2f _origin {};
       sf::FloatRect _bounds {};
       std::vector<Item> _items;
+      UiTheme _theme = GetUiTheme(UiThemeId::Dark);
    };
 } // namespace Cgen
 

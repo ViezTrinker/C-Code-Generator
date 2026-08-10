@@ -27,6 +27,7 @@ set(CGEN_CORE_HEADERS
    include/gui/block_placement.h
    include/gui/hover_tooltip_text.h
    include/gui/toolbar_action.h
+   include/gui/ui_theme_id.h
 )
 
 set(CGEN_CORE_SOURCES
@@ -42,6 +43,7 @@ set(CGEN_CORE_SOURCES
    src/gui/document_history.cpp
    src/gui/block_placement.cpp
    src/gui/hover_tooltip_text.cpp
+   src/gui/ui_theme_id.cpp
 )
 
 set(CGEN_APP_HEADERS
@@ -55,6 +57,7 @@ set(CGEN_APP_HEADERS
    include/gui/palette.h
    include/gui/property_panel.h
    include/gui/toolbar.h
+   include/gui/ui_theme.h
 )
 
 set(CGEN_APP_SOURCES
@@ -69,6 +72,7 @@ set(CGEN_APP_SOURCES
    src/gui/palette.cpp
    src/gui/property_panel.cpp
    src/gui/toolbar.cpp
+   src/gui/ui_theme.cpp
 )
 
 add_library(cgen_core STATIC

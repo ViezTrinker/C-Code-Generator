@@ -24,6 +24,7 @@ set(CGEN_TEST_SOURCES
    test_graph_validator.cpp
    test_hover_tooltip.cpp
    test_result.cpp
+   test_ui_theme.cpp
 )
 
 add_executable(cgen_unit_tests

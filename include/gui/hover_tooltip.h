@@ -10,6 +10,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "gui/hover_tooltip_text.h"
+#include "gui/ui_theme.h"
 
 namespace Cgen
 {
@@ -21,12 +22,14 @@ namespace Cgen
     *\param[in] anchor Preferred top-left screen position.
     *\param[in] text Tooltip body.
     *\param[in] maxWidth Maximum text width before wrapping.
+    *\param[in] theme Color palette for the tooltip.
     */
    void DrawHoverTooltip(sf::RenderTarget* pTarget,
                          const sf::Font& font,
                          sf::Vector2f anchor,
                          std::string_view text,
-                         float maxWidth);
+                         float maxWidth,
+                         const UiTheme& theme);
 } // namespace Cgen
 
 #endif // HOVER_TOOLTIP_H

@@ -72,6 +72,11 @@ namespace Cgen
       _bounds = bounds;
    }
 
+   void CanvasView::SetTheme(const UiTheme& theme)
+   {
+      _theme = theme;
+   }
+
    void CanvasView::SetDocument(GraphDocument* pDocument)
    {
       _pDocument = pDocument;
@@ -1353,8 +1358,8 @@ namespace Cgen
          region.setPosition(topLeft);
          region.setSize(sf::Vector2f(bottomRight.x - topLeft.x,
                                      bottomRight.y - topLeft.y));
-         region.setFillColor(sf::Color(36, 32, 58, 90));
-         region.setOutlineColor(sf::Color(110, 90, 170, 160));
+         region.setFillColor(_theme.functionRegionFill);
+         region.setOutlineColor(_theme.functionRegionOutline);
          region.setOutlineThickness(1.0f);
          pTarget->draw(region);
       }
@@ -1403,11 +1408,11 @@ namespace Cgen
          sf::RectangleShape bar;
          bar.setPosition(sf::Vector2f(_bounds.position.x, _bounds.position.y));
          bar.setSize(sf::Vector2f(_bounds.size.x, 22.0f * std::max(zoom, 0.7f)));
-         bar.setFillColor(sf::Color(48, 40, 78, 220));
+         bar.setFillColor(_theme.functionHeaderFill);
          pTarget->draw(bar);
 
          sf::Text label(*_pFont, header, 12);
-         label.setFillColor(sf::Color(220, 210, 255));
+         label.setFillColor(_theme.functionHeaderText);
          label.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                         _bounds.position.y + 3.0f));
          pTarget->draw(label);
@@ -1444,7 +1449,7 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(_bounds.position);
       background.setSize(_bounds.size);
-      background.setFillColor(sf::Color(24, 26, 30));
+      background.setFillColor(_theme.canvasBackground);
       pTarget->draw(background);
 
       if (_snapToGridEnabled && (_pDocument->GetViewportZoom() >= 0.45f))
@@ -1468,7 +1473,7 @@ namespace Cgen
                const sf::Vector2f screen = WorldToScreen(sf::Vector2f(worldX, worldY));
                sf::Vertex point;
                point.position = screen;
-               point.color = sf::Color(48, 52, 60);
+               point.color = _theme.canvasGrid;
                grid.append(point);
             }
          }
@@ -1535,8 +1540,8 @@ namespace Cgen
          const Port* pPort = FindPort(*pFrom, edge.fromPort);
          const sf::Color color =
             ((pPort != nullptr) && (pPort->kind == PortKind::Data))
-               ? sf::Color(80, 180, 255)
-               : sf::Color(240, 180, 70);
+               ? _theme.wireData
+               : _theme.wireControl;
          line[0].position = fromScreen;
          line[0].color = color;
          line[1].position = toScreen;
@@ -1548,14 +1553,14 @@ namespace Cgen
       {
          const sf::Vector2f fromScreen = WorldToScreen(_wireStart->worldPosition);
          const sf::Vector2f toScreen = WorldToScreen(_wirePreviewWorld);
-         sf::Color previewColor(200, 200, 200);
+         sf::Color previewColor = _theme.wirePreview;
          if (_wireHoverStatus == WireHoverStatus::Compatible)
          {
-            previewColor = sf::Color(90, 220, 130);
+            previewColor = _theme.wireCompatible;
          }
          else if (_wireHoverStatus == WireHoverStatus::Incompatible)
          {
-            previewColor = sf::Color(230, 90, 90);
+            previewColor = _theme.wireIncompatible;
          }
          sf::VertexArray preview(sf::PrimitiveType::Lines, 2);
          preview[0].position = fromScreen;
@@ -1581,32 +1586,32 @@ namespace Cgen
          shape.setSize(sf::Vector2f(BlockNodeWidth * zoom, nodeHeight * zoom));
          if (IsNodeSelected(node.id))
          {
-            shape.setFillColor(sf::Color(70, 90, 130));
-            shape.setOutlineColor(sf::Color(255, 220, 100));
+            shape.setFillColor(_theme.nodeSelectedFill);
+            shape.setOutlineColor(_theme.nodeSelectedOutline);
             shape.setOutlineThickness(2.0f);
          }
          else if (node.type == BlockType::FunctionDef)
          {
-            shape.setFillColor(sf::Color(52, 42, 88));
-            shape.setOutlineColor(sf::Color(150, 120, 220));
+            shape.setFillColor(_theme.nodeFunctionFill);
+            shape.setOutlineColor(_theme.nodeFunctionOutline);
             shape.setOutlineThickness(2.0f);
          }
          else if (IsExpressionBlock(node.type))
          {
-            shape.setFillColor(sf::Color(45, 70, 55));
-            shape.setOutlineColor(sf::Color(90, 140, 110));
+            shape.setFillColor(_theme.nodeExpressionFill);
+            shape.setOutlineColor(_theme.nodeExpressionOutline);
             shape.setOutlineThickness(1.0f);
          }
          else
          {
-            shape.setFillColor(sf::Color(55, 60, 75));
-            shape.setOutlineColor(sf::Color(120, 130, 150));
+            shape.setFillColor(_theme.nodeFill);
+            shape.setOutlineColor(_theme.nodeOutline);
             shape.setOutlineThickness(1.0f);
          }
          pTarget->draw(shape);
 
          sf::Text label(*_pFont, std::string(BlockTypeLabel(node.type)), 14);
-         label.setFillColor(sf::Color::White);
+         label.setFillColor(_theme.textPrimary);
          label.setPosition(sf::Vector2f(topLeft.x + (8.0f * zoom), topLeft.y + (6.0f * zoom)));
          pTarget->draw(label);
          if (node.type == BlockType::FunctionDef)
@@ -1615,7 +1620,7 @@ namespace Cgen
             if (nameIterator != node.properties.end())
             {
                sf::Text nameLabel(*_pFont, nameIterator->second, 11);
-               nameLabel.setFillColor(sf::Color(200, 190, 255));
+               nameLabel.setFillColor(_theme.functionHeaderText);
                nameLabel.setPosition(sf::Vector2f(topLeft.x + (8.0f * zoom),
                                                    topLeft.y + (22.0f * zoom)));
                pTarget->draw(nameLabel);
@@ -1623,7 +1628,7 @@ namespace Cgen
             if (IsFunctionCollapsed(node))
             {
                sf::Text collapsedLabel(*_pFont, "[collapsed]", 10);
-               collapsedLabel.setFillColor(sf::Color(255, 200, 120));
+               collapsedLabel.setFillColor(_theme.collapsedHintText);
                collapsedLabel.setPosition(
                   sf::Vector2f(topLeft.x + (8.0f * zoom),
                                topLeft.y + (36.0f * zoom)));
@@ -1645,11 +1650,11 @@ namespace Cgen
             circle.setPosition(portScreen);
             if (port.kind == PortKind::Data)
             {
-               circle.setFillColor(sf::Color(80, 180, 255));
+               circle.setFillColor(_theme.wireData);
             }
             else
             {
-               circle.setFillColor(sf::Color(240, 180, 70));
+               circle.setFillColor(_theme.wireControl);
             }
             if (_wireStart.has_value() && (port.direction == PortDirection::In))
             {
@@ -1662,17 +1667,28 @@ namespace Cgen
                   (_hoveredPortName == port.name);
                if ((!kindsMatch) || (!typesOk))
                {
-                  circle.setOutlineColor(sf::Color(200, 70, 70, isHoveredTarget ? 255 : 140));
+                  sf::Color outlineColor = _theme.wireIncompatible;
+                  if (isHoveredTarget)
+                  {
+                     outlineColor.a = 255;
+                  }
+                  else
+                  {
+                     outlineColor.a = 140;
+                  }
+                  circle.setOutlineColor(outlineColor);
                   circle.setOutlineThickness((isHoveredTarget ? 2.5f : 1.5f) * zoom);
                }
                else if (isHoveredTarget)
                {
-                  circle.setOutlineColor(sf::Color(90, 220, 130));
+                  circle.setOutlineColor(_theme.wireCompatible);
                   circle.setOutlineThickness(2.5f * zoom);
                }
                else
                {
-                  circle.setOutlineColor(sf::Color(70, 160, 100, 110));
+                  sf::Color outlineColor = _theme.wireCompatible;
+                  outlineColor.a = 110;
+                  circle.setOutlineColor(outlineColor);
                   circle.setOutlineThickness(1.2f * zoom);
                }
             }
@@ -1681,7 +1697,7 @@ namespace Cgen
             if (zoom >= 0.7f)
             {
                sf::Text portLabel(*_pFont, port.name, 9);
-               portLabel.setFillColor(sf::Color(190, 195, 210));
+               portLabel.setFillColor(_theme.portLabel);
                if (port.direction == PortDirection::In)
                {
                   portLabel.setPosition(sf::Vector2f(portScreen.x + (8.0f * zoom),
@@ -1712,14 +1728,14 @@ namespace Cgen
             tipText.append(CTypeToString(_wireStart->dataType));
          }
          sf::Text tip(*_pFont, tipText, 12);
-         tip.setFillColor(sf::Color::White);
+         tip.setFillColor(_theme.tipText);
          if (_wireHoverStatus == WireHoverStatus::Compatible)
          {
-            tip.setFillColor(sf::Color(180, 255, 200));
+            tip.setFillColor(_theme.tipTextOk);
          }
          else if (_wireHoverStatus == WireHoverStatus::Incompatible)
          {
-            tip.setFillColor(sf::Color(255, 180, 180));
+            tip.setFillColor(_theme.tipTextBad);
          }
          tip.setPosition(sf::Vector2f(_hoveredPortScreen.x + 12.0f,
                                       _hoveredPortScreen.y - 18.0f));
@@ -1727,8 +1743,8 @@ namespace Cgen
          sf::RectangleShape tipBg;
          tipBg.setPosition(tip.getPosition() + sf::Vector2f(-4.0f, -2.0f));
          tipBg.setSize(sf::Vector2f(tipBounds.size.x + 8.0f, tipBounds.size.y + 8.0f));
-         tipBg.setFillColor(sf::Color(20, 20, 28, 220));
-         tipBg.setOutlineColor(sf::Color(160, 160, 180));
+         tipBg.setFillColor(_theme.tipBackground);
+         tipBg.setOutlineColor(_theme.tipOutline);
          tipBg.setOutlineThickness(1.0f);
          pTarget->draw(tipBg);
          pTarget->draw(tip);
@@ -1746,8 +1762,8 @@ namespace Cgen
          marquee.setPosition(topLeft);
          marquee.setSize(sf::Vector2f(bottomRight.x - topLeft.x,
                                       bottomRight.y - topLeft.y));
-         marquee.setFillColor(sf::Color(80, 140, 220, 40));
-         marquee.setOutlineColor(sf::Color(120, 180, 255));
+         marquee.setFillColor(_theme.marqueeFill);
+         marquee.setOutlineColor(_theme.marqueeOutline);
          marquee.setOutlineThickness(1.0f);
          pTarget->draw(marquee);
       }
@@ -1856,8 +1872,8 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(minimap.position);
       background.setSize(minimap.size);
-      background.setFillColor(sf::Color(18, 20, 26, 210));
-      background.setOutlineColor(sf::Color(110, 120, 140));
+      background.setFillColor(_theme.minimapBackground);
+      background.setOutlineColor(_theme.minimapOutline);
       background.setOutlineThickness(1.0f);
       pTarget->draw(background);
 
@@ -1918,19 +1934,19 @@ namespace Cgen
                                         std::max(2.0f, nodeHeight * scaleY)));
          if (node.type == BlockType::FunctionDef)
          {
-            nodeShape.setFillColor(sf::Color(140, 100, 200));
+            nodeShape.setFillColor(_theme.minimapFunction);
          }
          else if (node.type == BlockType::Start)
          {
-            nodeShape.setFillColor(sf::Color(80, 180, 100));
+            nodeShape.setFillColor(_theme.minimapStart);
          }
          else if (node.type == BlockType::End)
          {
-            nodeShape.setFillColor(sf::Color(200, 90, 90));
+            nodeShape.setFillColor(_theme.minimapEnd);
          }
          else
          {
-            nodeShape.setFillColor(sf::Color(150, 160, 180));
+            nodeShape.setFillColor(_theme.minimapNode);
          }
          pTarget->draw(nodeShape);
       }
@@ -1944,8 +1960,8 @@ namespace Cgen
       viewport.setPosition(sf::Vector2f(minimap.position.x + ((viewX - minX) * scaleX),
                                         minimap.position.y + ((viewY - minY) * scaleY)));
       viewport.setSize(sf::Vector2f(viewW * scaleX, viewH * scaleY));
-      viewport.setFillColor(sf::Color(90, 160, 255, 45));
-      viewport.setOutlineColor(sf::Color(120, 190, 255));
+      viewport.setFillColor(_theme.minimapViewportFill);
+      viewport.setOutlineColor(_theme.minimapViewportOutline);
       viewport.setOutlineThickness(1.0f);
       pTarget->draw(viewport);
    }

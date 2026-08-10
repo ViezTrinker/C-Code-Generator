@@ -12,6 +12,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
+#include "gui/ui_theme.h"
 #include "model/block_type.h"
 
 namespace Cgen
@@ -45,6 +46,13 @@ namespace Cgen
        *\param[in] bounds Pixel bounds.
        */
       void SetBounds(const sf::FloatRect& bounds);
+
+      /*!
+       *\brief Applies a UI color theme.
+       *
+       *\param[in] theme Theme palette.
+       */
+      void SetTheme(const UiTheme& theme);
 
       /*!
        *\brief Returns true if the point lies inside the palette.
@@ -173,6 +181,7 @@ namespace Cgen
       bool _hasSelectedGroup = false;
       uint32_t _selectedGroupIndex = 0;
       sf::Vector2f _hoverPoint {};
+      UiTheme _theme = GetUiTheme(UiThemeId::Dark);
    };
 } // namespace Cgen
 

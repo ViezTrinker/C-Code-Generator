@@ -345,6 +345,11 @@ namespace Cgen
       RebuildRowBounds();
    }
 
+   void Palette::SetTheme(const UiTheme& theme)
+   {
+      _theme = theme;
+   }
+
    bool Palette::Contains(sf::Vector2f point) const
    {
       return _bounds.contains(point);
@@ -581,13 +586,13 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(_bounds.position);
       background.setSize(_bounds.size);
-      background.setFillColor(sf::Color(35, 38, 44));
-      background.setOutlineColor(sf::Color(70, 76, 90));
+      background.setFillColor(_theme.panelBackground);
+      background.setOutlineColor(_theme.panelOutline);
       background.setOutlineThickness(1.0f);
       pTarget->draw(background);
 
       sf::Text title(*_pFont, "Blocks", 16);
-      title.setFillColor(sf::Color::White);
+      title.setFillColor(_theme.textPrimary);
       title.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                      _bounds.position.y + 6.0f));
       pTarget->draw(title);
@@ -598,13 +603,13 @@ namespace Cgen
       filterBox.setSize(filterBounds.size);
       if (_filterFocused)
       {
-         filterBox.setFillColor(sf::Color(50, 60, 80));
+         filterBox.setFillColor(_theme.inputFillFocused);
       }
       else
       {
-         filterBox.setFillColor(sf::Color(40, 44, 52));
+         filterBox.setFillColor(_theme.inputFill);
       }
-      filterBox.setOutlineColor(sf::Color(100, 120, 150));
+      filterBox.setOutlineColor(_theme.inputOutline);
       filterBox.setOutlineThickness(1.0f);
       pTarget->draw(filterBox);
 
@@ -620,11 +625,11 @@ namespace Cgen
       sf::Text filterText(*_pFont, filterDisplay, 12);
       if (_filterText.empty() && (!_filterFocused))
       {
-         filterText.setFillColor(sf::Color(140, 140, 140));
+         filterText.setFillColor(_theme.textPlaceholder);
       }
       else
       {
-         filterText.setFillColor(sf::Color(230, 230, 200));
+         filterText.setFillColor(_theme.textInput);
       }
       filterText.setPosition(sf::Vector2f(filterBounds.position.x + 6.0f,
                                           filterBounds.position.y + 4.0f));
@@ -683,36 +688,36 @@ namespace Cgen
 
          if (isPressed)
          {
-            rowBackground.setFillColor(sf::Color(70, 115, 175));
-            rowBackground.setOutlineColor(sf::Color(150, 195, 245));
+            rowBackground.setFillColor(_theme.listRowPressed);
+            rowBackground.setOutlineColor(_theme.listRowSelectedOutline);
             rowBackground.setOutlineThickness(1.0f);
          }
          else if (isSelectedBlock || isSelectedGroup)
          {
-            rowBackground.setFillColor(sf::Color(55, 95, 145));
-            rowBackground.setOutlineColor(sf::Color(130, 175, 230));
+            rowBackground.setFillColor(_theme.listRowSelected);
+            rowBackground.setOutlineColor(_theme.listRowSelectedOutline);
             rowBackground.setOutlineThickness(1.0f);
          }
          else if (isHovered)
          {
             if (row.kind == RowKind::GroupHeader)
             {
-               rowBackground.setFillColor(sf::Color(72, 84, 105));
+               rowBackground.setFillColor(_theme.listRowHeaderHover);
             }
             else
             {
-               rowBackground.setFillColor(sf::Color(68, 82, 105));
+               rowBackground.setFillColor(_theme.listRowHover);
             }
-            rowBackground.setOutlineColor(sf::Color(120, 145, 180));
+            rowBackground.setOutlineColor(_theme.listRowOutline);
             rowBackground.setOutlineThickness(1.0f);
          }
          else if (row.kind == RowKind::GroupHeader)
          {
-            rowBackground.setFillColor(sf::Color(58, 64, 78));
+            rowBackground.setFillColor(_theme.listRowHeader);
          }
          else
          {
-            rowBackground.setFillColor(sf::Color(50, 54, 62));
+            rowBackground.setFillColor(_theme.listRow);
          }
          pTarget->draw(rowBackground);
 
@@ -740,15 +745,15 @@ namespace Cgen
          sf::Text label(*_pFont, labelText, 13);
          if (isPressed || isSelectedBlock || isSelectedGroup)
          {
-            label.setFillColor(sf::Color(245, 250, 255));
+            label.setFillColor(_theme.textPrimary);
          }
          else if (row.kind == RowKind::GroupHeader)
          {
-            label.setFillColor(sf::Color(220, 230, 255));
+            label.setFillColor(_theme.textAccent);
          }
          else
          {
-            label.setFillColor(sf::Color(230, 230, 230));
+            label.setFillColor(_theme.textSecondary);
          }
          label.setPosition(sf::Vector2f(row.bounds.position.x + 6.0f,
                                         row.bounds.position.y + 2.0f));
@@ -772,6 +777,6 @@ namespace Cgen
          PaletteRowHoverTipText(tipKind, _hoverType);
 
       constexpr float TooltipMaxWidth = 320.0f;
-      DrawHoverTooltip(pTarget, *_pFont, _hoverPoint, tipText, TooltipMaxWidth);
+      DrawHoverTooltip(pTarget, *_pFont, _hoverPoint, tipText, TooltipMaxWidth, _theme);
    }
 } // namespace Cgen

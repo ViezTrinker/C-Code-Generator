@@ -23,6 +23,7 @@ namespace Cgen
       Run,
       Stop,
       Tidy,
+      Theme,
       Help,
       FitAll,
       FitSelection,

@@ -11,19 +11,13 @@ namespace Cgen
 {
    namespace
    {
-      const sf::Color BackgroundColor(40, 44, 52);
-      const sf::Color ButtonNormalFill(60, 66, 78);
-      const sf::Color ButtonHoverFill(78, 90, 112);
-      const sf::Color ButtonPressedFill(70, 110, 170);
-      const sf::Color ButtonActiveFill(55, 95, 145);
-      const sf::Color ButtonOutline(100, 110, 130);
-      const sf::Color ButtonActiveOutline(150, 190, 240);
       constexpr float TooltipMaxWidth = 280.0f;
       constexpr unsigned int LabelCharacterSize = 14;
       constexpr float ButtonHeight = 28.0f;
       constexpr float ButtonGap = 4.0f;
       constexpr float ButtonPadX = 20.0f;
       constexpr float ButtonMinWidth = 36.0f;
+      constexpr float SidePad = 8.0f;
 
       float MeasureButtonWidth(const sf::Font& font, std::string_view label)
       {
@@ -35,6 +29,20 @@ namespace Cgen
             return ButtonMinWidth;
          }
          return width;
+      }
+
+      bool IsRightPinnedAction(ToolbarAction action)
+      {
+         return (action == ToolbarAction::Theme) || (action == ToolbarAction::Help);
+      }
+
+      std::string ThemeButtonLabel(UiThemeId themeId)
+      {
+         if (themeId == UiThemeId::Light)
+         {
+            return "Light";
+         }
+         return "Dark";
       }
    } // namespace
 
@@ -94,6 +102,10 @@ namespace Cgen
           std::string(ToolbarActionTooltipText(ToolbarAction::FitSelection)),
           {}});
       _buttons.push_back(
+         {ToolbarAction::Theme, ThemeButtonLabel(UiThemeId::Dark),
+          std::string(ToolbarActionTooltipText(ToolbarAction::Theme)),
+          {}});
+      _buttons.push_back(
          {ToolbarAction::Help, "?",
           std::string(ToolbarActionTooltipText(ToolbarAction::Help)),
           {}});
@@ -102,8 +114,34 @@ namespace Cgen
    void Toolbar::SetBounds(const sf::FloatRect& bounds)
    {
       _bounds = bounds;
-      float cursorX = bounds.position.x + 8.0f;
       const float cursorY = bounds.position.y + 6.0f;
+
+      float rightPinnedWidth = 0.0f;
+      uint32_t rightPinnedCount = 0;
+      for (size_t index = 0; index < _buttons.size(); ++index)
+      {
+         if (!IsRightPinnedAction(_buttons[index].action))
+         {
+            continue;
+         }
+         float width = ButtonMinWidth;
+         if (_pFont != nullptr)
+         {
+            width = MeasureButtonWidth(*_pFont, _buttons[index].label);
+         }
+         rightPinnedWidth += width;
+         ++rightPinnedCount;
+      }
+      if (rightPinnedCount > 1)
+      {
+         rightPinnedWidth +=
+            ButtonGap * static_cast<float>(rightPinnedCount - 1);
+      }
+
+      float rightCursorX =
+         bounds.position.x + bounds.size.x - SidePad - rightPinnedWidth;
+      float leftCursorX = bounds.position.x + SidePad;
+
       for (size_t index = 0; index < _buttons.size(); ++index)
       {
          float width = ButtonMinWidth;
@@ -111,9 +149,36 @@ namespace Cgen
          {
             width = MeasureButtonWidth(*_pFont, _buttons[index].label);
          }
-         _buttons[index].bounds = sf::FloatRect(sf::Vector2f(cursorX, cursorY),
-                                                sf::Vector2f(width, ButtonHeight));
-         cursorX += width + ButtonGap;
+
+         if (IsRightPinnedAction(_buttons[index].action))
+         {
+            _buttons[index].bounds =
+               sf::FloatRect(sf::Vector2f(rightCursorX, cursorY),
+                             sf::Vector2f(width, ButtonHeight));
+            rightCursorX += width + ButtonGap;
+            continue;
+         }
+
+         _buttons[index].bounds =
+            sf::FloatRect(sf::Vector2f(leftCursorX, cursorY),
+                          sf::Vector2f(width, ButtonHeight));
+         leftCursorX += width + ButtonGap;
+      }
+   }
+
+   void Toolbar::SetTheme(const UiTheme& theme)
+   {
+      _theme = theme;
+      for (size_t index = 0; index < _buttons.size(); ++index)
+      {
+         if (_buttons[index].action != ToolbarAction::Theme)
+         {
+            continue;
+         }
+         _buttons[index].label = ThemeButtonLabel(theme.id);
+         _buttons[index].tooltip =
+            std::string(ToolbarActionTooltipText(ToolbarAction::Theme));
+         break;
       }
    }
 
@@ -123,6 +188,23 @@ namespace Cgen
       _hoveredAction = ToolbarAction::None;
       for (size_t index = 0; index < _buttons.size(); ++index)
       {
+         if (!IsRightPinnedAction(_buttons[index].action))
+         {
+            continue;
+         }
+         if (!_buttons[index].bounds.contains(point))
+         {
+            continue;
+         }
+         _hoveredAction = _buttons[index].action;
+         return;
+      }
+      for (size_t index = 0; index < _buttons.size(); ++index)
+      {
+         if (IsRightPinnedAction(_buttons[index].action))
+         {
+            continue;
+         }
          if (!_buttons[index].bounds.contains(point))
          {
             continue;
@@ -139,8 +221,34 @@ namespace Cgen
 
    ToolbarAction Toolbar::HitTest(sf::Vector2f point)
    {
+      if (!_bounds.contains(point))
+      {
+         return ToolbarAction::None;
+      }
+
       for (size_t index = 0; index < _buttons.size(); ++index)
       {
+         if (!IsRightPinnedAction(_buttons[index].action))
+         {
+            continue;
+         }
+         if (!_buttons[index].bounds.contains(point))
+         {
+            continue;
+         }
+         _pressedAction = _buttons[index].action;
+         _activeAction = _buttons[index].action;
+         _hoveredAction = _buttons[index].action;
+         _hoverPoint = point;
+         return _buttons[index].action;
+      }
+
+      for (size_t index = 0; index < _buttons.size(); ++index)
+      {
+         if (IsRightPinnedAction(_buttons[index].action))
+         {
+            continue;
+         }
          if (!_buttons[index].bounds.contains(point))
          {
             continue;
@@ -163,7 +271,7 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(_bounds.position);
       background.setSize(_bounds.size);
-      background.setFillColor(BackgroundColor);
+      background.setFillColor(_theme.toolbarBackground);
       pTarget->draw(background);
 
       for (size_t index = 0; index < _buttons.size(); ++index)
@@ -173,21 +281,21 @@ namespace Cgen
          shape.setPosition(button.bounds.position);
          shape.setSize(button.bounds.size);
 
-         sf::Color fillColor = ButtonNormalFill;
-         sf::Color outlineColor = ButtonOutline;
+         sf::Color fillColor = _theme.buttonFill;
+         sf::Color outlineColor = _theme.buttonOutline;
          if (button.action == _pressedAction)
          {
-            fillColor = ButtonPressedFill;
-            outlineColor = ButtonActiveOutline;
+            fillColor = _theme.buttonPressed;
+            outlineColor = _theme.buttonActiveOutline;
          }
          else if (button.action == _activeAction)
          {
-            fillColor = ButtonActiveFill;
-            outlineColor = ButtonActiveOutline;
+            fillColor = _theme.buttonActive;
+            outlineColor = _theme.buttonActiveOutline;
          }
          else if (button.action == _hoveredAction)
          {
-            fillColor = ButtonHoverFill;
+            fillColor = _theme.buttonHover;
          }
 
          shape.setFillColor(fillColor);
@@ -196,7 +304,7 @@ namespace Cgen
          pTarget->draw(shape);
 
          sf::Text label(*_pFont, button.label, LabelCharacterSize);
-         label.setFillColor(sf::Color::White);
+         label.setFillColor(_theme.textPrimary);
          const sf::FloatRect textBounds = label.getLocalBounds();
          const float textX =
             button.bounds.position.x +
@@ -228,7 +336,8 @@ namespace Cgen
                           *_pFont,
                           _hoverPoint,
                           _buttons[index].tooltip,
-                          TooltipMaxWidth);
+                          TooltipMaxWidth,
+                          _theme);
          return;
       }
    }

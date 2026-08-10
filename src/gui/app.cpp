@@ -7,6 +7,7 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <vector>
@@ -20,16 +21,122 @@
 #endif
 
 #include "codegen/c_codegen.h"
+#include "gui/ui_theme.h"
 #include "model/graph_validator.h"
 #include "serialize/cgen_serializer.h"
 
 namespace Cgen
 {
+   namespace
+   {
+      std::filesystem::path ThemePreferencePath(void)
+      {
+#ifdef _WIN32
+         char appData[MAX_PATH] = {};
+         const DWORD length =
+            GetEnvironmentVariableA("LOCALAPPDATA", appData, MAX_PATH);
+         if ((length > 0) && (length < MAX_PATH))
+         {
+            return std::filesystem::path(appData) / "GraphicalCCodeGenerator" /
+                   "ui_theme.txt";
+         }
+#endif
+         return std::filesystem::path("ui_theme.txt");
+      }
+   } // namespace
+
    App::App(void)
       : _window(sf::VideoMode({1440u, 900u}), "Graphical C Code Generator")
       , _buildRunner("build_out")
    {
       _window.setFramerateLimit(60);
+      LoadThemePreference();
+   }
+
+   void App::LoadThemePreference(void)
+   {
+      const std::filesystem::path path = ThemePreferencePath();
+      std::ifstream input(path);
+      if (!input.is_open())
+      {
+         return;
+      }
+      std::string value;
+      input >> value;
+      UiThemeId parsed = UiThemeId::Dark;
+      if (UiThemeIdFromString(value, &parsed))
+      {
+         _themeId = parsed;
+      }
+   }
+
+   void App::SaveThemePreference(void) const
+   {
+      const std::filesystem::path path = ThemePreferencePath();
+      std::error_code errorCode;
+      std::filesystem::create_directories(path.parent_path(), errorCode);
+      std::ofstream output(path, std::ios::trunc);
+      if (!output.is_open())
+      {
+         return;
+      }
+      output << UiThemeIdToString(_themeId) << '\n';
+   }
+
+   void App::ApplyTheme(void)
+   {
+      const UiTheme& theme = GetUiTheme(_themeId);
+      if (_pToolbar != nullptr)
+      {
+         _pToolbar->SetTheme(theme);
+      }
+      if (_pPalette != nullptr)
+      {
+         _pPalette->SetTheme(theme);
+      }
+      if (_pCanvas != nullptr)
+      {
+         _pCanvas->SetTheme(theme);
+      }
+      if (_pProperties != nullptr)
+      {
+         _pProperties->SetTheme(theme);
+      }
+      if (_pProgramLog != nullptr)
+      {
+         _pProgramLog->SetTheme(theme);
+      }
+      if (_pCompilerLog != nullptr)
+      {
+         _pCompilerLog->SetTheme(theme);
+      }
+      if (_pSourceLog != nullptr)
+      {
+         _pSourceLog->SetTheme(theme);
+      }
+      if (_pHelpLog != nullptr)
+      {
+         _pHelpLog->SetTheme(theme);
+      }
+      if (_pContextMenu != nullptr)
+      {
+         _pContextMenu->SetTheme(theme);
+      }
+   }
+
+   void App::ToggleTheme(void)
+   {
+      if (_themeId == UiThemeId::Dark)
+      {
+         _themeId = UiThemeId::Light;
+      }
+      else
+      {
+         _themeId = UiThemeId::Dark;
+      }
+      ApplyTheme();
+      Layout();
+      SaveThemePreference();
    }
 
    bool App::LoadFont(void)
@@ -606,6 +713,9 @@ namespace Cgen
          case ToolbarAction::FitSelection:
             _pCanvas->FitSelection();
             break;
+         case ToolbarAction::Theme:
+            ToggleTheme();
+            break;
          case ToolbarAction::Help:
             if (_helpViewVisible)
             {
@@ -648,6 +758,7 @@ namespace Cgen
       _pCanvas->SetDocument(&_document);
       _pCanvas->SetHistory(&_history);
       _pProperties->SetHistory(&_history);
+      ApplyTheme();
       Layout();
       UpdateTitle();
       _pCompilerLog->SetText("Ready. Click ? for keyboard shortcuts and editing help.\n"
@@ -676,16 +787,20 @@ namespace Cgen
             {
                const sf::Vector2f point(static_cast<float>(pMousePress->position.x),
                                         static_cast<float>(pMousePress->position.y));
-               const ToolbarAction action = _pToolbar->HitTest(point);
-               if (action != ToolbarAction::None)
+               if (pMousePress->button == sf::Mouse::Button::Left)
                {
-                  if (_pContextMenu->IsOpen())
+                  const ToolbarAction action = _pToolbar->HitTest(point);
+                  if (action != ToolbarAction::None)
                   {
-                     _pContextMenu->Close();
+                     if (_pContextMenu->IsOpen())
+                     {
+                        _pContextMenu->Close();
+                     }
+                     HandleToolbar(action);
+                     continue;
                   }
-                  HandleToolbar(action);
                }
-               else if (_pContextMenu->IsOpen())
+               if (_pContextMenu->IsOpen())
                {
                   if (_pContextMenu->Contains(point))
                   {
@@ -940,7 +1055,7 @@ namespace Cgen
 
          PollProgramSession();
 
-         _window.clear(sf::Color(20, 22, 26));
+         _window.clear(GetUiTheme(_themeId).windowClear);
          _pToolbar->Draw(&_window);
          _pCanvas->Draw(&_window);
          _pPalette->Draw(&_window);

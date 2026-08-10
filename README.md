@@ -165,6 +165,7 @@ Short graphs that teach one IR feature.
 - **Place** blocks from the left palette (filter by name); connect control and data ports
 - Wire preview turns **green/red** for type compatibility
 - **Snap** / **AlignL** / **AlignT** / **Tidy** (Ctrl+L); **Fit** / **Fit Sel**; canvas **minimap**
+- **Theme** toggles Light (white) / Dark (black) UI; preference is remembered
 - Property dropdowns for `type`, `op`, `access`, `function`, … — clear selection for Document `fileDescription` / `clangFormat`
 - **FunctionDef**: typed params + Param ports; double-click to collapse the body
 - **Generate C**: validates (click issues to jump), writes `.c`, optional clang-format, shows source (Esc closes)

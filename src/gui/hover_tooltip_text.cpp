@@ -107,6 +107,8 @@ namespace Cgen
             return "Fit the whole graph in view (Ctrl+0).";
          case ToolbarAction::FitSelection:
             return "Fit the selection in view (Ctrl+Shift+0).";
+         case ToolbarAction::Theme:
+            return "Toggle Light / Dark theme.";
          case ToolbarAction::Help:
             return "Open in-app help (F1).";
          case ToolbarAction::None:

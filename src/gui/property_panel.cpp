@@ -177,6 +177,11 @@ namespace Cgen
       RebuildFields();
    }
 
+   void PropertyPanel::SetTheme(const UiTheme& theme)
+   {
+      _theme = theme;
+   }
+
    void PropertyPanel::SetHistory(DocumentHistory* pHistory)
    {
       _pHistory = pHistory;
@@ -806,11 +811,11 @@ namespace Cgen
       sf::RectangleShape background;
       background.setPosition(_bounds.position);
       background.setSize(_bounds.size);
-      background.setFillColor(sf::Color(35, 38, 44));
+      background.setFillColor(_theme.panelBackground);
       pTarget->draw(background);
 
       sf::Text title(*_pFont, "Properties", 16);
-      title.setFillColor(sf::Color::White);
+      title.setFillColor(_theme.textPrimary);
       title.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                      _bounds.position.y + 6.0f));
       pTarget->draw(title);
@@ -818,7 +823,7 @@ namespace Cgen
       if (_pDocument == nullptr)
       {
          sf::Text empty(*_pFont, "No document", 13);
-         empty.setFillColor(sf::Color(160, 160, 160));
+         empty.setFillColor(_theme.textMuted);
          empty.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                         _bounds.position.y + TitleHeight));
          pTarget->draw(empty);
@@ -828,7 +833,7 @@ namespace Cgen
       if (_selectedNodeId == 0)
       {
          sf::Text typeLabel(*_pFont, "Type: Document", 13);
-         typeLabel.setFillColor(sf::Color(200, 200, 200));
+         typeLabel.setFillColor(_theme.textSecondary);
          typeLabel.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                             _bounds.position.y + TitleHeight));
          pTarget->draw(typeLabel);
@@ -845,7 +850,7 @@ namespace Cgen
             *_pFont,
             std::string("Type: ") + std::string(BlockTypeLabel(pNode->type)),
             13);
-         typeLabel.setFillColor(sf::Color(200, 200, 200));
+         typeLabel.setFillColor(_theme.textSecondary);
          typeLabel.setPosition(sf::Vector2f(_bounds.position.x + 8.0f,
                                             _bounds.position.y + TitleHeight));
          pTarget->draw(typeLabel);
@@ -855,7 +860,7 @@ namespace Cgen
       for (size_t lineIndex = 0; lineIndex < _helpLines.size(); ++lineIndex)
       {
          sf::Text helpLine(*_pFont, _helpLines[lineIndex], HelpCharacterSize);
-         helpLine.setFillColor(sf::Color(150, 170, 150));
+         helpLine.setFillColor(_theme.textHelp);
          helpLine.setPosition(sf::Vector2f(_bounds.position.x + 8.0f, helpY));
          pTarget->draw(helpLine);
          helpY += HelpLineHeight;
@@ -868,7 +873,7 @@ namespace Cgen
       for (size_t lineIndex = 0; lineIndex < _previewLines.size(); ++lineIndex)
       {
          sf::Text previewLine(*_pFont, _previewLines[lineIndex], PreviewCharacterSize);
-         previewLine.setFillColor(sf::Color(180, 200, 255));
+         previewLine.setFillColor(_theme.textPreview);
          previewLine.setPosition(sf::Vector2f(_bounds.position.x + 8.0f, helpY));
          pTarget->draw(previewLine);
          helpY += PreviewLineHeight;
@@ -884,7 +889,7 @@ namespace Cgen
             keyLabel.append("  ▾");
          }
          sf::Text keyText(*_pFont, keyLabel, 12);
-         keyText.setFillColor(sf::Color(180, 180, 180));
+         keyText.setFillColor(_theme.textMuted);
          keyText.setPosition(sf::Vector2f(_bounds.position.x + 8.0f, labelY));
          pTarget->draw(keyText);
 
@@ -893,18 +898,18 @@ namespace Cgen
          box.setSize(field.bounds.size);
          if (static_cast<int32_t>(index) == _activeFieldIndex)
          {
-            box.setFillColor(sf::Color(70, 80, 100));
+            box.setFillColor(_theme.inputFillFocused);
          }
          else
          {
-            box.setFillColor(sf::Color(50, 54, 62));
+            box.setFillColor(_theme.inputFill);
          }
-         box.setOutlineColor(sf::Color(90, 100, 120));
+         box.setOutlineColor(_theme.inputOutline);
          box.setOutlineThickness(1.0f);
          pTarget->draw(box);
 
          sf::Text valueText(*_pFont, field.value, 13);
-         valueText.setFillColor(sf::Color::White);
+         valueText.setFillColor(_theme.textInput);
          valueText.setPosition(sf::Vector2f(field.bounds.position.x + 4.0f,
                                             field.bounds.position.y + 2.0f));
          pTarget->draw(valueText);
@@ -916,8 +921,8 @@ namespace Cgen
          sf::RectangleShape popupBg;
          popupBg.setPosition(_choicePopupBounds.position);
          popupBg.setSize(_choicePopupBounds.size);
-         popupBg.setFillColor(sf::Color(28, 30, 36));
-         popupBg.setOutlineColor(sf::Color(120, 140, 180));
+         popupBg.setFillColor(_theme.popupBackground);
+         popupBg.setOutlineColor(_theme.popupOutline);
          popupBg.setOutlineThickness(1.0f);
          pTarget->draw(popupBg);
 
@@ -929,7 +934,7 @@ namespace Cgen
                continue;
             }
             sf::Text itemText(*_pFont, item.label, 12);
-            itemText.setFillColor(sf::Color(220, 220, 230));
+            itemText.setFillColor(_theme.textSecondary);
             itemText.setPosition(sf::Vector2f(item.bounds.position.x + 6.0f,
                                               item.bounds.position.y + 3.0f));
             pTarget->draw(itemText);
@@ -941,7 +946,7 @@ namespace Cgen
          if ((itemCount > visibleCount) && (visibleCount > 0))
          {
             sf::Text scrollHint(*_pFont, "scroll for more", 10);
-            scrollHint.setFillColor(sf::Color(150, 160, 180));
+            scrollHint.setFillColor(_theme.textMuted);
             scrollHint.setPosition(sf::Vector2f(
                _choicePopupBounds.position.x + 6.0f,
                _choicePopupBounds.position.y + _choicePopupBounds.size.y - 14.0f));

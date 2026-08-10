@@ -15,6 +15,7 @@
 #include <SFML/System/Clock.hpp>
 
 #include "gui/document_history.h"
+#include "gui/ui_theme.h"
 #include "model/c_type.h"
 #include "model/graph_align.h"
 #include "model/graph_clipboard.h"
@@ -62,6 +63,13 @@ namespace Cgen
        *\param[in] bounds Pixel bounds.
        */
       void SetBounds(const sf::FloatRect& bounds);
+
+      /*!
+       *\brief Applies a UI color theme.
+       *
+       *\param[in] theme Theme palette.
+       */
+      void SetTheme(const UiTheme& theme);
 
       /*!
        *\brief Binds the document to edit.
@@ -330,6 +338,7 @@ namespace Cgen
       NodeId _lastClickNodeId = 0;
       sf::Clock _lastClickClock;
       bool _snapToGridEnabled = true;
+      UiTheme _theme = GetUiTheme(UiThemeId::Dark);
    };
 } // namespace Cgen
 

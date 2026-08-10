@@ -13,6 +13,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "gui/toolbar_action.h"
+#include "gui/ui_theme.h"
 
 namespace Cgen
 {
@@ -35,6 +36,13 @@ namespace Cgen
        *\param[in] bounds Pixel bounds.
        */
       void SetBounds(const sf::FloatRect& bounds);
+
+      /*!
+       *\brief Applies a UI color theme.
+       *
+       *\param[in] theme Theme palette.
+       */
+      void SetTheme(const UiTheme& theme);
 
       /*!
        *\brief Updates hover highlight from the mouse position.
@@ -86,6 +94,7 @@ namespace Cgen
       ToolbarAction _pressedAction = ToolbarAction::None;
       ToolbarAction _activeAction = ToolbarAction::None;
       sf::Vector2f _hoverPoint {};
+      UiTheme _theme = GetUiTheme(UiThemeId::Dark);
    };
 } // namespace Cgen
 

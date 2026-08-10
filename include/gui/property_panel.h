@@ -14,6 +14,7 @@
 #include <SFML/Window/Event.hpp>
 
 #include "gui/document_history.h"
+#include "gui/ui_theme.h"
 #include "model/graph_document.h"
 
 namespace Cgen
@@ -46,6 +47,13 @@ namespace Cgen
        *\param[in] bounds Pixel bounds.
        */
       void SetBounds(const sf::FloatRect& bounds);
+
+      /*!
+       *\brief Applies a UI color theme.
+       *
+       *\param[in] theme Theme palette.
+       */
+      void SetTheme(const UiTheme& theme);
 
       /*!
        *\brief Binds undo history used before property commits.
@@ -164,6 +172,7 @@ namespace Cgen
       int32_t _choiceScrollOffset = 0;
       sf::FloatRect _choicePopupBounds {};
       std::vector<ChoiceItem> _choiceItems;
+      UiTheme _theme = GetUiTheme(UiThemeId::Dark);
    };
 } // namespace Cgen
 

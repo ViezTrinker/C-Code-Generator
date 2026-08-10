@@ -20,6 +20,7 @@
 #include "gui/palette.h"
 #include "gui/property_panel.h"
 #include "gui/toolbar.h"
+#include "gui/ui_theme_id.h"
 #include "model/graph_document.h"
 
 namespace Cgen
@@ -45,6 +46,10 @@ namespace Cgen
    private:
       void Layout(void);
       void HandleToolbar(ToolbarAction action);
+      void ApplyTheme(void);
+      void ToggleTheme(void);
+      void LoadThemePreference(void);
+      void SaveThemePreference(void) const;
       void NewDocument(void);
       void OpenDocument(void);
       void SaveDocument(void);
@@ -78,6 +83,7 @@ namespace Cgen
       bool _programSessionActive = false;
       bool _sourceViewVisible = false;
       bool _helpViewVisible = false;
+      UiThemeId _themeId = UiThemeId::Dark;
       std::unique_ptr<Toolbar> _pToolbar;
       std::unique_ptr<Palette> _pPalette;
       std::unique_ptr<CanvasView> _pCanvas;

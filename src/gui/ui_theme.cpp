@@ -52,6 +52,8 @@ namespace Cgen
          theme.nodeOutline = sf::Color(220, 220, 220);
          theme.nodeSelectedFill = sf::Color(50, 50, 50);
          theme.nodeSelectedOutline = sf::Color(255, 255, 255);
+         theme.nodeErrorOutline = sf::Color(230, 70, 70);
+         theme.nodeWarningOutline = sf::Color(230, 190, 60);
          theme.nodeExpressionFill = sf::Color(24, 36, 28);
          theme.nodeExpressionOutline = sf::Color(160, 200, 170);
          theme.nodeFunctionFill = sf::Color(32, 28, 48);
@@ -138,6 +140,8 @@ namespace Cgen
          theme.nodeOutline = sf::Color(0, 0, 0);
          theme.nodeSelectedFill = sf::Color(235, 235, 235);
          theme.nodeSelectedOutline = sf::Color(0, 0, 0);
+         theme.nodeErrorOutline = sf::Color(200, 30, 30);
+         theme.nodeWarningOutline = sf::Color(180, 140, 0);
          theme.nodeExpressionFill = sf::Color(245, 255, 245);
          theme.nodeExpressionOutline = sf::Color(40, 100, 60);
          theme.nodeFunctionFill = sf::Color(245, 245, 255);

@@ -4,6 +4,9 @@
  */
 #include <gtest/gtest.h>
 
+#include <string>
+#include <unordered_map>
+
 #include "model/graph_document.h"
 #include "model/graph_validator.h"
 #include "model/node.h"
@@ -296,4 +299,38 @@ TEST(GraphValidatorTest, WarnsUnusedFunctionParamPort)
       }
    }
    EXPECT_TRUE(found);
+}
+
+TEST(GraphValidatorTest, BuildNodeSeverityMapPrefersError)
+{
+   Cgen::ValidationReport report;
+   Cgen::ValidationIssue warningIssue;
+   warningIssue.severity = Cgen::ValidationSeverity::Warning;
+   warningIssue.nodeId = 7;
+   warningIssue.message = "warn";
+   report.issues.push_back(warningIssue);
+
+   Cgen::ValidationIssue errorIssue;
+   errorIssue.severity = Cgen::ValidationSeverity::Error;
+   errorIssue.nodeId = 7;
+   errorIssue.message = "err";
+   report.issues.push_back(errorIssue);
+
+   Cgen::ValidationIssue otherWarning;
+   otherWarning.severity = Cgen::ValidationSeverity::Warning;
+   otherWarning.nodeId = 8;
+   otherWarning.message = "other";
+   report.issues.push_back(otherWarning);
+
+   Cgen::ValidationIssue noNode;
+   noNode.severity = Cgen::ValidationSeverity::Error;
+   noNode.nodeId = 0;
+   noNode.message = "global";
+   report.issues.push_back(noNode);
+
+   std::unordered_map<Cgen::NodeId, Cgen::ValidationSeverity> severityByNodeId;
+   Cgen::BuildNodeSeverityMap(report, &severityByNodeId);
+   ASSERT_EQ(severityByNodeId.size(), 2u);
+   EXPECT_EQ(severityByNodeId.at(7), Cgen::ValidationSeverity::Error);
+   EXPECT_EQ(severityByNodeId.at(8), Cgen::ValidationSeverity::Warning);
 }

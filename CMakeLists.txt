@@ -23,6 +23,7 @@ set(CGEN_CORE_HEADERS
    include/model/result.h
    include/codegen/c_codegen.h
    include/serialize/cgen_serializer.h
+   include/serialize/autosave.h
    include/gui/document_history.h
    include/gui/block_placement.h
    include/gui/hover_tooltip_text.h
@@ -40,6 +41,7 @@ set(CGEN_CORE_SOURCES
    src/model/node_factory.cpp
    src/codegen/c_codegen.cpp
    src/serialize/cgen_serializer.cpp
+   src/serialize/autosave.cpp
    src/gui/document_history.cpp
    src/gui/block_placement.cpp
    src/gui/hover_tooltip_text.cpp

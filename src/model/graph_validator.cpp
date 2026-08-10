@@ -9,6 +9,7 @@
 #include <set>
 #include <sstream>
 #include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "model/block_type.h"
@@ -684,5 +685,35 @@ namespace Cgen
       }
 
       return report;
+   }
+
+   void BuildNodeSeverityMap(
+      const ValidationReport& report,
+      std::unordered_map<NodeId, ValidationSeverity>* pOutMap)
+   {
+      if (pOutMap == nullptr)
+      {
+         return;
+      }
+      pOutMap->clear();
+      for (size_t index = 0; index < report.issues.size(); ++index)
+      {
+         const ValidationIssue& issue = report.issues[index];
+         if (issue.nodeId == 0)
+         {
+            continue;
+         }
+         const auto existing = pOutMap->find(issue.nodeId);
+         if (existing == pOutMap->end())
+         {
+            (*pOutMap)[issue.nodeId] = issue.severity;
+            continue;
+         }
+         if (static_cast<int8_t>(issue.severity) >
+             static_cast<int8_t>(existing->second))
+         {
+            existing->second = issue.severity;
+         }
+      }
    }
 } // namespace Cgen

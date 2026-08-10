@@ -473,7 +473,7 @@ namespace Cgen
    sf::Vector2f CanvasView::PortWorldPosition(const Node& node, size_t portIndex) const
    {
       const Port& port = node.ports[portIndex];
-      float offsetY = BlockPortTopOffset;
+      float offsetY = BlockFirstPortOffsetY(node);
       size_t sameSideIndex = 0;
       for (size_t index = 0; index < portIndex; ++index)
       {
@@ -620,6 +620,17 @@ namespace Cgen
          preferred, _pDocument->GetNodes(), proposedHeight);
       const NodeId id = _pDocument->AddNode(blockType, world.x, world.y);
       SetSelectedNodeId(id);
+   }
+
+   void CanvasView::SetValidationSeverityMap(
+      const std::unordered_map<NodeId, ValidationSeverity>& severityByNodeId)
+   {
+      _validationSeverity = severityByNodeId;
+   }
+
+   void CanvasView::ClearValidationSeverityMap(void)
+   {
+      _validationSeverity.clear();
    }
 
    bool CanvasView::HandleMousePress(sf::Mouse::Button button, sf::Vector2f screenPoint)
@@ -1607,6 +1618,25 @@ namespace Cgen
             shape.setFillColor(_theme.nodeFill);
             shape.setOutlineColor(_theme.nodeOutline);
             shape.setOutlineThickness(1.0f);
+         }
+
+         const auto severityIterator = _validationSeverity.find(node.id);
+         if (severityIterator != _validationSeverity.end())
+         {
+            if (severityIterator->second == ValidationSeverity::Error)
+            {
+               shape.setOutlineColor(_theme.nodeErrorOutline);
+               shape.setOutlineThickness(2.5f);
+            }
+            else
+            {
+               shape.setOutlineColor(_theme.nodeWarningOutline);
+               shape.setOutlineThickness(2.5f);
+            }
+            if (IsNodeSelected(node.id))
+            {
+               shape.setFillColor(_theme.nodeSelectedFill);
+            }
          }
          pTarget->draw(shape);
 

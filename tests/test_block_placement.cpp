@@ -123,10 +123,17 @@ TEST(BlockPlacementTest, PrintfHeightFitsAllInputPorts)
 
    const float height = Cgen::ComputeBlockNodeHeight(printfNode);
    const float lastPortY =
-      Cgen::BlockPortTopOffset +
+      Cgen::BlockFirstPortOffsetY(printfNode) +
       (static_cast<float>(visibleInCount - 1) * Cgen::BlockPortSpacing);
    EXPECT_GT(height, lastPortY);
    EXPECT_GE(height, Cgen::BlockNodeHeight);
+}
+
+TEST(BlockPlacementTest, TitleBandKeepsFirstPortBelowBlockLabel)
+{
+   const Cgen::Node elseIfNode =
+      Cgen::CreateNode(1, Cgen::BlockType::ElseIf, 0.0f, 0.0f);
+   EXPECT_GE(Cgen::BlockFirstPortOffsetY(elseIfNode), Cgen::BlockTitleBandHeight);
 }
 
 TEST(BlockPlacementTest, PrintfHidesUnusedArgsByFormat)

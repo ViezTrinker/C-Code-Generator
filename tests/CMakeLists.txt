@@ -17,6 +17,7 @@ set(CGEN_TEST_SOURCES
    test_c_type.cpp
    test_c_codegen.cpp
    test_cgen_serializer.cpp
+   test_autosave.cpp
    test_document_history.cpp
    test_graph_document.cpp
    test_graph_align.cpp

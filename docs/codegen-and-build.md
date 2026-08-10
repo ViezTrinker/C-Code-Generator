@@ -85,6 +85,7 @@ clang-format -i "<sourcePath>"
 
 | Caller | Functions |
 | --- | --- |
-| `App::GenerateCode` | `ValidateGraph`, `GenerateCSource`, `WriteSource`, optional format, show source overlay |
+| `App::GenerateCode` | `ValidateGraph`, `GenerateCSource`, `WriteSource`, optional format, show source overlay; canvas badges refreshed via selection sync |
 | `App::BuildCode` / `RunProgram` | Generate if needed, then compile / session |
+| `App` main loop | Periodic autosave while dirty; crash-restore prompt at startup |
 | `main` `--codegen` | Load → validate → generate → write → optional compile/run |

@@ -59,6 +59,8 @@ namespace Cgen
       sf::Color nodeOutline {};
       sf::Color nodeSelectedFill {};
       sf::Color nodeSelectedOutline {};
+      sf::Color nodeErrorOutline {};
+      sf::Color nodeWarningOutline {};
       sf::Color nodeExpressionFill {};
       sf::Color nodeExpressionOutline {};
       sf::Color nodeFunctionFill {};

@@ -13,8 +13,10 @@
 namespace Cgen
 {
    inline constexpr float BlockNodeWidth = 140.0f;
-   inline constexpr float BlockNodeHeight = 56.0f;
-   inline constexpr float BlockPortTopOffset = 18.0f;
+   inline constexpr float BlockNodeHeight = 64.0f;
+   inline constexpr float BlockTitleBandHeight = 28.0f;
+   inline constexpr float BlockPortTopOffset = 32.0f;
+   inline constexpr float BlockFunctionHeaderExtra = 18.0f;
    inline constexpr float BlockPortSpacing = 14.0f;
    inline constexpr float BlockPortBottomPad = 12.0f;
    inline constexpr float BlockPlacementGap = 16.0f;
@@ -28,6 +30,13 @@ namespace Cgen
       float x = 0.0f;
       float y = 0.0f;
    };
+
+   /*!
+    *\brief Returns the Y offset of the first port for a node.
+    *
+    *\param[in] node Node whose title/header reserve space above ports.
+    */
+   float BlockFirstPortOffsetY(const Node& node);
 
    /*!
     *\brief Computes node body height so ports stay inside the block shape.

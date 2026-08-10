@@ -10,6 +10,7 @@
 #include <string>
 
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Clock.hpp>
 
 #include "build/build_runner.h"
 #include "build/process_session.h"
@@ -68,7 +69,11 @@ namespace Cgen
       void OpenCanvasContextMenu(sf::Vector2f screenPoint);
       void HandleContextMenuClick(sf::Vector2f screenPoint);
       void SyncSelectionUi(void);
+      void RefreshValidationBadges(void);
       void JumpToValidationNode(NodeId nodeId);
+      void MaybeAutosave(void);
+      void ClearAutosaveFiles(void);
+      void PromptRestoreAutosaveIfPresent(void);
       void UpdateTitle(void);
       bool LoadFont(void);
       bool PromptOpenPath(std::string* pOutPath);
@@ -84,6 +89,7 @@ namespace Cgen
       bool _sourceViewVisible = false;
       bool _helpViewVisible = false;
       UiThemeId _themeId = UiThemeId::Dark;
+      sf::Clock _autosaveClock;
       std::unique_ptr<Toolbar> _pToolbar;
       std::unique_ptr<Palette> _pPalette;
       std::unique_ptr<CanvasView> _pCanvas;

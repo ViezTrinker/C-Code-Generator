@@ -69,6 +69,8 @@ Clear the canvas selection to edit Document fields in the property panel.
 
 `ValidateGraph(document)` returns a `ValidationReport` of `ValidationIssue`s (`Error` or `Warning`) with optional `nodeId`.
 
+`BuildNodeSeverityMap(report, &map)` collapses issues per node (**Error** wins over **Warning**) for canvas drawing.
+
 Typical checks:
 
 - No End reachable from Start  
@@ -79,7 +81,14 @@ Typical checks:
 - Call missing `function` / unknown FunctionDef / arity mismatch / unused Param ports  
 - Unreachable End (warning)  
 
-The Compiler pane lists issues; clicking jumps to the node (`JumpToValidationNode`).
+**Where issues show up**
+
+| Surface | Behavior |
+| --- | --- |
+| Compiler pane | Listed on Generate; click a line → `JumpToValidationNode` |
+| Canvas badges | Red outline = Error, yellow = Warning (live refresh via `SyncSelectionUi`) |
+
+Hovering a port still shows its name in a tip; on-canvas port labels sit below the block title band so they do not overlap titles such as `Else If`.
 
 ---
 

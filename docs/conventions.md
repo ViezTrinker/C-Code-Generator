@@ -44,8 +44,9 @@ Flag-like parameters prefer enums (`ClangFormatOnGenerate::Yes` / `No`) over raw
 
 | Put in `cgen_core` | Put in the exe |
 | --- | --- |
-| Model, validator, codegen, serializer | SFML widgets, `App`, file dialogs |
+| Model, validator, codegen, serializer, autosave | SFML widgets, `App`, file dialogs |
 | Document history, block placement math | `BuildRunner`, `ProcessSession` |
+| Theme ids, tooltip text helpers | Concrete `UiTheme` colors, hover tip drawing |
 | Anything unit-tested without a window | Anything that needs a live OS process UI |
 
 When adding a feature: prefer implementing logic in `cgen_core` and a thin GUI binding, then add a GoogleTest case under `tests/`.

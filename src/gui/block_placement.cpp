@@ -4,6 +4,8 @@
  */
 #include "gui/block_placement.h"
 
+#include "model/block_type.h"
+
 namespace Cgen
 {
    namespace
@@ -29,6 +31,16 @@ namespace Cgen
       }
    } // namespace
 
+   float BlockFirstPortOffsetY(const Node& node)
+   {
+      float offset = BlockPortTopOffset;
+      if (node.type == BlockType::FunctionDef)
+      {
+         offset += BlockFunctionHeaderExtra;
+      }
+      return offset;
+   }
+
    float ComputeBlockNodeHeight(const Node& node)
    {
       size_t inCount = 0;
@@ -52,11 +64,20 @@ namespace Cgen
       const size_t sideCount = (inCount > outCount) ? inCount : outCount;
       if (sideCount == 0)
       {
+         if (node.type == BlockType::FunctionDef)
+         {
+            const float headerHeight =
+               BlockTitleBandHeight + BlockFunctionHeaderExtra + BlockPortBottomPad;
+            if (headerHeight > BlockNodeHeight)
+            {
+               return headerHeight;
+            }
+         }
          return BlockNodeHeight;
       }
 
       const float fitted =
-         BlockPortTopOffset +
+         BlockFirstPortOffsetY(node) +
          (static_cast<float>(sideCount - 1) * BlockPortSpacing) +
          BlockPortBottomPad;
       if (fitted < BlockNodeHeight)

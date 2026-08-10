@@ -455,16 +455,24 @@ namespace Cgen
 
       _hasSelectedBlock = true;
       _selectedBlockType = hitRow.type;
+      _isDraggingBlock = true;
+      _dragBlockType = hitRow.type;
+      _dragPoint = point;
       if (pOutType != nullptr)
       {
          *pOutType = hitRow.type;
       }
-      return PaletteClickResult::PlaceBlock;
+      return PaletteClickResult::BeginDrag;
    }
 
    void Palette::HandleMouseMove(sf::Vector2f point)
    {
       _hoverPoint = point;
+      if (_isDraggingBlock)
+      {
+         _dragPoint = point;
+         return;
+      }
       Row hitRow;
       if (!FindRowAtPoint(point, &hitRow))
       {
@@ -480,6 +488,42 @@ namespace Cgen
    void Palette::HandleMouseRelease(void)
    {
       ClearPressed();
+   }
+
+   bool Palette::IsBlockDragActive(void) const
+   {
+      return _isDraggingBlock;
+   }
+
+   BlockType Palette::GetDragBlockType(void) const
+   {
+      return _dragBlockType;
+   }
+
+   sf::Vector2f Palette::GetDragPoint(void) const
+   {
+      return _dragPoint;
+   }
+
+   void Palette::CancelBlockDrag(void)
+   {
+      _isDraggingBlock = false;
+      ClearPressed();
+   }
+
+   bool Palette::FinishBlockDrag(BlockType* pOutType)
+   {
+      if (!_isDraggingBlock)
+      {
+         return false;
+      }
+      if (pOutType != nullptr)
+      {
+         *pOutType = _dragBlockType;
+      }
+      _isDraggingBlock = false;
+      ClearPressed();
+      return true;
    }
 
    bool Palette::HandleTextEntered(uint32_t unicode)
@@ -763,9 +807,32 @@ namespace Cgen
       pTarget->setView(previousView);
    }
 
+   void Palette::DrawDragGhost(sf::RenderTarget* pTarget) const
+   {
+      if ((pTarget == nullptr) || (_pFont == nullptr) || (!_isDraggingBlock))
+      {
+         return;
+      }
+      constexpr float GhostWidth = 120.0f;
+      constexpr float GhostHeight = 28.0f;
+      sf::RectangleShape ghost;
+      ghost.setPosition(sf::Vector2f(_dragPoint.x + 8.0f, _dragPoint.y + 8.0f));
+      ghost.setSize(sf::Vector2f(GhostWidth, GhostHeight));
+      ghost.setFillColor(_theme.nodeFill);
+      ghost.setOutlineColor(_theme.nodeSelectedOutline);
+      ghost.setOutlineThickness(2.0f);
+      pTarget->draw(ghost);
+
+      sf::Text label(*_pFont, std::string(BlockTypeLabel(_dragBlockType)), 13);
+      label.setFillColor(_theme.textPrimary);
+      label.setPosition(sf::Vector2f(_dragPoint.x + 16.0f, _dragPoint.y + 12.0f));
+      pTarget->draw(label);
+   }
+
    void Palette::DrawHoverTip(sf::RenderTarget* pTarget) const
    {
-      if ((pTarget == nullptr) || (_pFont == nullptr) || (!_hasHover))
+      if ((pTarget == nullptr) || (_pFont == nullptr) || (!_hasHover) ||
+          _isDraggingBlock)
       {
          return;
       }

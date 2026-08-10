@@ -10,8 +10,8 @@ Everything application-owned lives in the **`Cgen`** namespace.
 
 | Target | Role |
 | --- | --- |
-| **`cgen_core`** (static lib) | Graph IR, validation, codegen, `.cgen` I/O, undo snapshots, block placement helpers |
-| **`c_code_generator`** (exe) | SFML UI, toolbar/palette/canvas, `BuildRunner`, interactive `ProcessSession`, CLI entry |
+| **`cgen_core`** (static lib) | Graph IR, validation, codegen, `.cgen` I/O, autosave helpers, undo snapshots, block placement, theme ids, tooltip text |
+| **`c_code_generator`** (exe) | SFML UI, toolbar/palette/canvas, themes, `BuildRunner`, interactive `ProcessSession`, CLI entry |
 | **`cgen_unit_tests`** (optional) | GoogleTest against `cgen_core` |
 
 Headless codegen and most model logic do **not** need SFML; the GUI and process I/O sit in the executable.
@@ -54,9 +54,13 @@ Headless codegen and most model logic do **not** need SFML; the GUI and process 
   .cgen file                    User edits on canvas
        │                              │
        ▼                              ▼
- LoadCgenFile ──────────► GraphDocument ◄──── Palette / Properties
+ LoadCgenFile ──────────► GraphDocument ◄──── Palette drag-drop / Properties
                                │
-                               ├─► ValidateGraph  (issues → Compiler pane)
+                               ├─► ValidateGraph
+                               │      ├─► Compiler pane (click → jump)
+                               │      └─► Canvas badges (red/yellow outlines)
+                               │
+                               ├─► Autosave (.cgen.tmp / crash recovery)
                                │
                                ▼
                          GenerateCSource
@@ -70,10 +74,11 @@ Headless codegen and most model logic do **not** need SFML; the GUI and process 
 ```
 
 1. **IR** — `GraphDocument` holds `Node`s and `Edge`s (plus document metadata).
-2. **Validate** — `ValidateGraph` reports errors/warnings (reachability, Call arity, …).
+2. **Validate** — `ValidateGraph` reports errors/warnings (reachability, Call arity, …). Issues appear in the Compiler pane and as colored node outlines on the canvas.
 3. **Generate** — `GenerateCSource` walks control flow from `Start` and each `FunctionDef`.
 4. **Artifacts** — write `build_out/<name>.c`, optionally `clang-format -i`, then `gcc`.
 5. **GUI Run** — `ProcessSession` streams stdin/stdout into Program Output.
+6. **Autosave** — while dirty, periodic snapshots protect long edits; a crash-recovery prompt can restore on next launch.
 
 GUI Generate still writes C when there are validation/codegen diagnostics (issues are shown for inspection). CLI `--codegen` **refuses to write** if validation reports an **Error**.
 
@@ -85,14 +90,14 @@ GUI Generate still writes C when there are validation/codegen diagnostics (issue
 
 | Region | Component |
 | --- | --- |
-| Top | `Toolbar` (file, Generate, Build, Run, layout) |
-| Left | `Palette` (place blocks) |
-| Center | `CanvasView` (graph interaction) |
+| Top | `Toolbar` (file, Generate, Build, Run, layout, Theme, Help) |
+| Left | `Palette` (drag blocks onto the canvas) |
+| Center | `CanvasView` (graph interaction + validation badges) |
 | Right | `PropertyPanel` (node or Document fields) |
 | Bottom | `LogPane` Program Output \| Compiler |
-| Overlay | Generated C view / Help (`LogPane`) |
+| Overlay | Generated C view / Help (`LogPane`); palette drag ghost |
 
-Selection flows: canvas → `SyncSelectionUi` → property panel. Undo uses `DocumentHistory` (`GraphSnapshot`, depth 64).
+Selection flows: canvas → `SyncSelectionUi` → property panel + validation badge refresh. Undo uses `DocumentHistory` (`GraphSnapshot`, depth 64). Theme preference is stored under `%LOCALAPPDATA%\GraphicalCCodeGenerator\`.
 
 ---
 

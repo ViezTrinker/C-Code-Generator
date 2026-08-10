@@ -63,3 +63,22 @@ Port names are strings matching the live `Port::name` values (`"Next"`, `"Arg0"`
 - Missing file / bad header → `Result` error (`RejectsMissingFile` / `RejectsInvalidHeader` in tests).
 
 Examples under `examples/*.cgen` are valid CGEN 1 projects and are good references when extending the format.
+
+---
+
+## Autosave / crash recovery
+
+Autosave reuses the same CGEN 1 payload via `serialize/autosave.*` (not a separate format).
+
+| File | Role |
+| --- | --- |
+| `%LOCALAPPDATA%\GraphicalCCodeGenerator\autosave.cgen.tmp` | Primary crash-recovery snapshot (while the document is dirty) |
+| `autosave.cgen.tmp.meta` | Original document path (may be empty for untitled) |
+| `<project>.cgen.tmp` | Optional sibling next to a saved `.cgen` |
+
+Behavior (GUI):
+
+- While dirty, `App` writes an autosave about every **30 seconds**.  
+- On startup, if the crash autosave exists, a restore prompt is shown.  
+- Successful **Save** / **New** / **Open** clears the autosave files.  
+- `LoadAutosave` reloads the graph, restores the original path from metadata, and marks the document dirty.

@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <unordered_map>
 #include <vector>
 
 #ifdef _WIN32
@@ -23,6 +24,7 @@
 #include "codegen/c_codegen.h"
 #include "gui/ui_theme.h"
 #include "model/graph_validator.h"
+#include "serialize/autosave.h"
 #include "serialize/cgen_serializer.h"
 
 namespace Cgen
@@ -223,6 +225,104 @@ namespace Cgen
          _pCanvas->SetSelectedNodeIds(valid);
       }
       _pProperties->SetSelection(&_document, _pCanvas->GetSelectedNodeId());
+      RefreshValidationBadges();
+      UpdateTitle();
+   }
+
+   void App::RefreshValidationBadges(void)
+   {
+      if (_pCanvas == nullptr)
+      {
+         return;
+      }
+      const ValidationReport report = ValidateGraph(_document);
+      std::unordered_map<NodeId, ValidationSeverity> severityByNodeId;
+      BuildNodeSeverityMap(report, &severityByNodeId);
+      _pCanvas->SetValidationSeverityMap(severityByNodeId);
+   }
+
+   void App::ClearAutosaveFiles(void)
+   {
+      ClearAutosave(CrashAutosavePath());
+      const std::filesystem::path sibling =
+         SiblingAutosavePath(_document.GetFilePath());
+      if (!sibling.empty())
+      {
+         ClearAutosave(sibling);
+      }
+   }
+
+   void App::MaybeAutosave(void)
+   {
+      if (!_document.IsDirty())
+      {
+         return;
+      }
+      constexpr float AutosaveIntervalSeconds = 30.0f;
+      if (_autosaveClock.getElapsedTime().asSeconds() < AutosaveIntervalSeconds)
+      {
+         return;
+      }
+      _autosaveClock.restart();
+
+      const std::string originalPath = _document.GetFilePath();
+      const Result crashResult =
+         WriteAutosave(_document, CrashAutosavePath(), originalPath);
+      if (IsErr(crashResult))
+      {
+         return;
+      }
+
+      const std::filesystem::path sibling = SiblingAutosavePath(originalPath);
+      if (!sibling.empty())
+      {
+         WriteAutosave(_document, sibling, originalPath);
+      }
+   }
+
+   void App::PromptRestoreAutosaveIfPresent(void)
+   {
+      const std::filesystem::path crashPath = CrashAutosavePath();
+      if (!AutosaveExists(crashPath))
+      {
+         return;
+      }
+
+      bool shouldRestore = false;
+#ifdef _WIN32
+      const int answer =
+         MessageBoxA(nullptr,
+                     "A recovered autosave was found from a previous session.\n"
+                     "Restore it?",
+                     "Crash Recovery",
+                     MB_YESNO | MB_ICONQUESTION);
+      shouldRestore = (answer == IDYES);
+#else
+      shouldRestore = true;
+#endif
+      if (!shouldRestore)
+      {
+         ClearAutosave(crashPath);
+         return;
+      }
+
+      std::string diagnostics;
+      const Result result = LoadAutosave(crashPath, &_document, &diagnostics);
+      if (IsErr(result))
+      {
+         _pCompilerLog->SetText("Failed to restore autosave\n" + diagnostics);
+         ClearAutosave(crashPath);
+         return;
+      }
+
+      _pCanvas->SetDocument(&_document);
+      _pProperties->SetSelection(&_document, 0);
+      _history.Clear();
+      ClearAutosave(crashPath);
+      _autosaveClock.restart();
+      _pCompilerLog->SetText(
+         "Restored autosave. Save the document to keep your work.\n");
+      SyncSelectionUi();
       UpdateTitle();
    }
 
@@ -245,13 +345,16 @@ namespace Cgen
       {
          _pContextMenu->Close();
       }
+      ClearAutosaveFiles();
       _history.Clear();
       _document.Reset();
       _pCanvas->SetDocument(&_document);
+      _pCanvas->ClearValidationSeverityMap();
       _pProperties->SetSelection(&_document, 0);
       _pProgramLog->Clear();
       _pCompilerLog->SetText("New document.\n");
-      UpdateTitle();
+      _autosaveClock.restart();
+      SyncSelectionUi();
    }
 
    bool App::PromptOpenPath(std::string* pOutPath)
@@ -331,6 +434,7 @@ namespace Cgen
          _pCompilerLog->SetText("Failed to open .cgen\n" + diagnostics);
          return;
       }
+      ClearAutosaveFiles();
       _pCanvas->SetDocument(&_document);
       _pProperties->SetSelection(&_document, 0);
       CloseSourceView();
@@ -340,7 +444,9 @@ namespace Cgen
          _pContextMenu->Close();
       }
       _history.Clear();
+      _autosaveClock.restart();
       _pCompilerLog->SetText("Loaded " + path + "\n");
+      SyncSelectionUi();
       UpdateTitle();
    }
 
@@ -362,6 +468,8 @@ namespace Cgen
       }
       _document.SetFilePath(path);
       _document.SetDirty(false);
+      ClearAutosaveFiles();
+      _autosaveClock.restart();
       _pCompilerLog->SetText("Saved " + path + "\n");
       UpdateTitle();
    }
@@ -447,7 +555,7 @@ namespace Cgen
          "Graphical C Code Generator — Help\n"
          "Press Esc or ? again to close.\n\n"
          "Editing\n"
-         "- Click a block in the left Blocks panel to place it on the canvas.\n"
+         "- Drag a block from the left Blocks panel onto the canvas to place it.\n"
          "- Type in the Blocks filter to find blocks by name.\n"
          "- Drag blocks to move them. Middle-drag or Space+drag pans; left-drag empty for marquee.\n"
          "- Shift+click toggles multi-select. Ctrl+A selects all.\n"
@@ -762,9 +870,11 @@ namespace Cgen
       Layout();
       UpdateTitle();
       _pCompilerLog->SetText("Ready. Click ? for keyboard shortcuts and editing help.\n"
-                             "Place blocks from the left Blocks panel.\n"
+                             "Drag blocks from the left Blocks panel onto the canvas.\n"
                              "Connect amber ports for control flow, blue for data.\n"
                              "Delete/Backspace removes the selected block; Ctrl+Z / Ctrl+Y undo/redo.\n");
+      PromptRestoreAutosaveIfPresent();
+      _autosaveClock.restart();
 
       while (_window.isOpen())
       {
@@ -829,13 +939,11 @@ namespace Cgen
                   BlockType placeType = BlockType::Literal;
                   const PaletteClickResult paletteClick =
                      _pPalette->HandleClick(point, &placeType);
-                  if (paletteClick == PaletteClickResult::PlaceBlock)
+                  if (paletteClick == PaletteClickResult::BeginDrag)
                   {
                      _pProperties->Blur();
                      _pProgramLog->BlurInput();
                      _pPalette->BlurFilter();
-                     _pCanvas->PlaceBlock(placeType, point);
-                     SyncSelectionUi();
                   }
                   else if (paletteClick == PaletteClickResult::Consumed)
                   {
@@ -882,11 +990,27 @@ namespace Cgen
             else if (const auto* pMouseRelease = event->getIf<sf::Event::MouseButtonReleased>())
             {
                _pToolbar->HandleMouseRelease();
-               _pPalette->HandleMouseRelease();
+               const sf::Vector2f point(static_cast<float>(pMouseRelease->position.x),
+                                        static_cast<float>(pMouseRelease->position.y));
+               if ((pMouseRelease->button == sf::Mouse::Button::Left) &&
+                   _pPalette->IsBlockDragActive())
+               {
+                  BlockType dragType = BlockType::End;
+                  if (_pPalette->FinishBlockDrag(&dragType))
+                  {
+                     if (_pCanvas->Contains(point))
+                     {
+                        _pCanvas->PlaceBlock(dragType, point);
+                        SyncSelectionUi();
+                     }
+                  }
+               }
+               else
+               {
+                  _pPalette->HandleMouseRelease();
+               }
                if ((!_sourceViewVisible) && (!_helpViewVisible))
                {
-                  const sf::Vector2f point(static_cast<float>(pMouseRelease->position.x),
-                                           static_cast<float>(pMouseRelease->position.y));
                   _pCanvas->HandleMouseRelease(pMouseRelease->button, point);
                   SyncSelectionUi();
                }
@@ -954,7 +1078,11 @@ namespace Cgen
             {
                if (pKey->code == sf::Keyboard::Key::Escape)
                {
-                  if (_pContextMenu->IsOpen())
+                  if (_pPalette->IsBlockDragActive())
+                  {
+                     _pPalette->CancelBlockDrag();
+                  }
+                  else if (_pContextMenu->IsOpen())
                   {
                      _pContextMenu->Close();
                   }
@@ -1054,6 +1182,7 @@ namespace Cgen
          }
 
          PollProgramSession();
+         MaybeAutosave();
 
          _window.clear(GetUiTheme(_themeId).windowClear);
          _pToolbar->Draw(&_window);
@@ -1071,6 +1200,7 @@ namespace Cgen
             _pHelpLog->Draw(&_window);
          }
          _pContextMenu->Draw(&_window);
+         _pPalette->DrawDragGhost(&_window);
          _pToolbar->DrawHoverTip(&_window);
          _pPalette->DrawHoverTip(&_window);
          _window.display();

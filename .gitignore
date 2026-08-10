@@ -1,5 +1,6 @@
 /build/
 /build_out/
+/build_vs/
 .vs/
 out/
 /third_party/sfml/

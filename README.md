@@ -37,10 +37,12 @@ Open an example, press Generate, and you can see exactly how the graph maps to C
 
 | Area | What you get |
 | --- | --- |
-| **Editor** | Collapsible block palette, snap/align, tidy layout, minimap, multi-select, undo/redo, copy/paste |
+| **Editor** | Collapsible palette (drag & drop), snap/align, tidy layout, minimap, multi-select, undo/redo, copy/paste, Light/Dark theme |
 | **Typing** | Named types (`Hero`, `FILE*`, `bool`, …), live green/red wire preview, property dropdowns |
 | **Functions** | Typed FunctionDef params, Call arity checks, collapse FunctionDef bodies |
 | **Types & memory** | Struct / Enum / Typedef decls, Struct Literal, Address Of, Deref Get/Set, Malloc/Free |
+| **Feedback** | Compiler issues + canvas Error/Warning outlines; hover tooltips on palette/toolbar |
+| **Safety** | Autosave / crash recovery (`.cgen.tmp`) |
 | **Output** | Doxygen `\file` / `\brief`, optional clang-format, in-app source view |
 | **CLI** | Headless `--codegen` with optional `--compile` / `--run` |
 
@@ -162,14 +164,16 @@ Short graphs that teach one IR feature.
 
 ## Using the editor
 
-- **Place** blocks from the left palette (filter by name); connect control and data ports
+- **Drag** blocks from the left palette onto the canvas (filter by name; Esc cancels a drag)
 - Wire preview turns **green/red** for type compatibility
+- **Validation badges**: red / yellow block outlines for Error / Warning (also listed in Compiler; click to jump)
 - **Snap** / **AlignL** / **AlignT** / **Tidy** (Ctrl+L); **Fit** / **Fit Sel**; canvas **minimap**
 - **Theme** toggles Light (white) / Dark (black) UI; preference is remembered
 - Property dropdowns for `type`, `op`, `access`, `function`, … — clear selection for Document `fileDescription` / `clangFormat`
 - **FunctionDef**: typed params + Param ports; double-click to collapse the body
 - **Generate C**: validates (click issues to jump), writes `.c`, optional clang-format, shows source (Esc closes)
 - **Build** / **Run** / **Stop**: gcc in Compiler; stdin via the Program Output input line
+- **Autosave** while dirty (~30 s); crash-recovery prompt on next start; temps cleared after Save / New / Open
 - **?** / **F1** for in-app help · projects save as `.cgen` (CGEN 1 + JSON)
 
 ---

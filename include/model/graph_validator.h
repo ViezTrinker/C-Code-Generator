@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "model/graph_document.h"
@@ -48,6 +49,16 @@ namespace Cgen
     *\return Validation report (may be empty).
     */
    ValidationReport ValidateGraph(const GraphDocument& document);
+
+   /*!
+    *\brief Builds a per-node severity map (Error wins over Warning).
+    *
+    *\param[in] report Validation report.
+    *\param[out] pOutMap Destination map (cleared first). Nodes with id 0 are skipped.
+    */
+   void BuildNodeSeverityMap(
+      const ValidationReport& report,
+      std::unordered_map<NodeId, ValidationSeverity>* pOutMap);
 } // namespace Cgen
 
 #endif // GRAPH_VALIDATOR_H

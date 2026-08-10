@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -20,6 +21,7 @@
 #include "model/graph_align.h"
 #include "model/graph_clipboard.h"
 #include "model/graph_document.h"
+#include "model/graph_validator.h"
 
 namespace Cgen
 {
@@ -184,6 +186,19 @@ namespace Cgen
       void PlaceBlock(BlockType blockType, sf::Vector2f screenPoint);
 
       /*!
+       *\brief Replaces the per-node validation severity map used for badges.
+       *
+       *\param[in] severityByNodeId Map of node id to highest severity.
+       */
+      void SetValidationSeverityMap(
+         const std::unordered_map<NodeId, ValidationSeverity>& severityByNodeId);
+
+      /*!
+       *\brief Clears canvas validation badges.
+       */
+      void ClearValidationSeverityMap(void);
+
+      /*!
        *\brief Queries what lies under a screen point.
        *
        *\param[in] screenPoint Screen position.
@@ -339,6 +354,7 @@ namespace Cgen
       sf::Clock _lastClickClock;
       bool _snapToGridEnabled = true;
       UiTheme _theme = GetUiTheme(UiThemeId::Dark);
+      std::unordered_map<NodeId, ValidationSeverity> _validationSeverity;
    };
 } // namespace Cgen
 

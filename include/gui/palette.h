@@ -18,13 +18,13 @@
 namespace Cgen
 {
    /*!
-    *\brief Result of a palette mouse click.
+    *\brief Result of a palette mouse press.
     */
    enum class PaletteClickResult: int8_t
    {
       Ignored = 0,
       Consumed = 1,
-      PlaceBlock = 2
+      BeginDrag = 2
    };
 
    /*!
@@ -62,16 +62,16 @@ namespace Cgen
       bool Contains(sf::Vector2f point) const;
 
       /*!
-       *\brief Handles a click: filter focus, toggle a group, or place a block.
+       *\brief Handles a press: filter focus, toggle a group, or begin a block drag.
        *
        *\param[in] point Mouse position.
-       *\param[out] pOutType Block type when result is PlaceBlock.
+       *\param[out] pOutType Block type when result is BeginDrag.
        *\return Click result.
        */
       PaletteClickResult HandleClick(sf::Vector2f point, BlockType* pOutType);
 
       /*!
-       *\brief Updates hover highlight from the mouse position.
+       *\brief Updates hover highlight and active drag ghost position.
        *
        *\param[in] point Mouse position.
        */
@@ -81,6 +81,34 @@ namespace Cgen
        *\brief Clears pressed-row highlight.
        */
       void HandleMouseRelease(void);
+
+      /*!
+       *\brief Returns true while a palette block drag is active.
+       */
+      bool IsBlockDragActive(void) const;
+
+      /*!
+       *\brief Returns the block type being dragged, or End if none.
+       */
+      BlockType GetDragBlockType(void) const;
+
+      /*!
+       *\brief Returns the current drag cursor position.
+       */
+      sf::Vector2f GetDragPoint(void) const;
+
+      /*!
+       *\brief Cancels an in-progress block drag.
+       */
+      void CancelBlockDrag(void);
+
+      /*!
+       *\brief Ends a block drag and returns the dragged type.
+       *
+       *\param[out] pOutType Dragged block type.
+       *\return true if a drag was active.
+       */
+      bool FinishBlockDrag(BlockType* pOutType);
 
       /*!
        *\brief Scrolls the block list when the wheel is used over this palette.
@@ -123,6 +151,13 @@ namespace Cgen
        *\param[in,out] pTarget Render target.
        */
       void Draw(sf::RenderTarget* pTarget) const;
+
+      /*!
+       *\brief Draws the in-progress drag ghost above other UI.
+       *
+       *\param[in,out] pTarget Render target.
+       */
+      void DrawDragGhost(sf::RenderTarget* pTarget) const;
 
       /*!
        *\brief Draws the hover help tip above other UI.
@@ -181,6 +216,9 @@ namespace Cgen
       bool _hasSelectedGroup = false;
       uint32_t _selectedGroupIndex = 0;
       sf::Vector2f _hoverPoint {};
+      bool _isDraggingBlock = false;
+      BlockType _dragBlockType = BlockType::End;
+      sf::Vector2f _dragPoint {};
       UiTheme _theme = GetUiTheme(UiThemeId::Dark);
    };
 } // namespace Cgen

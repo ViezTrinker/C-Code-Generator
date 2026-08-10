@@ -19,6 +19,23 @@ namespace Cgen
       const sf::Color ButtonOutline(100, 110, 130);
       const sf::Color ButtonActiveOutline(150, 190, 240);
       constexpr float TooltipMaxWidth = 280.0f;
+      constexpr unsigned int LabelCharacterSize = 14;
+      constexpr float ButtonHeight = 28.0f;
+      constexpr float ButtonGap = 4.0f;
+      constexpr float ButtonPadX = 20.0f;
+      constexpr float ButtonMinWidth = 36.0f;
+
+      float MeasureButtonWidth(const sf::Font& font, std::string_view label)
+      {
+         sf::Text measure(font, std::string(label), LabelCharacterSize);
+         const float textWidth = measure.getLocalBounds().size.x;
+         const float width = textWidth + ButtonPadX;
+         if (width < ButtonMinWidth)
+         {
+            return ButtonMinWidth;
+         }
+         return width;
+      }
    } // namespace
 
    Toolbar::Toolbar(const sf::Font& font)
@@ -85,20 +102,18 @@ namespace Cgen
    void Toolbar::SetBounds(const sf::FloatRect& bounds)
    {
       _bounds = bounds;
-      constexpr float ButtonWidth = 64.0f;
-      constexpr float HelpButtonWidth = 36.0f;
-      constexpr float ButtonHeight = 28.0f;
-      constexpr float Gap = 4.0f;
       float cursorX = bounds.position.x + 8.0f;
       const float cursorY = bounds.position.y + 6.0f;
       for (size_t index = 0; index < _buttons.size(); ++index)
       {
-         const float width =
-            (_buttons[index].action == ToolbarAction::Help) ? HelpButtonWidth
-                                                            : ButtonWidth;
+         float width = ButtonMinWidth;
+         if (_pFont != nullptr)
+         {
+            width = MeasureButtonWidth(*_pFont, _buttons[index].label);
+         }
          _buttons[index].bounds = sf::FloatRect(sf::Vector2f(cursorX, cursorY),
                                                 sf::Vector2f(width, ButtonHeight));
-         cursorX += width + Gap;
+         cursorX += width + ButtonGap;
       }
    }
 
@@ -180,10 +195,18 @@ namespace Cgen
          shape.setOutlineThickness(1.0f);
          pTarget->draw(shape);
 
-         sf::Text label(*_pFont, button.label, 14);
+         sf::Text label(*_pFont, button.label, LabelCharacterSize);
          label.setFillColor(sf::Color::White);
-         label.setPosition(sf::Vector2f(button.bounds.position.x + 10.0f,
-                                        button.bounds.position.y + 4.0f));
+         const sf::FloatRect textBounds = label.getLocalBounds();
+         const float textX =
+            button.bounds.position.x +
+            ((button.bounds.size.x - textBounds.size.x) * 0.5f) -
+            textBounds.position.x;
+         const float textY =
+            button.bounds.position.y +
+            ((button.bounds.size.y - textBounds.size.y) * 0.5f) -
+            textBounds.position.y;
+         label.setPosition(sf::Vector2f(textX, textY));
          pTarget->draw(label);
       }
    }

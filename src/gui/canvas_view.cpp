@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <queue>
+#include <string>
 #include <unordered_set>
 
 #include <SFML/Window/Keyboard.hpp>
@@ -59,6 +60,104 @@ namespace Cgen
          const float width = std::fabs(a.x - b.x);
          const float height = std::fabs(a.y - b.y);
          return sf::FloatRect(sf::Vector2f(left, top), sf::Vector2f(width, height));
+      }
+
+      void DrawWireSegment(sf::RenderTarget* pTarget,
+                           sf::Vector2f fromScreen,
+                           sf::Vector2f toScreen,
+                           sf::Color color,
+                           GraphDocument::OrthogonalWires orthogonal)
+      {
+         if (pTarget == nullptr)
+         {
+            return;
+         }
+         if (orthogonal == GraphDocument::OrthogonalWires::No)
+         {
+            sf::VertexArray line(sf::PrimitiveType::Lines, 2);
+            line[0].position = fromScreen;
+            line[0].color = color;
+            line[1].position = toScreen;
+            line[1].color = color;
+            pTarget->draw(line);
+            return;
+         }
+
+         const float midX = (fromScreen.x + toScreen.x) * 0.5f;
+         sf::VertexArray line(sf::PrimitiveType::LineStrip, 4);
+         line[0].position = fromScreen;
+         line[0].color = color;
+         line[1].position = sf::Vector2f(midX, fromScreen.y);
+         line[1].color = color;
+         line[2].position = sf::Vector2f(midX, toScreen.y);
+         line[2].color = color;
+         line[3].position = toScreen;
+         line[3].color = color;
+         pTarget->draw(line);
+      }
+
+      const Node* FindFunctionDefByName(const GraphDocument& document,
+                                        std::string_view functionName)
+      {
+         if (functionName.empty())
+         {
+            return nullptr;
+         }
+         const std::vector<Node>& nodes = document.GetNodes();
+         for (size_t index = 0; index < nodes.size(); ++index)
+         {
+            if (nodes[index].type != BlockType::FunctionDef)
+            {
+               continue;
+            }
+            const auto nameIterator = nodes[index].properties.find("name");
+            if ((nameIterator != nodes[index].properties.end()) &&
+                (nameIterator->second == functionName))
+            {
+               return &nodes[index];
+            }
+         }
+         return nullptr;
+      }
+
+      uint32_t CountVisibleCallArgs(const Node& callNode)
+      {
+         uint32_t count = 0;
+         for (size_t index = 0; index < callNode.ports.size(); ++index)
+         {
+            const Port& port = callNode.ports[index];
+            if ((!port.visible) || (port.direction != PortDirection::In))
+            {
+               continue;
+            }
+            if (port.name.rfind("Arg", 0) != 0)
+            {
+               continue;
+            }
+            ++count;
+         }
+         return count;
+      }
+
+      std::string FormatCallArityLabel(const GraphDocument& document,
+                                       const Node& callNode)
+      {
+         std::string functionName = "function";
+         const auto functionIterator = callNode.properties.find("function");
+         if ((functionIterator != callNode.properties.end()) &&
+             (!functionIterator->second.empty()))
+         {
+            functionName = functionIterator->second;
+         }
+
+         uint32_t arity = CountVisibleCallArgs(callNode);
+         const Node* pFunction = FindFunctionDefByName(document, functionName);
+         if (pFunction != nullptr)
+         {
+            arity = GetFunctionParamCount(*pFunction);
+         }
+
+         return functionName + "(" + std::to_string(arity) + ")";
       }
    } // namespace
 
@@ -679,6 +778,16 @@ namespace Cgen
       {
          if (portHit.direction == PortDirection::Out)
          {
+            const Edge* pExisting =
+               _pDocument->FindOutgoingEdge(portHit.nodeId, portHit.portName);
+            if (pExisting != nullptr)
+            {
+               PushCheckpoint();
+               const EdgeId existingId = pExisting->id;
+               _pDocument->RemoveEdge(existingId);
+               Node* pFromNode = _pDocument->FindNodeMutable(portHit.nodeId);
+               SyncPrintfArgVisibility(pFromNode, _pDocument);
+            }
             _wireStart = portHit;
             _wirePreviewWorld = world;
             ClearWireHoverFeedback();
@@ -1268,6 +1377,13 @@ namespace Cgen
       }
 
       PushCheckpoint();
+      const Edge* pIncoming =
+         _pDocument->FindIncomingEdge(toHit.nodeId, toHit.portName);
+      if (pIncoming != nullptr)
+      {
+         _pDocument->RemoveEdge(pIncoming->id);
+      }
+
       const Result connectResult =
          _pDocument->Connect(fromHit.nodeId,
                              fromHit.portName,
@@ -1281,6 +1397,7 @@ namespace Cgen
 
       Node* pToNode = _pDocument->FindNodeMutable(toHit.nodeId);
       SyncPrintfArgVisibility(pToNode, _pDocument);
+      SyncCallArgPorts(pToNode, _pDocument);
       return true;
    }
 
@@ -1547,17 +1664,16 @@ namespace Cgen
          }
          const sf::Vector2f fromScreen = WorldToScreen(fromWorld);
          const sf::Vector2f toScreen = WorldToScreen(toWorld);
-         sf::VertexArray line(sf::PrimitiveType::Lines, 2);
          const Port* pPort = FindPort(*pFrom, edge.fromPort);
          const sf::Color color =
             ((pPort != nullptr) && (pPort->kind == PortKind::Data))
                ? _theme.wireData
                : _theme.wireControl;
-         line[0].position = fromScreen;
-         line[0].color = color;
-         line[1].position = toScreen;
-         line[1].color = color;
-         pTarget->draw(line);
+         DrawWireSegment(pTarget,
+                         fromScreen,
+                         toScreen,
+                         color,
+                         _pDocument->GetOrthogonalWires());
       }
 
       if (_wireStart.has_value())
@@ -1573,12 +1689,11 @@ namespace Cgen
          {
             previewColor = _theme.wireIncompatible;
          }
-         sf::VertexArray preview(sf::PrimitiveType::Lines, 2);
-         preview[0].position = fromScreen;
-         preview[0].color = previewColor;
-         preview[1].position = toScreen;
-         preview[1].color = previewColor;
-         pTarget->draw(preview);
+         DrawWireSegment(pTarget,
+                         fromScreen,
+                         toScreen,
+                         previewColor,
+                         _pDocument->GetOrthogonalWires());
       }
 
       const std::vector<Node>& nodes = _pDocument->GetNodes();
@@ -1664,6 +1779,16 @@ namespace Cgen
                                topLeft.y + (36.0f * zoom)));
                pTarget->draw(collapsedLabel);
             }
+         }
+         else if (node.type == BlockType::Call)
+         {
+            sf::Text arityLabel(*_pFont,
+                                FormatCallArityLabel(*_pDocument, node),
+                                11);
+            arityLabel.setFillColor(_theme.textSecondary);
+            arityLabel.setPosition(sf::Vector2f(topLeft.x + (8.0f * zoom),
+                                                topLeft.y + (22.0f * zoom)));
+            pTarget->draw(arityLabel);
          }
 
          for (size_t portIndex = 0; portIndex < node.ports.size(); ++portIndex)

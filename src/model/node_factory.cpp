@@ -775,6 +775,7 @@ namespace Cgen
             break;
       }
 
+      node.properties["comment"] = "";
       SyncNodePortTypes(&node);
       SyncFunctionDefParams(&node);
       SyncPrintfArgVisibility(&node, nullptr);
@@ -1395,6 +1396,10 @@ namespace Cgen
       std::vector<Node>& nodes = pDocument->GetNodesMutable();
       for (size_t index = 0; index < nodes.size(); ++index)
       {
+         if (nodes[index].properties.find("comment") == nodes[index].properties.end())
+         {
+            nodes[index].properties["comment"] = "";
+         }
          SyncNodePortTypes(&nodes[index]);
          SyncFunctionDefParams(&nodes[index]);
          SyncPrintfArgVisibility(&nodes[index], pDocument);

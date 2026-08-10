@@ -82,6 +82,11 @@ namespace Cgen
       void ReloadFromDocument(void);
 
       /*!
+       *\brief Returns true once after a property commit changed the document.
+       */
+      bool ConsumeDidEdit(void);
+
+      /*!
        *\brief Commits the active field and clears keyboard focus.
        */
       void Blur(void);
@@ -172,6 +177,7 @@ namespace Cgen
       int32_t _choiceScrollOffset = 0;
       sf::FloatRect _choicePopupBounds {};
       std::vector<ChoiceItem> _choiceItems;
+      bool _didEdit = false;
       UiTheme _theme = GetUiTheme(UiThemeId::Dark);
    };
 } // namespace Cgen

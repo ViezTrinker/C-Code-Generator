@@ -384,6 +384,48 @@ TEST(CCodegenTest, EmitsCastScanfFloatAssertComment)
    EXPECT_NE(output.source.find("assert(1);"), std::string::npos);
 }
 
+TEST(CCodegenTest, EmitsPerBlockCommentWhenNonEmpty)
+{
+   Cgen::GraphDocument document;
+   const Cgen::NodeId startId = document.GetNodes().front().id;
+   const Cgen::NodeId declId =
+      document.AddNode(Cgen::BlockType::VariableDecl, 160.0f, 40.0f);
+   Cgen::Node* pDecl = document.FindNodeMutable(declId);
+   ASSERT_NE(pDecl, nullptr);
+   pDecl->properties["name"] = "value";
+   pDecl->properties["type"] = "int32_t";
+   pDecl->properties["comment"] = "declare value";
+
+   const Cgen::NodeId litId =
+      document.AddNode(Cgen::BlockType::Literal, 40.0f, 160.0f);
+   Cgen::Node* pLit = document.FindNodeMutable(litId);
+   ASSERT_NE(pLit, nullptr);
+   pLit->properties["value"] = "42";
+   pLit->properties["comment"] = "answer";
+
+   const Cgen::NodeId printfId =
+      document.AddNode(Cgen::BlockType::Printf, 360.0f, 40.0f);
+   Cgen::Node* pPrintf = document.FindNodeMutable(printfId);
+   ASSERT_NE(pPrintf, nullptr);
+   pPrintf->properties["format"] = "%d\\n";
+   pPrintf->properties["comment"] = "   ";
+
+   const Cgen::NodeId endId = document.AddNode(Cgen::BlockType::End, 560.0f, 40.0f);
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(startId, "Next", declId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(litId, "Value", declId, "Init", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(declId, "Next", printfId, "In", nullptr)));
+   ASSERT_TRUE(Cgen::IsOk(document.Connect(printfId, "Next", endId, "In", nullptr)));
+
+   const Cgen::CodegenOutput output = Cgen::GenerateCSource(document);
+   EXPECT_TRUE(Cgen::IsOk(output.result)) << output.diagnostics;
+   EXPECT_NE(output.source.find("/* declare value */"), std::string::npos);
+   EXPECT_NE(output.source.find("42 /* answer */"), std::string::npos);
+   EXPECT_EQ(output.source.find("/*    */"), std::string::npos);
+
+   const std::string declSnippet = Cgen::GenerateCSnippet(document, declId);
+   EXPECT_NE(declSnippet.find("/* declare value */"), std::string::npos);
+}
+
 TEST(CCodegenTest, EmitsSnippetForSelectedBlocks)
 {
    Cgen::GraphDocument document;

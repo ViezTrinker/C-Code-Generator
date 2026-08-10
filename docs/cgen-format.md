@@ -16,6 +16,7 @@ CGEN 1
   "viewport": { "x": …, "y": …, "zoom": … },
   "fileDescription": "…",
   "clangFormat": true,
+  "orthogonalWires": false,
   "types": [],
   "nodes": [ … ],
   "edges": [ … ]

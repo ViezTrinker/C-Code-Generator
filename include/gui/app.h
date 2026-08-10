@@ -69,8 +69,13 @@ namespace Cgen
       void OpenCanvasContextMenu(sf::Vector2f screenPoint);
       void HandleContextMenuClick(sf::Vector2f screenPoint);
       void SyncSelectionUi(void);
+      void RequestLiveValidation(void);
+      void FlushLiveValidation(void);
+      void MaybeFlushLiveValidation(void);
       void RefreshValidationBadges(void);
       void JumpToValidationNode(NodeId nodeId);
+      void CreateMatchingFunctionDef(NodeId callNodeId);
+      void ToggleOrthogonalWires(void);
       void MaybeAutosave(void);
       void ClearAutosaveFiles(void);
       void PromptRestoreAutosaveIfPresent(void);
@@ -90,6 +95,9 @@ namespace Cgen
       bool _helpViewVisible = false;
       UiThemeId _themeId = UiThemeId::Dark;
       sf::Clock _autosaveClock;
+      sf::Clock _validationClock;
+      bool _validationPending = false;
+      bool _liveValidationOwnsCompiler = true;
       std::unique_ptr<Toolbar> _pToolbar;
       std::unique_ptr<Palette> _pPalette;
       std::unique_ptr<CanvasView> _pCanvas;

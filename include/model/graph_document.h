@@ -28,6 +28,7 @@ namespace Cgen
       bool dirty = false;
       std::string fileDescription;
       bool clangFormatOnGenerate = false;
+      bool orthogonalWires = false;
    };
 
    /*!
@@ -248,6 +249,27 @@ namespace Cgen
       void SetClangFormatOnGenerate(ClangFormatOnGenerate value);
 
       /*!
+       *\brief Whether canvas wires are drawn with orthogonal elbows.
+       */
+      enum class OrthogonalWires: bool
+      {
+         No = false,
+         Yes = true
+      };
+
+      /*!
+       *\brief Returns orthogonal-wire drawing preference.
+       */
+      OrthogonalWires GetOrthogonalWires(void) const;
+
+      /*!
+       *\brief Sets orthogonal-wire drawing preference.
+       *
+       *\param[in] value Yes for elbow routing.
+       */
+      void SetOrthogonalWires(OrthogonalWires value);
+
+      /*!
        *\brief Captures nodes, edges, and id counters (viewport excluded).
        *
        *\return Graph snapshot for undo.
@@ -273,6 +295,7 @@ namespace Cgen
       std::string _filePath;
       std::string _fileDescription;
       ClangFormatOnGenerate _clangFormatOnGenerate = ClangFormatOnGenerate::No;
+      OrthogonalWires _orthogonalWires = OrthogonalWires::No;
    };
 } // namespace Cgen
 

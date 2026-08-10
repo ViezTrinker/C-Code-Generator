@@ -243,6 +243,73 @@ namespace Cgen
          return result;
       }
 
+      bool IsBlankOrWhitespace(std::string_view text)
+      {
+         for (size_t index = 0; index < text.size(); ++index)
+         {
+            const char character = text[index];
+            if ((character != ' ') && (character != '\t') && (character != '\n') &&
+                (character != '\r'))
+            {
+               return false;
+            }
+         }
+         return true;
+      }
+
+      bool TryGetBlockComment(const Node& node, std::string* pOutText)
+      {
+         if (pOutText == nullptr)
+         {
+            return false;
+         }
+         const std::string raw = GetProperty(node, "comment", "");
+         if (IsBlankOrWhitespace(raw))
+         {
+            return false;
+         }
+         *pOutText = SanitizeCommentText(raw);
+         return true;
+      }
+
+      void EmitBlockCommentLine(EmitContext* pContext, const Node& node)
+      {
+         if (pContext == nullptr)
+         {
+            return;
+         }
+         std::string commentText;
+         if (!TryGetBlockComment(node, &commentText))
+         {
+            return;
+         }
+         WriteIndent(pContext);
+         (*pContext->pOut) << "/* " << commentText << " */\n";
+      }
+
+      std::string AppendTrailingBlockComment(std::string expression, const Node& node)
+      {
+         std::string commentText;
+         if (!TryGetBlockComment(node, &commentText))
+         {
+            return expression;
+         }
+         expression.append(" /* ");
+         expression.append(commentText);
+         expression.append(" */");
+         return expression;
+      }
+
+      std::string WithLeadingBlockComment(const Node& node, std::string body)
+      {
+         std::string commentText;
+         if (!TryGetBlockComment(node, &commentText))
+         {
+            return body;
+         }
+         return std::string("/* ") + commentText + " */ " + body;
+      }
+
       std::string FieldAccessPrefix(EmitContext* pContext,
                                     const Node& node,
                                     std::string_view blockLabel)
@@ -469,6 +536,7 @@ namespace Cgen
                break;
          }
 
+         expression = AppendTrailingBlockComment(expression, *pNode);
          pContext->temps[nodeId] = expression;
          return expression;
       }
@@ -618,6 +686,7 @@ namespace Cgen
 
       void EmitSingleStatement(EmitContext* pContext, const Node& node)
       {
+         EmitBlockCommentLine(pContext, node);
          switch (node.type)
          {
             case BlockType::VariableDecl:
@@ -1248,6 +1317,7 @@ namespace Cgen
             {
                continue;
             }
+            EmitBlockCommentLine(pContext, node);
             const std::string name = GetProperty(node, "name", "gValue");
             const std::string typeName = GetProperty(node, "type", "int32_t");
             const std::string initExpr = EmitInputExpression(pContext, node.id, "Init");
@@ -1270,6 +1340,7 @@ namespace Cgen
             {
                continue;
             }
+            EmitBlockCommentLine(pContext, node);
             const std::string name = GetProperty(node, "name", "Point");
             const std::string fields = GetProperty(node, "fields", "int32_t x; int32_t y");
             (*pContext->pOut) << "typedef struct " << name << "\n{\n";
@@ -1312,6 +1383,7 @@ namespace Cgen
             {
                continue;
             }
+            EmitBlockCommentLine(pContext, node);
             const std::string name = GetProperty(node, "name", "Color");
             const std::string enumerators =
                GetProperty(node, "enumerators", "Red, Green, Blue");
@@ -1370,6 +1442,7 @@ namespace Cgen
             {
                continue;
             }
+            EmitBlockCommentLine(pContext, node);
             const std::string name = GetProperty(node, "name", "Byte");
             const std::string typeText = GetProperty(node, "type", "uint8_t");
             (*pContext->pOut) << "typedef " << typeText << " " << name << ";\n\n";
@@ -1386,6 +1459,7 @@ namespace Cgen
             {
                continue;
             }
+            EmitBlockCommentLine(pContext, node);
             const std::string name = GetProperty(node, "name", "helper");
             const std::string returnType = GetProperty(node, "returnType", "int32_t");
             const std::string params = FormatFunctionParamList(node);
@@ -1636,12 +1710,14 @@ namespace Cgen
       if ((pNode->type == BlockType::If) || (pNode->type == BlockType::ElseIf))
       {
          const std::string condExpr = EmitInputExpression(&context, nodeId, "Cond");
-         return std::string("if (") + condExpr + ") { ... }";
+         return WithLeadingBlockComment(
+            *pNode, std::string("if (") + condExpr + ") { ... }");
       }
       if (pNode->type == BlockType::While)
       {
          const std::string condExpr = EmitInputExpression(&context, nodeId, "Cond");
-         return std::string("while (") + condExpr + ") { ... }";
+         return WithLeadingBlockComment(
+            *pNode, std::string("while (") + condExpr + ") { ... }");
       }
       if (pNode->type == BlockType::For)
       {
@@ -1649,28 +1725,32 @@ namespace Cgen
          const std::string start = GetProperty(*pNode, "start", "0");
          const std::string end = GetProperty(*pNode, "end", "10");
          const std::string typeName = GetProperty(*pNode, "type", "int32_t");
-         return std::string("for (") + typeName + " " + iterator + " = " + start +
-                "; " + iterator + " < " + end + "; ++" + iterator + ") { ... }";
+         return WithLeadingBlockComment(
+            *pNode,
+            std::string("for (") + typeName + " " + iterator + " = " + start +
+               "; " + iterator + " < " + end + "; ++" + iterator + ") { ... }");
       }
       if (pNode->type == BlockType::Switch)
       {
          const std::string valueExpr = EmitInputExpression(&context, nodeId, "Value");
-         return std::string("switch (") + valueExpr + ") { ... }";
+         return WithLeadingBlockComment(
+            *pNode, std::string("switch (") + valueExpr + ") { ... }");
       }
       if (pNode->type == BlockType::FunctionDef)
       {
          const std::string name = GetProperty(*pNode, "name", "func");
          const std::string returnType = GetProperty(*pNode, "returnType", "void");
          const std::string params = FormatFunctionParamList(*pNode);
-         return returnType + " " + name + "(" + params + ") { ... }";
+         return WithLeadingBlockComment(
+            *pNode, returnType + " " + name + "(" + params + ") { ... }");
       }
       if (pNode->type == BlockType::Start)
       {
-         return "int main(void) { ... }";
+         return WithLeadingBlockComment(*pNode, "int main(void) { ... }");
       }
       if (pNode->type == BlockType::End)
       {
-         return "/* end */";
+         return WithLeadingBlockComment(*pNode, "/* end */");
       }
 
       EmitSingleStatement(&context, *pNode);

@@ -8,8 +8,11 @@
 #include <stdlib.h>
 
 int main(void) {
+  /* Variable 1 */
   int32_t a = 7;
+  /* Variable 2 */
   int32_t b = 11;
+  /* The sum of those two variables */
   int32_t sum = (a + b);
   printf("a=%d\n", a);
   fflush(stdout);

@@ -111,6 +111,7 @@ TEST(HoverTooltipTest, ToolbarActionsHaveNonEmptyTips)
       Cgen::ToolbarAction::Snap,
       Cgen::ToolbarAction::AlignLeft,
       Cgen::ToolbarAction::AlignTop,
+      Cgen::ToolbarAction::OrthogonalWires,
       Cgen::ToolbarAction::FitAll,
       Cgen::ToolbarAction::FitSelection,
       Cgen::ToolbarAction::Theme,

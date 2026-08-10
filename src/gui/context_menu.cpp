@@ -8,7 +8,7 @@ namespace Cgen
 {
    namespace
    {
-      constexpr float ItemWidth = 150.0f;
+      constexpr float ItemWidth = 220.0f;
       constexpr float ItemHeight = 28.0f;
    } // namespace
 
@@ -45,15 +45,27 @@ namespace Cgen
       }
    }
 
-   void ContextMenu::OpenDeleteBlock(sf::Vector2f screenPoint, NodeId nodeId)
+   void ContextMenu::OpenNodeMenu(sf::Vector2f screenPoint,
+                                  NodeId nodeId,
+                                  BlockType blockType)
    {
       _origin = screenPoint;
       _items.clear();
-      Item item;
-      item.label = "Delete Block";
-      item.action = ContextMenuAction::DeleteBlock;
-      item.nodeId = nodeId;
-      _items.push_back(item);
+      Item deleteItem;
+      deleteItem.label = "Delete Block";
+      deleteItem.action = ContextMenuAction::DeleteBlock;
+      deleteItem.nodeId = nodeId;
+      _items.push_back(deleteItem);
+
+      if (blockType == BlockType::Call)
+      {
+         Item createItem;
+         createItem.label = "Create Matching FunctionDef";
+         createItem.action = ContextMenuAction::CreateMatchingFunctionDef;
+         createItem.nodeId = nodeId;
+         _items.push_back(createItem);
+      }
+
       RebuildBounds();
       _isOpen = true;
    }

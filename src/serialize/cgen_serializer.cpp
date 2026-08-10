@@ -189,6 +189,9 @@ namespace Cgen
          json["clangFormat"] =
             (document.GetClangFormatOnGenerate() ==
              GraphDocument::ClangFormatOnGenerate::Yes);
+         json["orthogonalWires"] =
+            (document.GetOrthogonalWires() ==
+             GraphDocument::OrthogonalWires::Yes);
          Json nodes = Json::array();
          const std::vector<Node>& nodeList = document.GetNodes();
          for (size_t index = 0; index < nodeList.size(); ++index)
@@ -327,6 +330,14 @@ namespace Cgen
       {
          pDocument->SetClangFormatOnGenerate(
             GraphDocument::ClangFormatOnGenerate::No);
+      }
+      if (json.value("orthogonalWires", false))
+      {
+         pDocument->SetOrthogonalWires(GraphDocument::OrthogonalWires::Yes);
+      }
+      else
+      {
+         pDocument->SetOrthogonalWires(GraphDocument::OrthogonalWires::No);
       }
       pDocument->SetFilePath(filePath);
       pDocument->SetDirty(false);

@@ -103,6 +103,8 @@ namespace Cgen
             return "Align selected blocks to the leftmost X.";
          case ToolbarAction::AlignTop:
             return "Align selected blocks to the topmost Y.";
+         case ToolbarAction::OrthogonalWires:
+            return "Toggle orthogonal (elbow) wire routing for dense graphs.";
          case ToolbarAction::FitAll:
             return "Fit the whole graph in view (Ctrl+0).";
          case ToolbarAction::FitSelection:

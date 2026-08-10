@@ -23,7 +23,9 @@
 
 #include "codegen/c_codegen.h"
 #include "gui/ui_theme.h"
+#include "model/c_type.h"
 #include "model/graph_validator.h"
+#include "model/node.h"
 #include "serialize/autosave.h"
 #include "serialize/cgen_serializer.h"
 
@@ -225,11 +227,18 @@ namespace Cgen
          _pCanvas->SetSelectedNodeIds(valid);
       }
       _pProperties->SetSelection(&_document, _pCanvas->GetSelectedNodeId());
-      RefreshValidationBadges();
+      RequestLiveValidation();
       UpdateTitle();
    }
 
-   void App::RefreshValidationBadges(void)
+   void App::RequestLiveValidation(void)
+   {
+      _validationPending = true;
+      _validationClock.restart();
+      _liveValidationOwnsCompiler = true;
+   }
+
+   void App::FlushLiveValidation(void)
    {
       if (_pCanvas == nullptr)
       {
@@ -239,6 +248,57 @@ namespace Cgen
       std::unordered_map<NodeId, ValidationSeverity> severityByNodeId;
       BuildNodeSeverityMap(report, &severityByNodeId);
       _pCanvas->SetValidationSeverityMap(severityByNodeId);
+
+      if ((_pCompilerLog != nullptr) && _liveValidationOwnsCompiler)
+      {
+         _pCompilerLog->SetValidationReport(
+            report, "\n(Live validation — Generate C for source output)\n");
+      }
+   }
+
+   void App::MaybeFlushLiveValidation(void)
+   {
+      if (_pProperties != nullptr)
+      {
+         if (_pProperties->ConsumeDidEdit())
+         {
+            RequestLiveValidation();
+         }
+      }
+      if (!_validationPending)
+      {
+         return;
+      }
+      constexpr float ValidationDebounceSeconds = 0.35f;
+      if (_validationClock.getElapsedTime().asSeconds() < ValidationDebounceSeconds)
+      {
+         return;
+      }
+      _validationPending = false;
+      FlushLiveValidation();
+   }
+
+   void App::RefreshValidationBadges(void)
+   {
+      FlushLiveValidation();
+   }
+
+   void App::ToggleOrthogonalWires(void)
+   {
+      if (_document.GetOrthogonalWires() == GraphDocument::OrthogonalWires::Yes)
+      {
+         _document.SetOrthogonalWires(GraphDocument::OrthogonalWires::No);
+      }
+      else
+      {
+         _document.SetOrthogonalWires(GraphDocument::OrthogonalWires::Yes);
+      }
+      _document.SetDirty(true);
+      if (_pProperties != nullptr)
+      {
+         _pProperties->ReloadFromDocument();
+      }
+      UpdateTitle();
    }
 
    void App::ClearAutosaveFiles(void)
@@ -479,6 +539,7 @@ namespace Cgen
       const ValidationReport report = ValidateGraph(_document);
       const CodegenOutput output = GenerateCSource(_document);
       _lastGeneratedSource = output.source;
+      _liveValidationOwnsCompiler = false;
 
       std::string footer;
       if (IsErr(output.result))
@@ -491,6 +552,10 @@ namespace Cgen
          footer = "\nCode generation succeeded.\n";
       }
       _pCompilerLog->SetValidationReport(report, footer);
+
+      std::unordered_map<NodeId, ValidationSeverity> severityByNodeId;
+      BuildNodeSeverityMap(report, &severityByNodeId);
+      _pCanvas->SetValidationSeverityMap(severityByNodeId);
 
       _buildRunner.SetArtifactBaseName(_document.GetFilePath());
       const Result writeResult = _buildRunner.WriteSource(output.source);
@@ -558,6 +623,9 @@ namespace Cgen
          "- Drag a block from the left Blocks panel onto the canvas to place it.\n"
          "- Type in the Blocks filter to find blocks by name.\n"
          "- Drag blocks to move them. Middle-drag or Space+drag pans; left-drag empty for marquee.\n"
+         "- Drag from an output port to rewire; drop on an input replaces an existing wire.\n"
+         "- Ortho toggles elbow wire routing (also Document orthogonalWires).\n"
+         "- Validation issues appear live in Compiler (click to jump) and as red/yellow block outlines.\n"
          "- Shift+click toggles multi-select. Ctrl+A selects all.\n"
          "- Mouse wheel pans the canvas vertically; Shift+wheel pans horizontally.\n"
          "- Ctrl+wheel zooms. Arrow keys also pan. Hover a port to see its name.\n"
@@ -572,6 +640,7 @@ namespace Cgen
          "- Select block(s) and press Delete or Backspace.\n"
          "- Ctrl+C / Ctrl+V copy and paste a subgraph (Start excluded).\n"
          "- Right-click a block → Delete Block (Start cannot be deleted).\n"
+         "- Right-click a Call → Create Matching FunctionDef when no/unknown function exists.\n"
          "- Right-click a wired port → Delete Wire.\n\n"
          "Undo / layout\n"
          "- Ctrl+Z undoes up to 64 graph edits (place, delete, wire, tidy, property commit).\n"
@@ -648,7 +717,7 @@ namespace Cgen
          }
          _pCanvas->SetSelectedNodeId(hit.nodeId);
          SyncSelectionUi();
-         _pContextMenu->OpenDeleteBlock(screenPoint, hit.nodeId);
+         _pContextMenu->OpenNodeMenu(screenPoint, hit.nodeId, pNode->type);
          return;
       }
       _pContextMenu->Close();
@@ -671,7 +740,96 @@ namespace Cgen
       {
          _pCanvas->DeleteEdge(edgeId);
          SyncSelectionUi();
+         return;
       }
+      if (action == ContextMenuAction::CreateMatchingFunctionDef)
+      {
+         CreateMatchingFunctionDef(nodeId);
+      }
+   }
+
+   void App::CreateMatchingFunctionDef(NodeId callNodeId)
+   {
+      Node* pCall = _document.FindNodeMutable(callNodeId);
+      if ((pCall == nullptr) || (pCall->type != BlockType::Call))
+      {
+         return;
+      }
+
+      std::string functionName = "helper";
+      const auto functionIterator = pCall->properties.find("function");
+      if ((functionIterator != pCall->properties.end()) &&
+          (!functionIterator->second.empty()))
+      {
+         functionName = functionIterator->second;
+      }
+      else
+      {
+         pCall->properties["function"] = functionName;
+      }
+
+      std::string returnType = "void";
+      const auto returnIterator = pCall->properties.find("returnType");
+      if ((returnIterator != pCall->properties.end()) &&
+          (!returnIterator->second.empty()))
+      {
+         returnType = returnIterator->second;
+      }
+
+      uint32_t arity = 0;
+      std::array<std::string, MaxFunctionParams> argTypes {};
+      for (size_t index = 0; index < argTypes.size(); ++index)
+      {
+         argTypes[index] = "int32_t";
+      }
+      for (size_t portIndex = 0; portIndex < pCall->ports.size(); ++portIndex)
+      {
+         const Port& port = pCall->ports[portIndex];
+         if ((!port.visible) || (port.direction != PortDirection::In))
+         {
+            continue;
+         }
+         if (port.name.rfind("Arg", 0) != 0)
+         {
+            continue;
+         }
+         if (arity >= argTypes.size())
+         {
+            break;
+         }
+         const std::string typeText = CTypeToString(port.dataType);
+         if (!typeText.empty())
+         {
+            argTypes[arity] = typeText;
+         }
+         ++arity;
+      }
+
+      _history.PushCheckpoint(_document);
+      const NodeId functionId =
+         _document.AddNode(BlockType::FunctionDef,
+                           pCall->posX,
+                           pCall->posY + 140.0f);
+      Node* pFunction = _document.FindNodeMutable(functionId);
+      if (pFunction == nullptr)
+      {
+         return;
+      }
+      pFunction->properties["name"] = functionName;
+      pFunction->properties["returnType"] = returnType;
+      pFunction->properties["paramCount"] = std::to_string(arity);
+      for (uint32_t paramIndex = 0; paramIndex < arity; ++paramIndex)
+      {
+         const std::string indexText = std::to_string(paramIndex);
+         pFunction->properties["param" + indexText + "Name"] =
+            "arg" + indexText;
+         pFunction->properties["param" + indexText + "Type"] =
+            argTypes[paramIndex];
+      }
+      SyncFunctionDefParams(pFunction);
+      SyncCallArgPorts(pCall, &_document);
+      _pCanvas->SetSelectedNodeId(functionId);
+      SyncSelectionUi();
    }
 
    void App::BuildCode(void)
@@ -686,6 +844,7 @@ namespace Cgen
          _buildRunner.WriteSource(_lastGeneratedSource);
       }
       const BuildResult buildResult = _buildRunner.Compile();
+      _liveValidationOwnsCompiler = false;
       std::string log;
       log.append("Command: ");
       log.append(buildResult.command);
@@ -815,6 +974,9 @@ namespace Cgen
             _pCanvas->AlignSelectedNodes(AlignSelection::Top);
             SyncSelectionUi();
             break;
+         case ToolbarAction::OrthogonalWires:
+            ToggleOrthogonalWires();
+            break;
          case ToolbarAction::FitAll:
             _pCanvas->FitAllNodes();
             break;
@@ -875,6 +1037,7 @@ namespace Cgen
                              "Delete/Backspace removes the selected block; Ctrl+Z / Ctrl+Y undo/redo.\n");
       PromptRestoreAutosaveIfPresent();
       _autosaveClock.restart();
+      RequestLiveValidation();
 
       while (_window.isOpen())
       {
@@ -1183,6 +1346,7 @@ namespace Cgen
 
          PollProgramSession();
          MaybeAutosave();
+         MaybeFlushLiveValidation();
 
          _window.clear(GetUiTheme(_themeId).windowClear);
          _pToolbar->Draw(&_window);

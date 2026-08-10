@@ -12,6 +12,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "gui/ui_theme.h"
+#include "model/block_type.h"
 #include "model/edge.h"
 #include "model/node.h"
 
@@ -24,7 +25,8 @@ namespace Cgen
    {
       None = 0,
       DeleteBlock,
-      DeleteWire
+      DeleteWire,
+      CreateMatchingFunctionDef
    };
 
    /*!
@@ -58,12 +60,15 @@ namespace Cgen
       bool IsOpen(void) const;
 
       /*!
-       *\brief Opens a delete-block menu for a node.
+       *\brief Opens a node context menu (delete, Call helpers).
        *
        *\param[in] screenPoint Anchor position.
        *\param[in] nodeId Target node.
+       *\param[in] blockType Node block type.
        */
-      void OpenDeleteBlock(sf::Vector2f screenPoint, NodeId nodeId);
+      void OpenNodeMenu(sf::Vector2f screenPoint,
+                        NodeId nodeId,
+                        BlockType blockType);
 
       /*!
        *\brief Opens a delete-wire menu for an edge.

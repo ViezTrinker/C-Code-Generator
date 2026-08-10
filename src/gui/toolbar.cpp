@@ -94,6 +94,10 @@ namespace Cgen
           std::string(ToolbarActionTooltipText(ToolbarAction::AlignTop)),
           {}});
       _buttons.push_back(
+         {ToolbarAction::OrthogonalWires, "Ortho",
+          std::string(ToolbarActionTooltipText(ToolbarAction::OrthogonalWires)),
+          {}});
+      _buttons.push_back(
          {ToolbarAction::FitAll, "Fit",
           std::string(ToolbarActionTooltipText(ToolbarAction::FitAll)),
           {}});

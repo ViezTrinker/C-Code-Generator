@@ -29,7 +29,8 @@ namespace Cgen
       FitSelection,
       Snap,
       AlignLeft,
-      AlignTop
+      AlignTop,
+      OrthogonalWires
    };
 } // namespace Cgen
 

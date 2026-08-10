@@ -313,6 +313,16 @@ namespace Cgen
       _clangFormatOnGenerate = value;
    }
 
+   GraphDocument::OrthogonalWires GraphDocument::GetOrthogonalWires(void) const
+   {
+      return _orthogonalWires;
+   }
+
+   void GraphDocument::SetOrthogonalWires(OrthogonalWires value)
+   {
+      _orthogonalWires = value;
+   }
+
    GraphSnapshot GraphDocument::CaptureGraph(void) const
    {
       GraphSnapshot snapshot;
@@ -324,6 +334,7 @@ namespace Cgen
       snapshot.fileDescription = _fileDescription;
       snapshot.clangFormatOnGenerate =
          (_clangFormatOnGenerate == ClangFormatOnGenerate::Yes);
+      snapshot.orthogonalWires = (_orthogonalWires == OrthogonalWires::Yes);
       return snapshot;
    }
 
@@ -338,5 +349,7 @@ namespace Cgen
       _clangFormatOnGenerate =
          snapshot.clangFormatOnGenerate ? ClangFormatOnGenerate::Yes
                                         : ClangFormatOnGenerate::No;
+      _orthogonalWires = snapshot.orthogonalWires ? OrthogonalWires::Yes
+                                                  : OrthogonalWires::No;
    }
 } // namespace Cgen

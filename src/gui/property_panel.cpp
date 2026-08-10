@@ -208,6 +208,13 @@ namespace Cgen
       RebuildFields();
    }
 
+   bool PropertyPanel::ConsumeDidEdit(void)
+   {
+      const bool edited = _didEdit;
+      _didEdit = false;
+      return edited;
+   }
+
    void PropertyPanel::Blur(void)
    {
       CommitActiveField();
@@ -335,6 +342,13 @@ namespace Cgen
          return;
       }
       if (pField->key == "clangFormat")
+      {
+         pField->editKind = FieldEditKind::Choice;
+         AppendYesNoChoices(&pField->choices);
+         AppendUniqueChoice(&pField->choices, pField->value);
+         return;
+      }
+      if (pField->key == "orthogonalWires")
       {
          pField->editKind = FieldEditKind::Choice;
          AppendYesNoChoices(&pField->choices);
@@ -507,7 +521,8 @@ namespace Cgen
       {
          RebuildHelpLines(
             "Document settings. fileDescription becomes the generated "
-            "\\\\brief. clangFormat=1 runs clang-format after Generate when available.");
+            "\\\\brief. clangFormat=1 runs clang-format after Generate when available. "
+            "orthogonalWires=1 draws elbow wires.");
          float cursorY = FieldsStartY();
          Field descriptionField;
          descriptionField.key = "fileDescription";
@@ -531,6 +546,20 @@ namespace Cgen
             sf::FloatRect(sf::Vector2f(_bounds.position.x + 8.0f, cursorY + 16.0f),
                           sf::Vector2f(_bounds.size.x - 16.0f, 22.0f));
          _fields.push_back(formatField);
+         cursorY += FieldRowHeight;
+
+         Field orthoField;
+         orthoField.key = "orthogonalWires";
+         orthoField.value =
+            (_pDocument->GetOrthogonalWires() ==
+             GraphDocument::OrthogonalWires::Yes)
+               ? "1"
+               : "0";
+         FillChoicesForField(&orthoField, BlockType::Start);
+         orthoField.bounds =
+            sf::FloatRect(sf::Vector2f(_bounds.position.x + 8.0f, cursorY + 16.0f),
+                          sf::Vector2f(_bounds.size.x - 16.0f, 22.0f));
+         _fields.push_back(orthoField);
          return;
       }
 
@@ -543,7 +572,7 @@ namespace Cgen
       RebuildHelpLines(BlockTypeHelpText(pNode->type));
       RebuildPreviewLines(GenerateCSnippet(*_pDocument, _selectedNodeId));
 
-      float cursorY = FieldsStartY();
+      std::vector<std::string> propertyKeys;
       for (PropertyMap::const_iterator iterator = pNode->properties.begin();
            iterator != pNode->properties.end();
            ++iterator)
@@ -552,9 +581,40 @@ namespace Cgen
          {
             continue;
          }
+         if (iterator->first == "comment")
+         {
+            continue;
+         }
+         propertyKeys.push_back(iterator->first);
+      }
+      for (size_t left = 0; left < propertyKeys.size(); ++left)
+      {
+         for (size_t right = left + 1; right < propertyKeys.size(); ++right)
+         {
+            if (propertyKeys[right] < propertyKeys[left])
+            {
+               const std::string swapValue = propertyKeys[left];
+               propertyKeys[left] = propertyKeys[right];
+               propertyKeys[right] = swapValue;
+            }
+         }
+      }
+      if (pNode->properties.find("comment") != pNode->properties.end())
+      {
+         propertyKeys.push_back("comment");
+      }
+
+      float cursorY = FieldsStartY();
+      for (size_t index = 0; index < propertyKeys.size(); ++index)
+      {
+         const auto found = pNode->properties.find(propertyKeys[index]);
+         if (found == pNode->properties.end())
+         {
+            continue;
+         }
          Field field;
-         field.key = iterator->first;
-         field.value = iterator->second;
+         field.key = found->first;
+         field.value = found->second;
          FillChoicesForField(&field, pNode->type);
          field.bounds =
             sf::FloatRect(sf::Vector2f(_bounds.position.x + 8.0f, cursorY + 16.0f),
@@ -590,6 +650,7 @@ namespace Cgen
             }
             _pDocument->SetFileDescription(field.value);
             _pDocument->SetDirty(true);
+            _didEdit = true;
             return;
          }
          if (field.key == "clangFormat")
@@ -607,6 +668,25 @@ namespace Cgen
             }
             _pDocument->SetClangFormatOnGenerate(nextValue);
             _pDocument->SetDirty(true);
+            _didEdit = true;
+            return;
+         }
+         if (field.key == "orthogonalWires")
+         {
+            const GraphDocument::OrthogonalWires nextValue =
+               (field.value == "1") ? GraphDocument::OrthogonalWires::Yes
+                                    : GraphDocument::OrthogonalWires::No;
+            if (_pDocument->GetOrthogonalWires() == nextValue)
+            {
+               return;
+            }
+            if (_pHistory != nullptr)
+            {
+               _pHistory->PushCheckpoint(*_pDocument);
+            }
+            _pDocument->SetOrthogonalWires(nextValue);
+            _pDocument->SetDirty(true);
+            _didEdit = true;
             return;
          }
          return;
@@ -636,6 +716,7 @@ namespace Cgen
          SyncAllNodePorts(_pDocument);
       }
       _pDocument->SetDirty(true);
+      _didEdit = true;
       RebuildPreviewLines(GenerateCSnippet(*_pDocument, _selectedNodeId));
       if ((field.key == "paramCount") || (field.key.find("param") == 0))
       {

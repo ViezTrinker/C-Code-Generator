@@ -19,7 +19,7 @@ Headless codegen and most model logic do **not** need SFML; the GUI and process 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  c_code_generator.exe                                       │
-│  main.cpp  │  App / Canvas / Palette / …  │  BuildRunner    │
+│  main.cpp  │  App / CLI / Canvas / …  │  BuildRunner    │
 └─────────────┬───────────────────────────────┬───────────────┘
               │ links                         │
               ▼                               ▼

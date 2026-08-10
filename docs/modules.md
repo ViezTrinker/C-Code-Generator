@@ -83,11 +83,23 @@ Compiled into the **executable** (not `cgen_core`).
 
 ---
 
+## `cli/` — headless entry modes
+
+Compiled into the **executable** (uses `BuildRunner`).
+
+| Header / source | Responsibility |
+| --- | --- |
+| `command_line.h/.cpp` | `--help`, `--self-test`, `--codegen` / `--compile` / `--run` |
+
+**Key APIs:** `RunCommandLine(argc, pArgv)`.
+
+---
+
 ## Entry point
 
 | File | Role |
 | --- | --- |
-| `src/main.cpp` | No args → GUI; `--codegen` / `--compile` / `--run`; `--self-test`; `--help` |
+| `src/main.cpp` | No args → GUI `App::Run`; otherwise `RunCommandLine` |
 
 ---
 

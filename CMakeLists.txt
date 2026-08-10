@@ -51,6 +51,7 @@ set(CGEN_CORE_SOURCES
 set(CGEN_APP_HEADERS
    include/build/build_runner.h
    include/build/process_session.h
+   include/cli/command_line.h
    include/gui/app.h
    include/gui/canvas_view.h
    include/gui/context_menu.h
@@ -66,6 +67,7 @@ set(CGEN_APP_SOURCES
    src/main.cpp
    src/build/build_runner.cpp
    src/build/process_session.cpp
+   src/cli/command_line.cpp
    src/gui/app.cpp
    src/gui/canvas_view.cpp
    src/gui/context_menu.cpp

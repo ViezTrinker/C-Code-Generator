@@ -33,7 +33,9 @@ namespace Cgen
 
       bool IsRightPinnedAction(ToolbarAction action)
       {
-         return (action == ToolbarAction::Theme) || (action == ToolbarAction::Help);
+         return (action == ToolbarAction::Theme) ||
+                (action == ToolbarAction::About) ||
+                (action == ToolbarAction::Help);
       }
 
       std::string ThemeButtonLabel(UiThemeId themeId)
@@ -108,6 +110,10 @@ namespace Cgen
       _buttons.push_back(
          {ToolbarAction::Theme, ThemeButtonLabel(UiThemeId::Dark),
           std::string(ToolbarActionTooltipText(ToolbarAction::Theme)),
+          {}});
+      _buttons.push_back(
+         {ToolbarAction::About, "About",
+          std::string(ToolbarActionTooltipText(ToolbarAction::About)),
           {}});
       _buttons.push_back(
          {ToolbarAction::Help, "?",

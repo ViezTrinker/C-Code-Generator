@@ -111,6 +111,8 @@ namespace Cgen
             return "Fit the selection in view (Ctrl+Shift+0).";
          case ToolbarAction::Theme:
             return "Toggle Light / Dark theme.";
+         case ToolbarAction::About:
+            return "Show author, repository, and version.";
          case ToolbarAction::Help:
             return "Open in-app help (F1).";
          case ToolbarAction::None:

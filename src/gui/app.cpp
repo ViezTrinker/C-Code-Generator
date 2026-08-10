@@ -22,6 +22,7 @@
 #endif
 
 #include "codegen/c_codegen.h"
+#include "gui/app_version.h"
 #include "gui/ui_theme.h"
 #include "model/c_type.h"
 #include "model/graph_validator.h"
@@ -616,6 +617,7 @@ namespace Cgen
       {
          _pContextMenu->Close();
       }
+      _pHelpLog->SetTitle("Help (Esc to close)");
       _pHelpLog->SetText(
          "Graphical C Code Generator — Help\n"
          "Press Esc or ? again to close.\n\n"
@@ -659,14 +661,47 @@ namespace Cgen
          "- Build compiles with gcc. Run executes; type input in Program Output.\n"
          "- Stop terminates a running program.\n"
          "- CLI: --codegen writes only; add --compile or --run as needed.\n\n"
-         "Help\n"
-         "- Toolbar ? or F1 opens this help.\n");
+         "Help & About\n"
+         "- Toolbar ? or F1 opens this help.\n"
+         "- Toolbar About shows author, repository, and version.\n");
+      _helpShowsAbout = false;
+      _helpViewVisible = true;
+   }
+
+   void App::ShowAbout(void)
+   {
+      CloseSourceView();
+      if (_pContextMenu != nullptr)
+      {
+         _pContextMenu->Close();
+      }
+      _pHelpLog->SetTitle("About (Esc to close)");
+      std::string aboutText;
+      aboutText.reserve(512);
+      aboutText.append(AppProductName);
+      aboutText.append(" — About\n");
+      aboutText.append("Press Esc or About again to close.\n\n");
+      aboutText.append("Version: ");
+      aboutText.append(AppVersionLabel);
+      aboutText.append("\n");
+      aboutText.append("Author: ");
+      aboutText.append(AppAuthorName);
+      aboutText.append("\n");
+      aboutText.append("GitHub profile: ");
+      aboutText.append(AppAuthorProfileUrl);
+      aboutText.append("\n");
+      aboutText.append("Repository: ");
+      aboutText.append(AppRepositoryUrl);
+      aboutText.append("\n");
+      _pHelpLog->SetText(aboutText);
+      _helpShowsAbout = true;
       _helpViewVisible = true;
    }
 
    void App::CloseHelpView(void)
    {
       _helpViewVisible = false;
+      _helpShowsAbout = false;
    }
 
    void App::UndoEdit(void)
@@ -986,8 +1021,18 @@ namespace Cgen
          case ToolbarAction::Theme:
             ToggleTheme();
             break;
+         case ToolbarAction::About:
+            if (_helpViewVisible && _helpShowsAbout)
+            {
+               CloseHelpView();
+            }
+            else
+            {
+               ShowAbout();
+            }
+            break;
          case ToolbarAction::Help:
-            if (_helpViewVisible)
+            if (_helpViewVisible && (!_helpShowsAbout))
             {
                CloseHelpView();
             }
@@ -1264,7 +1309,7 @@ namespace Cgen
                }
                else if (pKey->code == sf::Keyboard::Key::F1)
                {
-                  if (_helpViewVisible)
+                  if (_helpViewVisible && (!_helpShowsAbout))
                   {
                      CloseHelpView();
                   }

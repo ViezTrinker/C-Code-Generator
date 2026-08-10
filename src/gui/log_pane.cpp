@@ -43,6 +43,11 @@ namespace Cgen
       _theme = theme;
    }
 
+   void LogPane::SetTitle(std::string_view title)
+   {
+      _title = std::string(title);
+   }
+
    bool LogPane::Contains(sf::Vector2f point) const
    {
       return _bounds.contains(point);

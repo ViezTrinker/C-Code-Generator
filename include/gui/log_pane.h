@@ -61,6 +61,13 @@ namespace Cgen
       void SetTheme(const UiTheme& theme);
 
       /*!
+       *\brief Sets the pane title shown in the header.
+       *
+       *\param[in] title New title text.
+       */
+      void SetTitle(std::string_view title);
+
+      /*!
        *\brief Returns true if the point lies inside the pane bounds.
        *
        *\param[in] point Mouse position.

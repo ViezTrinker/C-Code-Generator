@@ -53,6 +53,7 @@ set(CGEN_APP_HEADERS
    include/build/process_session.h
    include/cli/command_line.h
    include/gui/app.h
+   include/gui/app_version.h
    include/gui/canvas_view.h
    include/gui/context_menu.h
    include/gui/hover_tooltip.h

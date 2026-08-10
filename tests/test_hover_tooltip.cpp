@@ -115,6 +115,7 @@ TEST(HoverTooltipTest, ToolbarActionsHaveNonEmptyTips)
       Cgen::ToolbarAction::FitAll,
       Cgen::ToolbarAction::FitSelection,
       Cgen::ToolbarAction::Theme,
+      Cgen::ToolbarAction::About,
       Cgen::ToolbarAction::Help
    };
    for (size_t index = 0; index < (sizeof(Actions) / sizeof(Actions[0])); ++index)

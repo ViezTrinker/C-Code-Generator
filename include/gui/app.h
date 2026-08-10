@@ -62,6 +62,7 @@ namespace Cgen
       void ShowGeneratedSource(void);
       void CloseSourceView(void);
       void ShowHelp(void);
+      void ShowAbout(void);
       void CloseHelpView(void);
       void UndoEdit(void);
       void RedoEdit(void);
@@ -93,6 +94,7 @@ namespace Cgen
       bool _programSessionActive = false;
       bool _sourceViewVisible = false;
       bool _helpViewVisible = false;
+      bool _helpShowsAbout = false;
       UiThemeId _themeId = UiThemeId::Dark;
       sf::Clock _autosaveClock;
       sf::Clock _validationClock;

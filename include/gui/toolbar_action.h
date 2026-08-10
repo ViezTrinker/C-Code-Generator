@@ -24,6 +24,7 @@ namespace Cgen
       Stop,
       Tidy,
       Theme,
+      About,
       Help,
       FitAll,
       FitSelection,

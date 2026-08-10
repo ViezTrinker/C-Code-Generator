@@ -83,9 +83,9 @@ No vcpkg / manual SFML install is required.
 
 ### Visual Studio
 
-1. **File → Open → Folder…** and select this repository  
-2. Pick **x64-Debug** or **x64-Release**  
-3. Build (first configure downloads SFML if needed)
+Double-click [`OpenInVisualStudio.bat`](OpenInVisualStudio.bat) in the repo root (finds the latest VS install and opens this folder as a CMake project).
+
+Or manually: **File → Open → Folder…**, pick **x64-Debug** or **x64-Release**, then Build (first configure may download SFML).
 
 ### Manual CMake
 

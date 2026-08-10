@@ -107,13 +107,16 @@ namespace Cgen
       const std::string& GetText(void) const;
 
       /*!
-       *\brief Focuses the input line if enabled, or jumps an issue line.
+       *\brief Focuses the input line if enabled, jumps an issue line, or yields a URL.
        *
        *\param[in] point Click position.
        *\param[out] pOutJumpNodeId Optional node id when an issue line is clicked.
+       *\param[out] pOutUrl Optional http(s) URL when the clicked line contains one.
        *\return true if the click was handled.
        */
-      bool HandleClick(sf::Vector2f point, NodeId* pOutJumpNodeId);
+      bool HandleClick(sf::Vector2f point,
+                       NodeId* pOutJumpNodeId,
+                       std::string* pOutUrl = nullptr);
 
       /*!
        *\brief Scrolls the log when the wheel is used over this pane.

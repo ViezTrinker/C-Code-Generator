@@ -23,6 +23,7 @@
 
 #include "codegen/c_codegen.h"
 #include "gui/app_version.h"
+#include "gui/open_url.h"
 #include "gui/ui_theme.h"
 #include "model/c_type.h"
 #include "model/graph_validator.h"
@@ -680,9 +681,13 @@ namespace Cgen
       aboutText.reserve(512);
       aboutText.append(AppProductName);
       aboutText.append(" — About\n");
-      aboutText.append("Press Esc or About again to close.\n\n");
+      aboutText.append("Press Esc or About again to close.\n");
+      aboutText.append("Click a link to open it in your browser.\n\n");
       aboutText.append("Version: ");
       aboutText.append(AppVersionLabel);
+      aboutText.append("\n");
+      aboutText.append("Date: ");
+      aboutText.append(AppReleaseDate);
       aboutText.append("\n");
       aboutText.append("Author: ");
       aboutText.append(AppAuthorName);
@@ -1131,6 +1136,18 @@ namespace Cgen
                }
                else if (_helpViewVisible && _pHelpLog->Contains(point))
                {
+                  if (pMousePress->button == sf::Mouse::Button::Left)
+                  {
+                     std::string clickedUrl;
+                     NodeId unusedNodeId = 0;
+                     if (_pHelpLog->HandleClick(point, &unusedNodeId, &clickedUrl))
+                     {
+                        if (!clickedUrl.empty())
+                        {
+                           OpenUrlInBrowser(clickedUrl);
+                        }
+                     }
+                  }
                }
                else if (_sourceViewVisible && _pSourceLog->Contains(point))
                {

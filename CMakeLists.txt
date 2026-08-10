@@ -27,6 +27,7 @@ set(CGEN_CORE_HEADERS
    include/gui/document_history.h
    include/gui/block_placement.h
    include/gui/hover_tooltip_text.h
+   include/gui/http_url.h
    include/gui/toolbar_action.h
    include/gui/ui_theme_id.h
 )
@@ -45,6 +46,7 @@ set(CGEN_CORE_SOURCES
    src/gui/document_history.cpp
    src/gui/block_placement.cpp
    src/gui/hover_tooltip_text.cpp
+   src/gui/http_url.cpp
    src/gui/ui_theme_id.cpp
 )
 
@@ -58,6 +60,7 @@ set(CGEN_APP_HEADERS
    include/gui/context_menu.h
    include/gui/hover_tooltip.h
    include/gui/log_pane.h
+   include/gui/open_url.h
    include/gui/palette.h
    include/gui/property_panel.h
    include/gui/toolbar.h
@@ -74,6 +77,7 @@ set(CGEN_APP_SOURCES
    src/gui/context_menu.cpp
    src/gui/hover_tooltip.cpp
    src/gui/log_pane.cpp
+   src/gui/open_url.cpp
    src/gui/palette.cpp
    src/gui/property_panel.cpp
    src/gui/toolbar.cpp
@@ -106,7 +110,7 @@ target_link_libraries(c_code_generator PRIVATE
 )
 
 if(WIN32)
-   target_link_libraries(c_code_generator PRIVATE comdlg32)
+   target_link_libraries(c_code_generator PRIVATE comdlg32 shell32)
    add_custom_command(TARGET c_code_generator POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E
          $<IF:$<BOOL:$<TARGET_RUNTIME_DLLS:c_code_generator>>,copy_if_different,true>

@@ -6,6 +6,8 @@
 
 #include <sstream>
 
+#include "gui/http_url.h"
+
 namespace Cgen
 {
    namespace
@@ -263,11 +265,17 @@ namespace Cgen
       return startIndex;
    }
 
-   bool LogPane::HandleClick(sf::Vector2f point, NodeId* pOutJumpNodeId)
+   bool LogPane::HandleClick(sf::Vector2f point,
+                             NodeId* pOutJumpNodeId,
+                             std::string* pOutUrl)
    {
       if (pOutJumpNodeId != nullptr)
       {
          *pOutJumpNodeId = 0;
+      }
+      if (pOutUrl != nullptr)
+      {
+         pOutUrl->clear();
       }
       if (!_bounds.contains(point))
       {
@@ -286,7 +294,7 @@ namespace Cgen
       }
 
       const sf::FloatRect body = BodyBounds();
-      if (body.contains(point) && (!_lineNodeIds.empty()))
+      if (body.contains(point) && (!_lines.empty()))
       {
          const float relativeY = point.y - body.position.y;
          if (relativeY >= 0.0f)
@@ -294,12 +302,21 @@ namespace Cgen
             const auto lineOffset = static_cast<uint32_t>(relativeY / LineHeight);
             const uint32_t startIndex = VisibleStartLineIndex();
             const uint32_t lineIndex = startIndex + lineOffset;
-            if (lineIndex < _lineNodeIds.size())
+            if (lineIndex < _lines.size())
             {
-               const NodeId jumpId = _lineNodeIds[lineIndex];
-               if ((jumpId != 0) && (pOutJumpNodeId != nullptr))
+               if ((lineIndex < _lineNodeIds.size()) &&
+                   (pOutJumpNodeId != nullptr))
                {
-                  *pOutJumpNodeId = jumpId;
+                  const NodeId jumpId = _lineNodeIds[lineIndex];
+                  if (jumpId != 0)
+                  {
+                     *pOutJumpNodeId = jumpId;
+                  }
+               }
+               if ((pOutUrl != nullptr) &&
+                   ((pOutJumpNodeId == nullptr) || (*pOutJumpNodeId == 0)))
+               {
+                  ExtractHttpUrlFromLine(_lines[lineIndex], pOutUrl);
                }
             }
          }
@@ -539,11 +556,77 @@ namespace Cgen
       pTarget->draw(titleText);
 
       const sf::FloatRect body = BodyBounds();
-      const std::string visible = BuildVisibleText();
-      sf::Text bodyText(*_pFont, visible, BodyCharacterSize);
-      bodyText.setFillColor(_theme.textHelp);
-      bodyText.setPosition(sf::Vector2f(body.position.x, body.position.y));
-      pTarget->draw(bodyText);
+      if (!_lines.empty())
+      {
+         const uint32_t capacity = VisibleLineCapacity();
+         const auto lineCount = static_cast<uint32_t>(_lines.size());
+         uint32_t endIndex = lineCount;
+         if (_scrollFromBottom < endIndex)
+         {
+            endIndex = lineCount - _scrollFromBottom;
+         }
+         uint32_t startIndex = 0;
+         if (endIndex > capacity)
+         {
+            startIndex = endIndex - capacity;
+         }
+
+         float lineY = body.position.y;
+         for (uint32_t index = startIndex; index < endIndex; ++index)
+         {
+            const std::string& line = _lines[index];
+            std::string linkUrl;
+            const bool hasLink = ExtractHttpUrlFromLine(line, &linkUrl);
+            if (!hasLink)
+            {
+               sf::Text lineText(*_pFont, line, BodyCharacterSize);
+               lineText.setFillColor(_theme.textHelp);
+               lineText.setPosition(sf::Vector2f(body.position.x, lineY));
+               pTarget->draw(lineText);
+               lineY += LineHeight;
+               continue;
+            }
+
+            const size_t urlStart = line.find(linkUrl);
+            float cursorX = body.position.x;
+            if ((urlStart != std::string::npos) && (urlStart > 0))
+            {
+               const std::string prefix = line.substr(0, urlStart);
+               sf::Text prefixText(*_pFont, prefix, BodyCharacterSize);
+               prefixText.setFillColor(_theme.textHelp);
+               prefixText.setPosition(sf::Vector2f(cursorX, lineY));
+               pTarget->draw(prefixText);
+               cursorX += prefixText.getLocalBounds().size.x +
+                          prefixText.getLocalBounds().position.x;
+            }
+
+            sf::Text urlText(*_pFont, linkUrl, BodyCharacterSize);
+            urlText.setFillColor(_theme.textAccent);
+            urlText.setPosition(sf::Vector2f(cursorX, lineY));
+            pTarget->draw(urlText);
+            const auto urlBounds = urlText.getLocalBounds();
+            sf::RectangleShape underline;
+            underline.setPosition(
+               sf::Vector2f(cursorX + urlBounds.position.x,
+                            lineY + urlBounds.position.y + urlBounds.size.y + 1.0f));
+            underline.setSize(sf::Vector2f(urlBounds.size.x, 1.0f));
+            underline.setFillColor(_theme.textAccent);
+            pTarget->draw(underline);
+            cursorX += urlBounds.size.x + urlBounds.position.x;
+
+            if ((urlStart != std::string::npos) &&
+                ((urlStart + linkUrl.size()) < line.size()))
+            {
+               const std::string suffix =
+                  line.substr(urlStart + linkUrl.size());
+               sf::Text suffixText(*_pFont, suffix, BodyCharacterSize);
+               suffixText.setFillColor(_theme.textHelp);
+               suffixText.setPosition(sf::Vector2f(cursorX, lineY));
+               pTarget->draw(suffixText);
+            }
+            lineY += LineHeight;
+         }
+      }
 
       if (_inputMode == LogInputMode::Enabled)
       {

@@ -220,11 +220,50 @@ namespace Cgen
       CommitActiveField();
       CloseChoicePopup();
       _activeFieldIndex = -1;
+      _caretIndex = 0;
    }
 
    bool PropertyPanel::HasKeyboardFocus(void) const
    {
       return _activeFieldIndex >= 0;
+   }
+
+   void PropertyPanel::ClampCaret(void)
+   {
+      if (_activeFieldIndex < 0)
+      {
+         _caretIndex = 0;
+         return;
+      }
+      if (static_cast<size_t>(_activeFieldIndex) >= _fields.size())
+      {
+         _caretIndex = 0;
+         return;
+      }
+      const size_t length =
+         _fields[static_cast<size_t>(_activeFieldIndex)].value.size();
+      if (_caretIndex > length)
+      {
+         _caretIndex = length;
+      }
+   }
+
+   void PropertyPanel::ResetCaretToEnd(void)
+   {
+      if ((_activeFieldIndex < 0) ||
+          (static_cast<size_t>(_activeFieldIndex) >= _fields.size()))
+      {
+         _caretIndex = 0;
+         return;
+      }
+      _caretIndex = _fields[static_cast<size_t>(_activeFieldIndex)].value.size();
+      _caretClock.restart();
+   }
+
+   bool PropertyPanel::IsCaretBlinkVisible(void) const
+   {
+      const auto elapsedMs = _caretClock.getElapsedTime().asMilliseconds();
+      return ((elapsedMs / 500) % 2) == 0;
    }
 
    void PropertyPanel::CloseChoicePopup(void)
@@ -786,6 +825,7 @@ namespace Cgen
             continue;
          }
          _activeFieldIndex = static_cast<int32_t>(index);
+         ResetCaretToEnd();
          if (_fields[index].editKind == FieldEditKind::Choice)
          {
             OpenChoicePopup(_activeFieldIndex);
@@ -810,19 +850,23 @@ namespace Cgen
       {
          return false;
       }
+      std::string& value = _fields[static_cast<size_t>(_activeFieldIndex)].value;
+      ClampCaret();
       if ((unicode == 8) || (unicode == 127))
       {
-         std::string& value = _fields[static_cast<size_t>(_activeFieldIndex)].value;
-         if (!value.empty())
+         if (_caretIndex > 0)
          {
-            value.pop_back();
+            value.erase(_caretIndex - 1, 1);
+            --_caretIndex;
+            _caretClock.restart();
          }
          return true;
       }
       if ((unicode >= 32) && (unicode < 127))
       {
-         _fields[static_cast<size_t>(_activeFieldIndex)].value.push_back(
-            static_cast<char>(unicode));
+         value.insert(_caretIndex, 1, static_cast<char>(unicode));
+         ++_caretIndex;
+         _caretClock.restart();
          return true;
       }
       return false;
@@ -844,6 +888,7 @@ namespace Cgen
          CommitActiveField();
          CloseChoicePopup();
          _activeFieldIndex = -1;
+         _caretIndex = 0;
          return true;
       }
       if (keyCode == sf::Keyboard::Key::Escape)
@@ -851,10 +896,55 @@ namespace Cgen
          RebuildFields();
          CloseChoicePopup();
          _activeFieldIndex = -1;
+         _caretIndex = 0;
          return true;
       }
-      if ((keyCode == sf::Keyboard::Key::Backspace) ||
-          (keyCode == sf::Keyboard::Key::Delete))
+      if (static_cast<size_t>(_activeFieldIndex) >= _fields.size())
+      {
+         return false;
+      }
+      std::string& value = _fields[static_cast<size_t>(_activeFieldIndex)].value;
+      ClampCaret();
+      if (keyCode == sf::Keyboard::Key::Left)
+      {
+         if (_caretIndex > 0)
+         {
+            --_caretIndex;
+            _caretClock.restart();
+         }
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Right)
+      {
+         if (_caretIndex < value.size())
+         {
+            ++_caretIndex;
+            _caretClock.restart();
+         }
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Home)
+      {
+         _caretIndex = 0;
+         _caretClock.restart();
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::End)
+      {
+         _caretIndex = value.size();
+         _caretClock.restart();
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Delete)
+      {
+         if (_caretIndex < value.size())
+         {
+            value.erase(_caretIndex, 1);
+            _caretClock.restart();
+         }
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Backspace)
       {
          return true;
       }
@@ -991,9 +1081,28 @@ namespace Cgen
 
          sf::Text valueText(*_pFont, field.value, 13);
          valueText.setFillColor(_theme.textInput);
-         valueText.setPosition(sf::Vector2f(field.bounds.position.x + 4.0f,
-                                            field.bounds.position.y + 2.0f));
+         const float textX = field.bounds.position.x + 4.0f;
+         const float textY = field.bounds.position.y + 2.0f;
+         valueText.setPosition(sf::Vector2f(textX, textY));
          pTarget->draw(valueText);
+
+         if ((static_cast<int32_t>(index) == _activeFieldIndex) &&
+             IsCaretBlinkVisible())
+         {
+            size_t caretIndex = _caretIndex;
+            if (caretIndex > field.value.size())
+            {
+               caretIndex = field.value.size();
+            }
+            const std::string prefix = field.value.substr(0, caretIndex);
+            sf::Text measure(*_pFont, prefix, 13);
+            const float caretX = textX + measure.getLocalBounds().size.x;
+            sf::RectangleShape caret;
+            caret.setPosition(sf::Vector2f(caretX, field.bounds.position.y + 3.0f));
+            caret.setSize(sf::Vector2f(1.5f, field.bounds.size.y - 6.0f));
+            caret.setFillColor(_theme.textInput);
+            pTarget->draw(caret);
+         }
          labelY += FieldRowHeight;
       }
 

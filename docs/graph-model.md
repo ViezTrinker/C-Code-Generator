@@ -15,7 +15,11 @@ The editor edits an in-memory **flowchart IR**. Codegen and validation consume t
 | `BlockType` | Kind of block (`Start`, `If`, `Call`, `DerefLoad`, …) |
 | `CType` | Parsed type for data ports (`int32_t`, `Hero*`, `FILE*`, `bool`, …) |
 
-Ids are `uint64_t` (`NodeId`, `EdgeId`). Properties are a `std::map`-like string dictionary (e.g. `name`, `type`, `function`, `paramCount`).
+Ids are `uint64_t` (`NodeId`, `EdgeId`). Properties are a string dictionary (e.g. `name`, `type`, `function`, `paramCount`, **`comment`**).
+
+Every node created via `CreateNode` gets a `comment` property (default empty). Empty / whitespace-only comments are ignored by codegen. Non-empty values emit as `/* … */` in generated C (see [Codegen & build](codegen-and-build.md)).
+
+The dedicated **Comment** block still uses property `text` as its statement body; that is separate from the shared `comment` annotation.
 
 ---
 
@@ -33,11 +37,13 @@ Ids are `uint64_t` (`NodeId`, `EdgeId`). Properties are a `std::map`-like string
 
 `Start` cannot be removed.
 
+**Editor reconnect (GUI):** dragging from an already-wired Out detaches that edge and starts a new wire; dropping on an In that already has a wire replaces the incoming edge. The IR still stores at most one edge per port.
+
 ---
 
 ## Creating and syncing nodes
 
-`CreateNode(id, BlockType, x, y)` builds default ports and properties for that block (implemented in `node_factory.cpp`).
+`CreateNode(id, BlockType, x, y)` builds default ports and properties for that block (implemented in `node_factory.cpp`), including `comment=""`.
 
 After properties change or a file loads, sync helpers keep ports honest:
 
@@ -47,9 +53,11 @@ After properties change or a file loads, sync helpers keep ports honest:
 | `SyncFunctionDefParams` | Param0–7 ports from `paramCount` / `paramNName` / `paramNType` |
 | `SyncCallArgPorts` | Call Arg labels/types from the matching FunctionDef |
 | `SyncPrintfArgVisibility` | Hide unused Printf args from the format string |
-| `SyncAllNodePorts` | Run the above across the document (used after load) |
+| `SyncAllNodePorts` | Run the above across the document; **backfill missing `comment`** on older files |
 
 Expression vs statement: `IsExpressionBlock(BlockType)` — expressions feed data wires; statements participate in control chains.
+
+**Call UX:** the property `function` field lists FunctionDef names; the canvas shows an arity subtitle (`name(N)`). Right-click a Call → **Create Matching FunctionDef** builds a FunctionDef from the Call’s name, return type, and Arg port types.
 
 ---
 
@@ -59,6 +67,7 @@ Expression vs statement: `IsExpressionBlock(BlockType)` — expressions feed dat
 | --- | --- |
 | `fileDescription` | Becomes doxygen `\brief` in generated C |
 | `ClangFormatOnGenerate` | GUI Generate may run `clang-format -i` when Yes |
+| `OrthogonalWires` | Elbow wire routing on the canvas (toolbar **Ortho** or Document field) |
 | Viewport `x` / `y` / `zoom` | Canvas camera (saved in `.cgen`) |
 
 Clear the canvas selection to edit Document fields in the property panel.
@@ -85,8 +94,10 @@ Typical checks:
 
 | Surface | Behavior |
 | --- | --- |
-| Compiler pane | Listed on Generate; click a line → `JumpToValidationNode` |
-| Canvas badges | Red outline = Error, yellow = Warning (live refresh via `SyncSelectionUi`) |
+| Compiler pane | **Live** issues strip while editing (debounced); also on Generate (with codegen footer). Click a line → `JumpToValidationNode` |
+| Canvas badges | Red outline = Error, yellow = Warning (same validation pass) |
+
+Build / Generate can temporarily own the Compiler pane (gcc log / codegen footer); the next graph edit restores the live issues strip.
 
 Hovering a port still shows its name in a tip; on-canvas port labels sit below the block title band so they do not overlap titles such as `Else If`.
 
@@ -100,4 +111,4 @@ Hovering a port still shows its name in a tip; on-canvas port labels sit below t
 | `graph_align` | Snap to grid; align left/top of selection |
 | `graph_clipboard` | Serialize selection → paste with new ids |
 
-Undo stores a `GraphSnapshot` (nodes/edges/counters/metadata — not viewport) via `DocumentHistory`.
+Undo stores a `GraphSnapshot` (nodes/edges/counters/metadata including clang-format and orthogonal-wires flags — not viewport) via `DocumentHistory`.

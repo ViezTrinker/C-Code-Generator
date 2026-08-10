@@ -38,9 +38,15 @@ Each node object includes at least:
 | `id` | `NodeId` |
 | `type` | Stable string from `BlockTypeToString` (e.g. `"For"`, `"DerefLoad"`) |
 | `posX`, `posY` | Canvas position |
-| `properties` | String map (block-specific) |
+| `properties` | String map (block-specific keys plus shared `comment`) |
 
-Ports may be written for round-trips; on load, ports are reconciled via `CreateNode` defaults + `SyncAllNodePorts` so property-driven types stay consistent.
+Common / shared property keys:
+
+| Key | Meaning |
+| --- | --- |
+| `comment` | Optional annotation; empty → omitted from generated C; non-empty → `/* … */` |
+
+Ports may be written for round-trips; on load, ports are reconciled via `CreateNode` defaults + `SyncAllNodePorts` so property-driven types stay consistent and missing `comment` keys are backfilled to `""`.
 
 ---
 

@@ -37,9 +37,22 @@ High-level emission order:
 
 Statements follow control wires (`Next`, branches, loop bodies). Expressions are built by walking **incoming data** edges (`EmitExpression` / `EmitInputExpression`). Temps may be cached per node id during a emit pass.
 
+### Per-block comments
+
+Each node may carry property `comment`:
+
+| Kind | Emission when non-empty |
+| --- | --- |
+| Statements / decls / functions | Line before the generated C: `/* text */` |
+| Expressions | Trailing on the expression: `… /* text */` |
+
+Empty or whitespace-only `comment` values emit nothing. `*/` inside the text is sanitized so the comment cannot close early.
+
+The **Comment** block’s `text` property remains a standalone comment statement in the control chain.
+
 Failures append to `diagnostics` and may still produce partial source for inspection.
 
-Property panel preview uses `GenerateCSnippet` for a single selected node’s approximate C.
+Property panel preview uses `GenerateCSnippet` for a single selected node’s approximate C (includes `comment` when set).
 
 ---
 
@@ -47,6 +60,7 @@ Property panel preview uses `GenerateCSnippet` for a single selected node’s ap
 
 | Context | Validation **Error** | Validation **Warning** |
 | --- | --- | --- |
+| GUI **live validation** | Shown in Compiler issues strip + canvas badges | Same |
 | GUI **Generate C** | Shown in Compiler; `.c` still written | Shown; write continues |
 | CLI `--codegen` | Abort; no write | Printed to stderr; write continues |
 
@@ -74,7 +88,7 @@ clang-format -i "<sourcePath>"
 
 1. Ensure sources exist (may Generate + Build first).  
 2. `ProcessSession::Start` launches the exe.  
-3. Stdout/stderr → Program Output; the bottom input line → stdin.  
+3. Stdout/stderr → Program Output; the bottom input line → stdin (caret editing).  
 4. **Stop** kills the child.
 
 **CLI `--run`** uses `BuildRunner::Run` (synchronous; suitable for piped stdin).
@@ -85,7 +99,8 @@ clang-format -i "<sourcePath>"
 
 | Caller | Functions |
 | --- | --- |
-| `App::GenerateCode` | `ValidateGraph`, `GenerateCSource`, `WriteSource`, optional format, show source overlay; canvas badges refreshed via selection sync |
+| `App::MaybeFlushLiveValidation` | Debounced `ValidateGraph` → badges + Compiler issues strip |
+| `App::GenerateCode` | `ValidateGraph`, `GenerateCSource`, `WriteSource`, optional format, show source overlay |
 | `App::BuildCode` / `RunProgram` | Generate if needed, then compile / session |
-| `App` main loop | Periodic autosave while dirty; crash-restore prompt at startup |
-| `main` `--codegen` | Load → validate → generate → write → optional compile/run |
+| `App` main loop | Periodic autosave while dirty; crash-restore prompt at startup; live validation flush |
+| `RunCommandLine` / `--codegen` | Load → validate → generate → write → optional compile/run |

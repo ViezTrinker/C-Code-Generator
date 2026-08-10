@@ -274,6 +274,7 @@ namespace Cgen
          if (_inputBounds.contains(point))
          {
             _inputFocused = true;
+            ResetCaretToEnd();
             return true;
          }
          _inputFocused = false;
@@ -342,17 +343,22 @@ namespace Cgen
       {
          return false;
       }
+      ClampCaret();
       if ((unicode == 8) || (unicode == 127))
       {
-         if (!_inputLine.empty())
+         if (_caretIndex > 0)
          {
-            _inputLine.pop_back();
+            _inputLine.erase(_caretIndex - 1, 1);
+            --_caretIndex;
+            _caretClock.restart();
          }
          return true;
       }
       if ((unicode >= 32) && (unicode < 127))
       {
-         _inputLine.push_back(static_cast<char>(unicode));
+         _inputLine.insert(_caretIndex, 1, static_cast<char>(unicode));
+         ++_caretIndex;
+         _caretClock.restart();
          return true;
       }
       return false;
@@ -368,7 +374,9 @@ namespace Cgen
       {
          _pendingInput = _inputLine;
          _inputLine.clear();
+         _caretIndex = 0;
          _hasPendingInput = true;
+         _caretClock.restart();
          return true;
       }
       if (keyCode == sf::Keyboard::Key::Escape)
@@ -376,12 +384,71 @@ namespace Cgen
          _inputFocused = false;
          return true;
       }
-      if ((keyCode == sf::Keyboard::Key::Backspace) ||
-          (keyCode == sf::Keyboard::Key::Delete))
+      ClampCaret();
+      if (keyCode == sf::Keyboard::Key::Left)
+      {
+         if (_caretIndex > 0)
+         {
+            --_caretIndex;
+            _caretClock.restart();
+         }
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Right)
+      {
+         if (_caretIndex < _inputLine.size())
+         {
+            ++_caretIndex;
+            _caretClock.restart();
+         }
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Home)
+      {
+         _caretIndex = 0;
+         _caretClock.restart();
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::End)
+      {
+         _caretIndex = _inputLine.size();
+         _caretClock.restart();
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Delete)
+      {
+         if (_caretIndex < _inputLine.size())
+         {
+            _inputLine.erase(_caretIndex, 1);
+            _caretClock.restart();
+         }
+         return true;
+      }
+      if (keyCode == sf::Keyboard::Key::Backspace)
       {
          return true;
       }
       return false;
+   }
+
+   void LogPane::ClampCaret(void)
+   {
+      if (_caretIndex > _inputLine.size())
+      {
+         _caretIndex = _inputLine.size();
+      }
+   }
+
+   void LogPane::ResetCaretToEnd(void)
+   {
+      _caretIndex = _inputLine.size();
+      _caretClock.restart();
+   }
+
+   bool LogPane::IsCaretBlinkVisible(void) const
+   {
+      const auto elapsedMs = _caretClock.getElapsedTime().asMilliseconds();
+      return ((elapsedMs / 500) % 2) == 0;
    }
 
    void LogPane::FocusInput(void)
@@ -389,6 +456,7 @@ namespace Cgen
       if (_inputMode == LogInputMode::Enabled)
       {
          _inputFocused = true;
+         ResetCaretToEnd();
       }
    }
 
@@ -491,15 +559,30 @@ namespace Cgen
 
          std::string inputDisplay = "> ";
          inputDisplay.append(_inputLine);
-         if (_inputFocused)
-         {
-            inputDisplay.push_back('_');
-         }
          sf::Text inputText(*_pFont, inputDisplay, 13);
          inputText.setFillColor(_theme.textInput);
-         inputText.setPosition(sf::Vector2f(_inputBounds.position.x + 6.0f,
-                                            _inputBounds.position.y + 4.0f));
+         const float textX = _inputBounds.position.x + 6.0f;
+         const float textY = _inputBounds.position.y + 4.0f;
+         inputText.setPosition(sf::Vector2f(textX, textY));
          pTarget->draw(inputText);
+
+         if (_inputFocused && IsCaretBlinkVisible())
+         {
+            size_t caretIndex = _caretIndex;
+            if (caretIndex > _inputLine.size())
+            {
+               caretIndex = _inputLine.size();
+            }
+            std::string prefix = "> ";
+            prefix.append(_inputLine.substr(0, caretIndex));
+            sf::Text measure(*_pFont, prefix, 13);
+            const float caretX = textX + measure.getLocalBounds().size.x;
+            sf::RectangleShape caret;
+            caret.setPosition(sf::Vector2f(caretX, _inputBounds.position.y + 3.0f));
+            caret.setSize(sf::Vector2f(1.5f, _inputBounds.size.y - 6.0f));
+            caret.setFillColor(_theme.textInput);
+            pTarget->draw(caret);
+         }
       }
    }
 } // namespace Cgen

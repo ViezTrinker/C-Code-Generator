@@ -37,11 +37,12 @@ Open an example, press Generate, and you can see exactly how the graph maps to C
 
 | Area | What you get |
 | --- | --- |
-| **Editor** | Collapsible palette (drag & drop), snap/align, tidy layout, minimap, multi-select, undo/redo, copy/paste, Light/Dark theme |
-| **Typing** | Named types (`Hero`, `FILE*`, `bool`, …), live green/red wire preview, property dropdowns |
-| **Functions** | Typed FunctionDef params, Call arity checks, collapse FunctionDef bodies |
+| **Editor** | Collapsible palette (drag & drop), snap/align, tidy, Ortho wires, minimap, multi-select, undo/redo, copy/paste, Light/Dark theme, caret editing |
+| **Typing** | Named types (`Hero`, `FILE*`, `bool`, …), live green/red wire preview, wire reconnect, property dropdowns |
+| **Functions** | Typed FunctionDef params, Call arity preview, Create Matching FunctionDef, Call↔FunctionDef validation |
 | **Types & memory** | Struct / Enum / Typedef decls, Struct Literal, Address Of, Deref Get/Set, Malloc/Free |
-| **Feedback** | Compiler issues + canvas Error/Warning outlines; hover tooltips on palette/toolbar |
+| **Feedback** | Live Compiler issues + canvas Error/Warning outlines; hover tooltips |
+| **Comments** | Per-block `comment` → `/* … */` in generated C when set |
 | **Safety** | Autosave / crash recovery (`.cgen.tmp`) |
 | **Output** | Doxygen `\file` / `\brief`, optional clang-format, in-app source view |
 | **CLI** | Headless `--codegen` with optional `--compile` / `--run` |
@@ -165,14 +166,18 @@ Short graphs that teach one IR feature.
 ## Using the editor
 
 - **Drag** blocks from the left palette onto the canvas (filter by name; Esc cancels a drag)
-- Wire preview turns **green/red** for type compatibility
-- **Validation badges**: red / yellow block outlines for Error / Warning (also listed in Compiler; click to jump)
+- Wire preview turns **green/red** for type compatibility; drag an Out to **reconnect**; drop on a wired In to **replace**
+- **Ortho** (or Document `orthogonalWires`) draws elbow wires for dense graphs
+- **Validation**: live Compiler issues + red/yellow canvas outlines (click an issue to jump); Generate still writes C
 - **Snap** / **AlignL** / **AlignT** / **Tidy** (Ctrl+L); **Fit** / **Fit Sel**; canvas **minimap**
-- **Theme** toggles Light (white) / Dark (black) UI; preference is remembered
-- Property dropdowns for `type`, `op`, `access`, `function`, … — clear selection for Document `fileDescription` / `clangFormat`
+- **Theme** toggles Light / Dark UI; preference is remembered
+- Property fields have a blinking caret (Left/Right/Home/End); dropdowns for `type`, `op`, `access`, `function`, …
+- Clear selection for Document `fileDescription` / `clangFormat` / `orthogonalWires`
+- Per-block **`comment`** → `/* … */` in generated C when non-empty
+- **Call**: arity subtitle on canvas; right-click → **Create Matching FunctionDef**
 - **FunctionDef**: typed params + Param ports; double-click to collapse the body
-- **Generate C**: validates (click issues to jump), writes `.c`, optional clang-format, shows source (Esc closes)
-- **Build** / **Run** / **Stop**: gcc in Compiler; stdin via the Program Output input line
+- **Generate C**: validates, writes `.c`, optional clang-format, shows source (Esc closes)
+- **Build** / **Run** / **Stop**: gcc in Compiler; stdin via Program Output (caret editing)
 - **Autosave** while dirty (~30 s); crash-recovery prompt on next start; temps cleared after Save / New / Open
 - **?** / **F1** for in-app help · projects save as `.cgen` (CGEN 1 + JSON)
 

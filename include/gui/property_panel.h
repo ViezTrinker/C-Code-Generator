@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 
 #include "gui/document_history.h"
@@ -162,6 +163,9 @@ namespace Cgen
       void RebuildChoicePopupBounds(void);
       bool HandleChoicePopupClick(sf::Vector2f point);
       void FillChoicesForField(Field* pField, BlockType blockType) const;
+      void ClampCaret(void);
+      void ResetCaretToEnd(void);
+      bool IsCaretBlinkVisible(void) const;
 
       const sf::Font* _pFont = nullptr;
       sf::FloatRect _bounds {};
@@ -172,6 +176,8 @@ namespace Cgen
       std::vector<std::string> _helpLines;
       std::vector<std::string> _previewLines;
       int32_t _activeFieldIndex = -1;
+      size_t _caretIndex = 0;
+      sf::Clock _caretClock;
       bool _choicePopupOpen = false;
       int32_t _choicePopupFieldIndex = -1;
       int32_t _choiceScrollOffset = 0;

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Clock.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
 #include "gui/ui_theme.h"
@@ -172,6 +173,9 @@ namespace Cgen
       sf::FloatRect BodyBounds(void) const;
       std::string BuildVisibleText(void) const;
       uint32_t VisibleStartLineIndex(void) const;
+      void ClampCaret(void);
+      void ResetCaretToEnd(void);
+      bool IsCaretBlinkVisible(void) const;
 
       std::string _title;
       std::string _text;
@@ -185,6 +189,8 @@ namespace Cgen
       const sf::Font* _pFont = nullptr;
       LogInputMode _inputMode = LogInputMode::Disabled;
       bool _inputFocused = false;
+      size_t _caretIndex = 0;
+      sf::Clock _caretClock;
       /*!
        *\brief Lines hidden below the viewport (0 = pinned to latest output).
        */

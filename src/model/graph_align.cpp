@@ -84,7 +84,8 @@ namespace Cgen
             continue;
          }
          const float height = ComputeBlockNodeHeight(*pNode);
-         const float right = pNode->posX + BlockNodeWidth;
+         const float width = ComputeBlockNodeWidth(*pNode);
+         const float right = pNode->posX + width;
          const float bottom = pNode->posY + height;
          if (!hasBounds)
          {
@@ -113,7 +114,7 @@ namespace Cgen
                maxY = bottom;
             }
          }
-         sumCenterX += pNode->posX + (BlockNodeWidth * 0.5f);
+         sumCenterX += pNode->posX + (width * 0.5f);
          sumCenterY += pNode->posY + (height * 0.5f);
          ++counted;
       }
@@ -133,13 +134,14 @@ namespace Cgen
             continue;
          }
          const float height = ComputeBlockNodeHeight(*pNode);
+         const float width = ComputeBlockNodeWidth(*pNode);
          switch (align)
          {
             case AlignSelection::Left:
                pNode->posX = minX;
                break;
             case AlignSelection::Right:
-               pNode->posX = maxX - BlockNodeWidth;
+               pNode->posX = maxX - width;
                break;
             case AlignSelection::Top:
                pNode->posY = minY;
@@ -148,7 +150,7 @@ namespace Cgen
                pNode->posY = maxY - height;
                break;
             case AlignSelection::CenterX:
-               pNode->posX = centerX - (BlockNodeWidth * 0.5f);
+               pNode->posX = centerX - (width * 0.5f);
                break;
             case AlignSelection::CenterY:
                pNode->posY = centerY - (height * 0.5f);

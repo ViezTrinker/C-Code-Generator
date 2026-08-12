@@ -25,6 +25,7 @@ set(CGEN_TEST_SOURCES
    test_graph_validator.cpp
    test_hover_tooltip.cpp
    test_http_url.cpp
+   test_node_style.cpp
    test_result.cpp
    test_ui_theme.cpp
 )

@@ -48,6 +48,8 @@ Each node may carry property `comment`:
 
 Empty or whitespace-only `comment` values emit nothing. `*/` inside the text is sanitized so the comment cannot close early.
 
+Visual style properties (`width`, `height`, `fillColor`, `textColor`, and `*ColorCustom`) are ignored by codegen — they affect only the canvas.
+
 The **Comment** block’s `text` property remains a standalone comment statement in the control chain.
 
 Failures append to `diagnostics` and may still produce partial source for inspection.

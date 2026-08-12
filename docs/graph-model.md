@@ -15,11 +15,25 @@ The editor edits an in-memory **flowchart IR**. Codegen and validation consume t
 | `BlockType` | Kind of block (`Start`, `If`, `Call`, `DerefLoad`, …) |
 | `CType` | Parsed type for data ports (`int32_t`, `Hero*`, `FILE*`, `bool`, …) |
 
-Ids are `uint64_t` (`NodeId`, `EdgeId`). Properties are a string dictionary (e.g. `name`, `type`, `function`, `paramCount`, **`comment`**).
+Ids are `uint64_t` (`NodeId`, `EdgeId`). Properties are a string dictionary (e.g. `name`, `type`, `function`, `paramCount`, **`comment`**, and optional visual style keys — see below).
 
 Every node created via `CreateNode` gets a `comment` property (default empty). Empty / whitespace-only comments are ignored by codegen. Non-empty values emit as `/* … */` in generated C (see [Codegen & build](codegen-and-build.md)).
 
 The dedicated **Comment** block still uses property `text` as its statement body; that is separate from the shared `comment` annotation.
+
+### Block visual style
+
+Optional presentation properties (no effect on generated C):
+
+| Key | Meaning |
+| --- | --- |
+| `width` / `height` | Custom body size (float strings). Width clamps to a sane range; height is at least the port-fitted minimum from `ComputeBlockNodeFittedHeight` |
+| `fillColor` / `textColor` | Preset names: `Default` (theme category / title color), named colors (`Red`, `Blue`, …), or `Custom` |
+| `fillColorCustom` / `textColorCustom` | Hex (`#RGB` / `#RRGGBB`) when the matching preset is `Custom` |
+
+Helpers live in `gui/node_style.*` (`ParseHexColor`, preset list, `TryResolveNodeStyleColor`, …). Geometry uses `ComputeBlockNodeWidth` / `ComputeBlockNodeHeight` in `block_placement`.
+
+**Editor:** select a block and drag the **bottom-right resize handle**, or edit `width` / `height` in Properties. Color presets (and Custom hex fields) appear in the property panel. Selected blocks keep the selection fill so they stay visible; validation outlines still override the outline color.
 
 ---
 

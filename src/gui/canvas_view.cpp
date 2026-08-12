@@ -13,6 +13,7 @@
 #include <SFML/Window/Keyboard.hpp>
 
 #include "gui/block_placement.h"
+#include "gui/node_style.h"
 #include "model/c_type.h"
 #include "model/graph_align.h"
 #include "model/graph_layout.h"
@@ -35,6 +36,12 @@ namespace Cgen
       constexpr float MinimapMargin = 10.0f;
       constexpr float MinimapContentPad = 24.0f;
       constexpr float DoubleClickSeconds = 0.35f;
+      constexpr float ResizeHandleWorldSize = 10.0f;
+
+      sf::Color ToSfColor(const Rgba8& color)
+      {
+         return sf::Color(color.red, color.green, color.blue, color.alpha);
+      }
 
       bool IsShiftHeld(void)
       {
@@ -183,6 +190,8 @@ namespace Cgen
       _wireStart.reset();
       ClearWireHoverFeedback();
       _isDraggingNode = false;
+      _isResizingNode = false;
+      _resizeNodeId = 0;
       _isPanning = false;
       _isMarquee = false;
       _dragCheckpointTaken = false;
@@ -290,8 +299,9 @@ namespace Cgen
          return;
       }
       const float zoom = _pDocument->GetViewportZoom();
+      const float nodeWidth = ComputeBlockNodeWidth(*pNode);
       const float nodeHeight = ComputeBlockNodeHeight(*pNode);
-      const float centerWorldX = pNode->posX + (BlockNodeWidth * 0.5f);
+      const float centerWorldX = pNode->posX + (nodeWidth * 0.5f);
       const float centerWorldY = pNode->posY + (nodeHeight * 0.5f);
       const float viewW = _bounds.size.x / zoom;
       const float viewH = _bounds.size.y / zoom;
@@ -320,8 +330,9 @@ namespace Cgen
          {
             continue;
          }
+         const float nodeWidth = ComputeBlockNodeWidth(*pNode);
          const float nodeHeight = ComputeBlockNodeHeight(*pNode);
-         const float nodeMaxX = pNode->posX + BlockNodeWidth;
+         const float nodeMaxX = pNode->posX + nodeWidth;
          const float nodeMaxY = pNode->posY + nodeHeight;
          if (!hasBounds)
          {
@@ -432,10 +443,15 @@ namespace Cgen
       float minY = _clipboard.nodes.front().posY;
       float maxX = minX;
       float maxY = minY;
-      float tallestHeight = BlockNodeHeight;
       for (size_t index = 0; index < _clipboard.nodes.size(); ++index)
       {
          const ClipboardNode& item = _clipboard.nodes[index];
+         Node probe = CreateNode(0, item.type, 0.0f, 0.0f);
+         probe.properties = item.properties;
+         const float itemWidth = ComputeBlockNodeWidth(probe);
+         const float itemHeight = ComputeBlockNodeHeight(probe);
+         const float itemMaxX = item.posX + itemWidth;
+         const float itemMaxY = item.posY + itemHeight;
          if (item.posX < minX)
          {
             minX = item.posX;
@@ -444,23 +460,17 @@ namespace Cgen
          {
             minY = item.posY;
          }
-         if (item.posX > maxX)
+         if (itemMaxX > maxX)
          {
-            maxX = item.posX;
+            maxX = itemMaxX;
          }
-         if (item.posY > maxY)
+         if (itemMaxY > maxY)
          {
-            maxY = item.posY;
-         }
-         const Node probe = CreateNode(0, item.type, 0.0f, 0.0f);
-         const float itemHeight = ComputeBlockNodeHeight(probe);
-         if (itemHeight > tallestHeight)
-         {
-            tallestHeight = itemHeight;
+            maxY = itemMaxY;
          }
       }
-      const float groupWidth = (maxX - minX) + BlockNodeWidth + BlockPlacementGap;
-      const float groupHeight = (maxY - minY) + tallestHeight + BlockPlacementGap;
+      const float groupWidth = (maxX - minX) + BlockPlacementGap;
+      const float groupHeight = (maxY - minY) + BlockPlacementGap;
       const float cascade = static_cast<float>(_pasteCascade);
       const float preferredOffsetX = groupWidth * cascade;
       const float preferredOffsetY = groupHeight * cascade;
@@ -566,7 +576,63 @@ namespace Cgen
    sf::FloatRect CanvasView::NodeBounds(const Node& node) const
    {
       return sf::FloatRect(sf::Vector2f(node.posX, node.posY),
-                           sf::Vector2f(BlockNodeWidth, ComputeBlockNodeHeight(node)));
+                           sf::Vector2f(ComputeBlockNodeWidth(node),
+                                        ComputeBlockNodeHeight(node)));
+   }
+
+   sf::FloatRect CanvasView::ResizeHandleWorldBounds(const Node& node) const
+   {
+      const float nodeWidth = ComputeBlockNodeWidth(node);
+      const float nodeHeight = ComputeBlockNodeHeight(node);
+      return sf::FloatRect(
+         sf::Vector2f(node.posX + nodeWidth - ResizeHandleWorldSize,
+                      node.posY + nodeHeight - ResizeHandleWorldSize),
+         sf::Vector2f(ResizeHandleWorldSize, ResizeHandleWorldSize));
+   }
+
+   bool CanvasView::HitTestResizeHandle(sf::Vector2f worldPoint,
+                                        NodeId* pOutNodeId) const
+   {
+      if ((pOutNodeId == nullptr) || (_pDocument == nullptr))
+      {
+         return false;
+      }
+
+      const NodeId primaryId = GetSelectedNodeId();
+      if (primaryId != 0)
+      {
+         const Node* pPrimary = _pDocument->FindNode(primaryId);
+         if ((pPrimary != nullptr) && (!IsNodeHiddenByCollapse(primaryId)) &&
+             ResizeHandleWorldBounds(*pPrimary).contains(worldPoint))
+         {
+            *pOutNodeId = primaryId;
+            return true;
+         }
+      }
+
+      for (size_t index = 0; index < _selectedNodeIds.size(); ++index)
+      {
+         const NodeId nodeId = _selectedNodeIds[index];
+         if (nodeId == primaryId)
+         {
+            continue;
+         }
+         if (IsNodeHiddenByCollapse(nodeId))
+         {
+            continue;
+         }
+         const Node* pNode = _pDocument->FindNode(nodeId);
+         if (pNode == nullptr)
+         {
+            continue;
+         }
+         if (ResizeHandleWorldBounds(*pNode).contains(worldPoint))
+         {
+            *pOutNodeId = nodeId;
+            return true;
+         }
+      }
+      return false;
    }
 
    sf::Vector2f CanvasView::PortWorldPosition(const Node& node, size_t portIndex) const
@@ -590,7 +656,8 @@ namespace Cgen
       {
          return sf::Vector2f(node.posX, node.posY + offsetY);
       }
-      return sf::Vector2f(node.posX + BlockNodeWidth, node.posY + offsetY);
+      return sf::Vector2f(node.posX + ComputeBlockNodeWidth(node),
+                          node.posY + offsetY);
    }
 
    bool CanvasView::HitTestPort(sf::Vector2f worldPoint, PortHit* pOutHit) const
@@ -715,8 +782,9 @@ namespace Cgen
       preferred.y = preferredScreen.y;
       const Node probe = CreateNode(0, blockType, 0.0f, 0.0f);
       const float proposedHeight = ComputeBlockNodeHeight(probe);
+      const float proposedWidth = ComputeBlockNodeWidth(probe);
       const WorldPosition world = FindFreeBlockWorldPosition(
-         preferred, _pDocument->GetNodes(), proposedHeight);
+         preferred, _pDocument->GetNodes(), proposedHeight, proposedWidth);
       const NodeId id = _pDocument->AddNode(blockType, world.x, world.y);
       SetSelectedNodeId(id);
    }
@@ -769,6 +837,8 @@ namespace Cgen
          _isPanning = true;
          _isMarquee = false;
          _isDraggingNode = false;
+         _isResizingNode = false;
+         _resizeNodeId = 0;
          _isMinimapDragging = false;
          return true;
       }
@@ -801,6 +871,21 @@ namespace Cgen
          return true;
       }
 
+      NodeId resizeId = 0;
+      if (HitTestResizeHandle(world, &resizeId))
+      {
+         if (!IsNodeSelected(resizeId))
+         {
+            SetSelectedNodeId(resizeId);
+         }
+         _isResizingNode = true;
+         _resizeNodeId = resizeId;
+         _isDraggingNode = false;
+         _dragCheckpointTaken = false;
+         _isMarquee = false;
+         return true;
+      }
+
       const NodeId hitNode = HitTestNode(world);
       if (hitNode != 0)
       {
@@ -825,6 +910,8 @@ namespace Cgen
             SetSelectedNodeId(hitNode);
          }
          _isDraggingNode = true;
+         _isResizingNode = false;
+         _resizeNodeId = 0;
          _dragCheckpointTaken = false;
          _isMarquee = false;
       }
@@ -839,6 +926,8 @@ namespace Cgen
          _marqueeStartWorld = world;
          _marqueeEndWorld = world;
          _isDraggingNode = false;
+         _isResizingNode = false;
+         _resizeNodeId = 0;
       }
       return true;
    }
@@ -890,6 +979,8 @@ namespace Cgen
             }
          }
          _isDraggingNode = false;
+         _isResizingNode = false;
+         _resizeNodeId = 0;
          _isPanning = false;
          _isMarquee = false;
          _isMinimapDragging = false;
@@ -951,6 +1042,50 @@ namespace Cgen
       if (_isMarquee)
       {
          _marqueeEndWorld = world;
+         return;
+      }
+
+      if (_isResizingNode)
+      {
+         if (!_dragCheckpointTaken)
+         {
+            PushCheckpoint();
+            _dragCheckpointTaken = true;
+         }
+         Node* pNode = _pDocument->FindNodeMutable(_resizeNodeId);
+         if (pNode == nullptr)
+         {
+            return;
+         }
+         float newWidth = world.x - pNode->posX;
+         float newHeight = world.y - pNode->posY;
+         if (newWidth < BlockNodeMinWidth)
+         {
+            newWidth = BlockNodeMinWidth;
+         }
+         if (newWidth > BlockNodeMaxWidth)
+         {
+            newWidth = BlockNodeMaxWidth;
+         }
+         const float fitted = ComputeBlockNodeFittedHeight(*pNode);
+         float minHeight = fitted;
+         if (minHeight < BlockNodeMinHeightOverride)
+         {
+            minHeight = BlockNodeMinHeightOverride;
+         }
+         if (newHeight < minHeight)
+         {
+            newHeight = minHeight;
+         }
+         if (newHeight > BlockNodeMaxHeight)
+         {
+            newHeight = BlockNodeMaxHeight;
+         }
+         pNode->properties[std::string(NodeStyleWidthKey)] =
+            FormatStyleFloat(newWidth);
+         pNode->properties[std::string(NodeStyleHeightKey)] =
+            FormatStyleFloat(newHeight);
+         _pDocument->SetDirty(true);
          return;
       }
 
@@ -1182,7 +1317,7 @@ namespace Cgen
 
       *pOutMinX = pFunction->posX;
       *pOutMinY = pFunction->posY;
-      *pOutMaxX = pFunction->posX + BlockNodeWidth;
+      *pOutMaxX = pFunction->posX + ComputeBlockNodeWidth(*pFunction);
       *pOutMaxY = pFunction->posY + ComputeBlockNodeHeight(*pFunction);
 
       std::queue<NodeId> pending;
@@ -1207,6 +1342,7 @@ namespace Cgen
          {
             continue;
          }
+         const float width = ComputeBlockNodeWidth(*pNode);
          const float height = ComputeBlockNodeHeight(*pNode);
          if (pNode->posX < *pOutMinX)
          {
@@ -1216,9 +1352,9 @@ namespace Cgen
          {
             *pOutMinY = pNode->posY;
          }
-         if ((pNode->posX + BlockNodeWidth) > *pOutMaxX)
+         if ((pNode->posX + width) > *pOutMaxX)
          {
-            *pOutMaxX = pNode->posX + BlockNodeWidth;
+            *pOutMaxX = pNode->posX + width;
          }
          if ((pNode->posY + height) > *pOutMaxY)
          {
@@ -1471,7 +1607,7 @@ namespace Cgen
          {
             minX = nodes[index].posX;
             minY = nodes[index].posY;
-            maxX = nodes[index].posX + BlockNodeWidth;
+            maxX = nodes[index].posX + ComputeBlockNodeWidth(nodes[index]);
             maxY = nodes[index].posY + ComputeBlockNodeHeight(nodes[index]);
          }
          else
@@ -1706,33 +1842,50 @@ namespace Cgen
             continue;
          }
          const sf::Vector2f topLeft = WorldToScreen(sf::Vector2f(node.posX, node.posY));
+         const float nodeWidth = ComputeBlockNodeWidth(node);
          const float nodeHeight = ComputeBlockNodeHeight(node);
          sf::RectangleShape shape;
          shape.setPosition(topLeft);
-         shape.setSize(sf::Vector2f(BlockNodeWidth * zoom, nodeHeight * zoom));
+         shape.setSize(sf::Vector2f(nodeWidth * zoom, nodeHeight * zoom));
+
+         sf::Color categoryDefaultFill = _theme.nodeFill;
+         sf::Color categoryOutline = _theme.nodeOutline;
+         float categoryOutlineThickness = 1.0f;
+         if (node.type == BlockType::FunctionDef)
+         {
+            categoryDefaultFill = _theme.nodeFunctionFill;
+            categoryOutline = _theme.nodeFunctionOutline;
+            categoryOutlineThickness = 2.0f;
+         }
+         else if (IsExpressionBlock(node.type))
+         {
+            categoryDefaultFill = _theme.nodeExpressionFill;
+            categoryOutline = _theme.nodeExpressionOutline;
+            categoryOutlineThickness = 1.0f;
+         }
+
          if (IsNodeSelected(node.id))
          {
             shape.setFillColor(_theme.nodeSelectedFill);
             shape.setOutlineColor(_theme.nodeSelectedOutline);
             shape.setOutlineThickness(2.0f);
          }
-         else if (node.type == BlockType::FunctionDef)
-         {
-            shape.setFillColor(_theme.nodeFunctionFill);
-            shape.setOutlineColor(_theme.nodeFunctionOutline);
-            shape.setOutlineThickness(2.0f);
-         }
-         else if (IsExpressionBlock(node.type))
-         {
-            shape.setFillColor(_theme.nodeExpressionFill);
-            shape.setOutlineColor(_theme.nodeExpressionOutline);
-            shape.setOutlineThickness(1.0f);
-         }
          else
          {
-            shape.setFillColor(_theme.nodeFill);
-            shape.setOutlineColor(_theme.nodeOutline);
-            shape.setOutlineThickness(1.0f);
+            shape.setOutlineColor(categoryOutline);
+            shape.setOutlineThickness(categoryOutlineThickness);
+            Rgba8 fillRgba;
+            if (TryResolveNodeStyleColor(node,
+                                         NodeStyleFillColorKey,
+                                         NodeStyleFillColorCustomKey,
+                                         &fillRgba))
+            {
+               shape.setFillColor(ToSfColor(fillRgba));
+            }
+            else
+            {
+               shape.setFillColor(categoryDefaultFill);
+            }
          }
 
          const auto severityIterator = _validationSeverity.find(node.id);
@@ -1755,8 +1908,18 @@ namespace Cgen
          }
          pTarget->draw(shape);
 
+         sf::Color titleColor = _theme.textPrimary;
+         Rgba8 textRgba;
+         if (TryResolveNodeStyleColor(node,
+                                      NodeStyleTextColorKey,
+                                      NodeStyleTextColorCustomKey,
+                                      &textRgba))
+         {
+            titleColor = ToSfColor(textRgba);
+         }
+
          sf::Text label(*_pFont, std::string(BlockTypeLabel(node.type)), 14);
-         label.setFillColor(_theme.textPrimary);
+         label.setFillColor(titleColor);
          label.setPosition(sf::Vector2f(topLeft.x + (8.0f * zoom), topLeft.y + (6.0f * zoom)));
          pTarget->draw(label);
          if (node.type == BlockType::FunctionDef)
@@ -1765,7 +1928,7 @@ namespace Cgen
             if (nameIterator != node.properties.end())
             {
                sf::Text nameLabel(*_pFont, nameIterator->second, 11);
-               nameLabel.setFillColor(_theme.functionHeaderText);
+               nameLabel.setFillColor(titleColor);
                nameLabel.setPosition(sf::Vector2f(topLeft.x + (8.0f * zoom),
                                                    topLeft.y + (22.0f * zoom)));
                pTarget->draw(nameLabel);
@@ -1865,6 +2028,18 @@ namespace Cgen
                }
                pTarget->draw(portLabel);
             }
+         }
+
+         if (IsNodeSelected(node.id))
+         {
+            const float handleSize = ResizeHandleWorldSize * zoom;
+            sf::RectangleShape resizeHandle;
+            resizeHandle.setSize(sf::Vector2f(handleSize, handleSize));
+            resizeHandle.setPosition(
+               sf::Vector2f(topLeft.x + (nodeWidth * zoom) - handleSize,
+                            topLeft.y + (nodeHeight * zoom) - handleSize));
+            resizeHandle.setFillColor(_theme.buttonActive);
+            pTarget->draw(resizeHandle);
          }
       }
 
@@ -1966,8 +2141,9 @@ namespace Cgen
       for (size_t index = 0; index < nodes.size(); ++index)
       {
          const Node& node = nodes[index];
+         const float nodeWidth = ComputeBlockNodeWidth(node);
          const float nodeHeight = ComputeBlockNodeHeight(node);
-         const float nodeMaxX = node.posX + BlockNodeWidth;
+         const float nodeMaxX = node.posX + nodeWidth;
          const float nodeMaxY = node.posY + nodeHeight;
          if (!hasBounds)
          {
@@ -2013,6 +2189,8 @@ namespace Cgen
       _isPanning = false;
       _isMarquee = false;
       _isDraggingNode = false;
+      _isResizingNode = false;
+      _resizeNodeId = 0;
       return true;
    }
 
@@ -2041,8 +2219,9 @@ namespace Cgen
       for (size_t index = 0; index < nodes.size(); ++index)
       {
          const Node& node = nodes[index];
+         const float nodeWidth = ComputeBlockNodeWidth(node);
          const float nodeHeight = ComputeBlockNodeHeight(node);
-         const float nodeMaxX = node.posX + BlockNodeWidth;
+         const float nodeMaxX = node.posX + nodeWidth;
          const float nodeMaxY = node.posY + nodeHeight;
          if (!hasBounds)
          {
@@ -2080,12 +2259,13 @@ namespace Cgen
       for (size_t index = 0; index < nodes.size(); ++index)
       {
          const Node& node = nodes[index];
+         const float nodeWidth = ComputeBlockNodeWidth(node);
          const float nodeHeight = ComputeBlockNodeHeight(node);
          sf::RectangleShape nodeShape;
          nodeShape.setPosition(sf::Vector2f(
             minimap.position.x + ((node.posX - minX) * scaleX),
             minimap.position.y + ((node.posY - minY) * scaleY)));
-         nodeShape.setSize(sf::Vector2f(std::max(2.0f, BlockNodeWidth * scaleX),
+         nodeShape.setSize(sf::Vector2f(std::max(2.0f, nodeWidth * scaleX),
                                         std::max(2.0f, nodeHeight * scaleY)));
          if (node.type == BlockType::FunctionDef)
          {

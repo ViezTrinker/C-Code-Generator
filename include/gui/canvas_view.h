@@ -296,6 +296,8 @@ namespace Cgen
       sf::Vector2f ScreenToWorld(sf::Vector2f screenPoint) const;
       sf::Vector2f WorldToScreen(sf::Vector2f worldPoint) const;
       sf::FloatRect NodeBounds(const Node& node) const;
+      sf::FloatRect ResizeHandleWorldBounds(const Node& node) const;
+      bool HitTestResizeHandle(sf::Vector2f worldPoint, NodeId* pOutNodeId) const;
       sf::Vector2f PortWorldPosition(const Node& node, size_t portIndex) const;
       bool HitTestPort(sf::Vector2f worldPoint, PortHit* pOutHit) const;
       NodeId HitTestNode(sf::Vector2f worldPoint) const;
@@ -336,9 +338,11 @@ namespace Cgen
       uint32_t _pasteCascade = 0;
       bool _isPanning = false;
       bool _isDraggingNode = false;
+      bool _isResizingNode = false;
       bool _isMarquee = false;
       bool _dragCheckpointTaken = false;
       bool _isMinimapDragging = false;
+      NodeId _resizeNodeId = 0;
       sf::Vector2f _lastScreenPoint {};
       sf::Vector2f _marqueeStartWorld {};
       sf::Vector2f _marqueeEndWorld {};

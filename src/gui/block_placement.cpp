@@ -4,6 +4,7 @@
  */
 #include "gui/block_placement.h"
 
+#include "gui/node_style.h"
 #include "model/block_type.h"
 
 namespace Cgen
@@ -41,7 +42,16 @@ namespace Cgen
       return offset;
    }
 
-   float ComputeBlockNodeHeight(const Node& node)
+   float ComputeBlockNodeWidth(const Node& node)
+   {
+      return ReadClampedFloatProperty(node,
+                                      NodeStyleWidthKey,
+                                      BlockNodeWidth,
+                                      BlockNodeMinWidth,
+                                      BlockNodeMaxWidth);
+   }
+
+   float ComputeBlockNodeFittedHeight(const Node& node)
    {
       size_t inCount = 0;
       size_t outCount = 0;
@@ -87,17 +97,38 @@ namespace Cgen
       return fitted;
    }
 
+   float ComputeBlockNodeHeight(const Node& node)
+   {
+      const float fitted = ComputeBlockNodeFittedHeight(node);
+      float customHeight = fitted;
+      if (!TryReadFloatProperty(node, NodeStyleHeightKey, &customHeight))
+      {
+         return fitted;
+      }
+      if (customHeight < fitted)
+      {
+         return fitted;
+      }
+      if (customHeight > BlockNodeMaxHeight)
+      {
+         return BlockNodeMaxHeight;
+      }
+      return customHeight;
+   }
+
    bool BlockPlacementOverlapsExisting(WorldPosition topLeft,
                                        const std::vector<Node>& nodes,
-                                       float proposedHeight)
+                                       float proposedHeight,
+                                       float proposedWidth)
    {
       const float paddedX = topLeft.x - BlockOverlapPadding;
       const float paddedY = topLeft.y - BlockOverlapPadding;
-      const float paddedWidth = BlockNodeWidth + (BlockOverlapPadding * 2.0f);
+      const float paddedWidth = proposedWidth + (BlockOverlapPadding * 2.0f);
       const float paddedHeight = proposedHeight + (BlockOverlapPadding * 2.0f);
 
       for (size_t index = 0; index < nodes.size(); ++index)
       {
+         const float existingWidth = ComputeBlockNodeWidth(nodes[index]);
          const float existingHeight = ComputeBlockNodeHeight(nodes[index]);
          if (RectsOverlap(paddedX,
                           paddedY,
@@ -105,7 +136,7 @@ namespace Cgen
                           paddedHeight,
                           nodes[index].posX,
                           nodes[index].posY,
-                          BlockNodeWidth,
+                          existingWidth,
                           existingHeight))
          {
             return true;
@@ -116,11 +147,12 @@ namespace Cgen
 
    WorldPosition FindFreeBlockWorldPosition(WorldPosition preferred,
                                             const std::vector<Node>& nodes,
-                                            float proposedHeight)
+                                            float proposedHeight,
+                                            float proposedWidth)
    {
       constexpr uint32_t MaxColumns = 10;
       constexpr uint32_t MaxRows = 10;
-      const float stepX = BlockNodeWidth + BlockPlacementGap;
+      const float stepX = proposedWidth + BlockPlacementGap;
       const float stepY = proposedHeight + BlockPlacementGap;
 
       for (uint32_t row = 0; row < MaxRows; ++row)
@@ -130,7 +162,8 @@ namespace Cgen
             WorldPosition candidate;
             candidate.x = preferred.x + (static_cast<float>(column) * stepX);
             candidate.y = preferred.y + (static_cast<float>(row) * stepY);
-            if (!BlockPlacementOverlapsExisting(candidate, nodes, proposedHeight))
+            if (!BlockPlacementOverlapsExisting(
+                   candidate, nodes, proposedHeight, proposedWidth))
             {
                return candidate;
             }

@@ -36,7 +36,8 @@ Flag-like parameters prefer enums (`ClangFormatOnGenerate::Yes` / `No`) over raw
 - Mutate the document through `GraphDocument` APIs; push `DocumentHistory` checkpoints before user edits that should undo.  
 - After changing type-related properties, call the appropriate `Sync*` helper.  
 - Keep port names stable — they are part of the `.cgen` edge schema and codegen emitters.  
-- `BlockType` string ids must remain stable for file compatibility (`BlockTypeToString` / `FromString`).
+- `BlockType` string ids must remain stable for file compatibility (`BlockTypeToString` / `FromString`).  
+- Per-block visual style uses stable property keys (`width`, `height`, `fillColor`, …); parse/resolve via `node_style` helpers (`IsNodeStylePropertyKey`, `ComputeBlockNodeWidth`, …) instead of ad-hoc parsing.
 
 ---
 
@@ -45,7 +46,7 @@ Flag-like parameters prefer enums (`ClangFormatOnGenerate::Yes` / `No`) over raw
 | Put in `cgen_core` | Put in the exe |
 | --- | --- |
 | Model, validator, codegen, serializer, autosave | SFML widgets, `App`, file dialogs |
-| Document history, block placement math | `BuildRunner`, `ProcessSession`, `cli/command_line` |
+| Document history, block placement math, **node style** helpers | `BuildRunner`, `ProcessSession`, `cli/command_line` |
 | Theme ids, tooltip text helpers | Concrete `UiTheme` colors, hover tip drawing |
 | Anything unit-tested without a window | Anything that needs a live OS process UI |
 

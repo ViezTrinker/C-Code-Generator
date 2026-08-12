@@ -626,6 +626,8 @@ namespace Cgen
          "- Drag a block from the left Blocks panel onto the canvas to place it.\n"
          "- Type in the Blocks filter to find blocks by name.\n"
          "- Drag blocks to move them. Middle-drag or Space+drag pans; left-drag empty for marquee.\n"
+         "- Select a block and drag the bottom-right handle to resize; width/height also in Properties.\n"
+         "- fillColor / textColor presets (and optional Custom hex) style the block on the canvas.\n"
          "- Drag from an output port to rewire; drop on an input replaces an existing wire.\n"
          "- Ortho toggles elbow wire routing (also Document orthogonalWires).\n"
          "- Validation issues appear live in Compiler (click to jump) and as red/yellow block outlines.\n"

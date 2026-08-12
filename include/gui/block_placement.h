@@ -39,10 +39,25 @@ namespace Cgen
    float BlockFirstPortOffsetY(const Node& node);
 
    /*!
-    *\brief Computes node body height so ports stay inside the block shape.
+    *\brief Computes node body width (custom property or default).
+    *
+    *\param[in] node Node whose optional width property is read.
+    *\return Width in world units.
+    */
+   float ComputeBlockNodeWidth(const Node& node);
+
+   /*!
+    *\brief Port-fitted minimum height ignoring custom height overrides.
     *
     *\param[in] node Node whose ports determine height.
-    *\return Height in world units (at least BlockNodeHeight).
+    */
+   float ComputeBlockNodeFittedHeight(const Node& node);
+
+   /*!
+    *\brief Computes node body height so ports stay inside the block shape.
+    *
+    *\param[in] node Node whose ports and optional height property apply.
+    *\return Height in world units (at least fitted minimum).
     */
    float ComputeBlockNodeHeight(const Node& node);
 
@@ -52,10 +67,12 @@ namespace Cgen
     *\param[in] topLeft Proposed block top-left.
     *\param[in] nodes Existing nodes on the canvas.
     *\param[in] proposedHeight Height of the block being placed.
+    *\param[in] proposedWidth Width of the block being placed.
     */
    bool BlockPlacementOverlapsExisting(WorldPosition topLeft,
                                        const std::vector<Node>& nodes,
-                                       float proposedHeight = BlockNodeHeight);
+                                       float proposedHeight = BlockNodeHeight,
+                                       float proposedWidth = BlockNodeWidth);
 
    /*!
     *\brief Finds a free top-left near preferred that does not overlap nodes.
@@ -63,11 +80,13 @@ namespace Cgen
     *\param[in] preferred Preferred top-left position.
     *\param[in] nodes Existing nodes on the canvas.
     *\param[in] proposedHeight Height of the block being placed.
+    *\param[in] proposedWidth Width of the block being placed.
     *\return Free world position (preferred if already free).
     */
    WorldPosition FindFreeBlockWorldPosition(WorldPosition preferred,
                                             const std::vector<Node>& nodes,
-                                            float proposedHeight = BlockNodeHeight);
+                                            float proposedHeight = BlockNodeHeight,
+                                            float proposedWidth = BlockNodeWidth);
 } // namespace Cgen
 
 #endif // BLOCK_PLACEMENT_H

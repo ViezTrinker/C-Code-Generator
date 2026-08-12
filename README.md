@@ -37,7 +37,7 @@ Open an example, press Generate, and you can see exactly how the graph maps to C
 
 | Area | What you get |
 | --- | --- |
-| **Editor** | Collapsible palette (drag & drop), snap/align, tidy, Ortho wires, minimap, multi-select, undo/redo, copy/paste, Light/Dark theme, caret editing |
+| **Editor** | Collapsible palette (drag & drop), resize handle, per-block fill/text color presets, snap/align, tidy, Ortho wires, minimap, multi-select, undo/redo, copy/paste, Light/Dark theme, caret editing |
 | **Typing** | Named types (`Hero`, `FILE*`, `bool`, …), live green/red wire preview, wire reconnect, property dropdowns |
 | **Functions** | Typed FunctionDef params, Call arity preview, Create Matching FunctionDef, Call↔FunctionDef validation |
 | **Types & memory** | Struct / Enum / Typedef decls, Struct Literal, Address Of, Deref Get/Set, Malloc/Free |
@@ -166,6 +166,8 @@ Short graphs that teach one IR feature.
 ## Using the editor
 
 - **Drag** blocks from the left palette onto the canvas (filter by name; Esc cancels a drag)
+- Select a block and drag the **bottom-right handle** to resize, or edit `width` / `height` in Properties
+- Style blocks with **fillColor** / **textColor** presets (use **Custom** + `*ColorCustom` hex for exact colors)
 - Wire preview turns **green/red** for type compatibility; drag an Out to **reconnect**; drop on a wired In to **replace**
 - **Ortho** (or Document `orthogonalWires`) draws elbow wires for dense graphs
 - **Validation**: live Compiler issues + red/yellow canvas outlines (click an issue to jump); Generate still writes C

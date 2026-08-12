@@ -10,7 +10,7 @@ Everything application-owned lives in the **`Cgen`** namespace.
 
 | Target | Role |
 | --- | --- |
-| **`cgen_core`** (static lib) | Graph IR, validation, codegen, `.cgen` I/O, autosave helpers, undo snapshots, block placement, theme ids, tooltip text |
+| **`cgen_core`** (static lib) | Graph IR, validation, codegen, `.cgen` I/O, autosave helpers, undo snapshots, block placement, **node style** (size/color helpers), theme ids, tooltip text |
 | **`c_code_generator`** (exe) | SFML UI, toolbar/palette/canvas, themes, CLI (`command_line`), `BuildRunner`, interactive `ProcessSession` |
 | **`cgen_unit_tests`** (optional) | GoogleTest against `cgen_core` |
 
@@ -90,14 +90,14 @@ GUI Generate still writes C when there are validation/codegen diagnostics (issue
 
 | Region | Component |
 | --- | --- |
-| Top | `Toolbar` (file, Generate, Build, Run, layout, Ortho, Theme, Help) |
+| Top | `Toolbar` (file, Generate, Build, Run, layout, Ortho, Theme, About, Help) |
 | Left | `Palette` (drag blocks onto the canvas) |
-| Center | `CanvasView` (graph, validation badges, wire reconnect, optional orthogonal wires) |
-| Right | `PropertyPanel` (node / Document fields; caret editing) |
+| Center | `CanvasView` (graph, resize handle, per-block colors, validation badges, wire reconnect, optional orthogonal wires) |
+| Right | `PropertyPanel` (node / Document / style fields; caret editing) |
 | Bottom | `LogPane` Program Output (stdin caret) \| Compiler (live issues / build log) |
-| Overlay | Generated C view / Help (`LogPane`); palette drag ghost; context menu |
+| Overlay | Generated C / Help / About (`LogPane`); palette drag ghost; context menu |
 
-Selection flows: canvas → `SyncSelectionUi` → property panel + **request live validation**. Undo uses `DocumentHistory` (`GraphSnapshot`, depth 64). Theme preference is stored under `%LOCALAPPDATA%\GraphicalCCodeGenerator\`.
+Selection flows: canvas → `SyncSelectionUi` → property panel + **request live validation**. Undo uses `DocumentHistory` (`GraphSnapshot`, depth 64). Theme preference is stored under `%LOCALAPPDATA%\GraphicalCCodeGenerator\`. UI **Theme** (chrome) is separate from per-block `fillColor` / `textColor` presets.
 
 ---
 

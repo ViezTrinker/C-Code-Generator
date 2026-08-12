@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "codegen/c_codegen.h"
+#include "gui/block_placement.h"
+#include "gui/node_style.h"
 #include "model/block_type.h"
 
 namespace Cgen
@@ -39,7 +41,8 @@ namespace Cgen
 
       bool ShouldHidePropertyKey(std::string_view key)
       {
-         return (key == "collapsed") || (key == "params");
+         return (key == "collapsed") || (key == "params") ||
+                IsNodeStylePropertyKey(key);
       }
 
       void AppendUniqueChoice(std::vector<std::string>* pOut, std::string_view value)
@@ -56,6 +59,35 @@ namespace Cgen
             }
          }
          pOut->push_back(std::string(value));
+      }
+
+      void AppendNodeColorPresetChoices(std::vector<std::string>* pOut)
+      {
+         if (pOut == nullptr)
+         {
+            return;
+         }
+         const size_t count = NodeColorPresetCount();
+         for (size_t index = 0; index < count; ++index)
+         {
+            AppendUniqueChoice(pOut, NodeColorPresetName(index));
+         }
+      }
+
+      std::string ReadPropertyOrDefault(const Node& node,
+                                        std::string_view key,
+                                        std::string_view defaultValue)
+      {
+         const auto found = node.properties.find(std::string(key));
+         if (found == node.properties.end())
+         {
+            return std::string(defaultValue);
+         }
+         if (found->second.empty())
+         {
+            return std::string(defaultValue);
+         }
+         return found->second;
       }
 
       void AppendParamCountChoices(std::vector<std::string>* pOut)
@@ -419,6 +451,14 @@ namespace Cgen
          AppendUniqueChoice(&pField->choices, pField->value);
          return;
       }
+      if ((pField->key == NodeStyleFillColorKey) ||
+          (pField->key == NodeStyleTextColorKey))
+      {
+         pField->editKind = FieldEditKind::Choice;
+         AppendNodeColorPresetChoices(&pField->choices);
+         AppendUniqueChoice(&pField->choices, pField->value);
+         return;
+      }
    }
 
    float PropertyPanel::FieldsStartY(void) const
@@ -609,6 +649,9 @@ namespace Cgen
       }
 
       RebuildHelpLines(BlockTypeHelpText(pNode->type));
+      _helpLines.push_back(
+         "Style: drag the SE corner to resize, or set width/height. "
+         "fillColor/textColor use presets; *Custom hex when Custom.");
       RebuildPreviewLines(GenerateCSnippet(*_pDocument, _selectedNodeId));
 
       std::vector<std::string> propertyKeys;
@@ -638,6 +681,14 @@ namespace Cgen
             }
          }
       }
+
+      propertyKeys.push_back(std::string(NodeStyleWidthKey));
+      propertyKeys.push_back(std::string(NodeStyleHeightKey));
+      propertyKeys.push_back(std::string(NodeStyleFillColorKey));
+      propertyKeys.push_back(std::string(NodeStyleFillColorCustomKey));
+      propertyKeys.push_back(std::string(NodeStyleTextColorKey));
+      propertyKeys.push_back(std::string(NodeStyleTextColorCustomKey));
+
       if (pNode->properties.find("comment") != pNode->properties.end())
       {
          propertyKeys.push_back("comment");
@@ -646,14 +697,50 @@ namespace Cgen
       float cursorY = FieldsStartY();
       for (size_t index = 0; index < propertyKeys.size(); ++index)
       {
-         const auto found = pNode->properties.find(propertyKeys[index]);
-         if (found == pNode->properties.end())
-         {
-            continue;
-         }
+         const std::string& key = propertyKeys[index];
          Field field;
-         field.key = found->first;
-         field.value = found->second;
+         field.key = key;
+         if (IsNodeStylePropertyKey(key))
+         {
+            if ((key == NodeStyleFillColorKey) || (key == NodeStyleTextColorKey))
+            {
+               field.value =
+                  ReadPropertyOrDefault(*pNode, key, NodeStyleColorDefault);
+            }
+            else if ((key == NodeStyleWidthKey) || (key == NodeStyleHeightKey))
+            {
+               const auto found = pNode->properties.find(key);
+               if (found != pNode->properties.end())
+               {
+                  field.value = found->second;
+               }
+               else
+               {
+                  field.value.clear();
+               }
+            }
+            else
+            {
+               const auto found = pNode->properties.find(key);
+               if (found != pNode->properties.end())
+               {
+                  field.value = found->second;
+               }
+               else
+               {
+                  field.value.clear();
+               }
+            }
+         }
+         else
+         {
+            const auto found = pNode->properties.find(key);
+            if (found == pNode->properties.end())
+            {
+               continue;
+            }
+            field.value = found->second;
+         }
          FillChoicesForField(&field, pNode->type);
          field.bounds =
             sf::FloatRect(sf::Vector2f(_bounds.position.x + 8.0f, cursorY + 16.0f),

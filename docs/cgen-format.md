@@ -38,13 +38,21 @@ Each node object includes at least:
 | `id` | `NodeId` |
 | `type` | Stable string from `BlockTypeToString` (e.g. `"For"`, `"DerefLoad"`) |
 | `posX`, `posY` | Canvas position |
-| `properties` | String map (block-specific keys plus shared `comment`) |
+| `properties` | String map (block-specific keys plus shared `comment` and optional visual style keys) |
 
 Common / shared property keys:
 
 | Key | Meaning |
 | --- | --- |
 | `comment` | Optional annotation; empty → omitted from generated C; non-empty → `/* … */` |
+| `width` | Optional body width override (float string). Missing/empty → default `140` |
+| `height` | Optional body height override (float string). Effective height is at least the port-fitted minimum |
+| `fillColor` | Fill preset name: `Default`, named colors, or `Custom` |
+| `textColor` | Title text preset name (same set as `fillColor`) |
+| `fillColorCustom` | `#RGB` / `#RRGGBB` used when `fillColor` is `Custom` |
+| `textColorCustom` | `#RGB` / `#RRGGBB` used when `textColor` is `Custom` |
+
+Style keys are presentation-only (ignored by codegen). Older files without them load with theme defaults; the open-ended `properties` map round-trips any present keys.
 
 Ports may be written for round-trips; on load, ports are reconciled via `CreateNode` defaults + `SyncAllNodePorts` so property-driven types stay consistent and missing `comment` keys are backfilled to `""`.
 

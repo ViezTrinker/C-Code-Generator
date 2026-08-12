@@ -28,6 +28,7 @@ set(CGEN_CORE_HEADERS
    include/gui/block_placement.h
    include/gui/hover_tooltip_text.h
    include/gui/http_url.h
+   include/gui/node_style.h
    include/gui/toolbar_action.h
    include/gui/ui_theme_id.h
 )
@@ -47,6 +48,7 @@ set(CGEN_CORE_SOURCES
    src/gui/block_placement.cpp
    src/gui/hover_tooltip_text.cpp
    src/gui/http_url.cpp
+   src/gui/node_style.cpp
    src/gui/ui_theme_id.cpp
 )
 
